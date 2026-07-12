@@ -1,0 +1,28 @@
+{
+  "name": "@orgname/admin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev":        "next dev -p 3012",
+    "build":      "next build",
+    "start":      "next start",
+    "seed:admin": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-admin.ts"
+  },
+  "dependencies": {
+    "@orgname/notify": "workspace:*",
+    "@vercel/blob": "^0.27.0",
+    "next":          "^14.2.0",
+    "pg":            "^8.11.0",
+    "react":         "^18.3.0",
+    "react-dom":     "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node":      "^20.0.0",
+    "@types/pg":         "^8.11.0",
+    "@types/react":      "^18.3.0",
+    "@types/react-dom":  "^18.3.0",
+    "dotenv":            "^16.0.0",
+    "ts-node":           "^10.9.0",
+    "typescript":        "^5.4.0"
+  }
+}

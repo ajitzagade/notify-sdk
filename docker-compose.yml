@@ -1,0 +1,22 @@
+name: notify-sdk
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: notify-sdk-postgres
+    environment:
+      POSTGRES_USER: notify
+      POSTGRES_PASSWORD: notify
+      POSTGRES_DB: notify_sdk
+    ports:
+      - "5434:5432"
+    volumes:
+      - notify_sdk_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notify -d notify_sdk"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  notify_sdk_postgres_data:
