@@ -12,6 +12,7 @@ Started as a single-tenant Node SDK (`packages/notify`); the SDK is still the co
 | `apps/admin` | **Internal ops panel.** Onboard tenants, manage WhatsApp credentials, branding, templates, contacts/campaigns, API keys, audit log. This is where a business gets set up. |
 | `apps/api` | Express app exposing both a single-tenant `/demo/*` reference (uses one hardcoded `.env` credential set) and the multi-tenant `/v1/*` REST API (API-key-authenticated, serves every onboarded tenant). |
 | `apps/web` | Next.js reference app showing `@orgname/notify/react` hooks (`useNotify`, `useOptIn`, `useBulkSend`) wired to Next.js API routes. Untouched single-tenant demo — a pattern to copy, not something a tenant talks to directly. |
+| `packages/mcp-server` | MCP (Model Context Protocol) server exposing a tenant's `/v1` API to Claude Desktop, Cursor, and other MCP-compatible AI assistants. Read-only by default; write tools are opt-in. See [its README](packages/mcp-server/README.md). |
 
 ## Scenarios this platform covers
 
@@ -46,6 +47,14 @@ Started as a single-tenant Node SDK (`packages/notify`); the SDK is still the co
 - Every tenant's access tokens are encrypted at rest (AES-256-GCM, per-tenant derived keys) with a documented root-key rotation flow
 - Complete data isolation — one tenant's message log, contacts, templates, and credentials are never reachable from another tenant's context, enforced at the storage layer, not just the UI
 - Audit log of who changed what and when
+- Live analytics — sent/delivered/read/failed/reply rollups and per-campaign performance, computed on every request, never a cached snapshot
+
+**AI & automation**
+- Per-tenant AI reply assistant (bring your own OpenAI/Anthropic key) that auto-answers inbound messages, capped per conversation, with a deterministic handoff to a human when it can't help
+- Outbound event webhooks — push send/delivery/reply events to a tenant's own systems, HMAC-signed and SSRF-guarded
+- A shared inbox for support agents: merged message history per contact, assignment, status, reply — all through the same send path as everything else
+- Contact tags for segmentation, with tag-merge-on-import vs. explicit-replace-on-edit semantics
+- An MCP server so Claude, Cursor, and other AI assistants can read a tenant's message history (and, opt-in, send messages) the same way any other integration would
 
 ## How other apps integrate
 
@@ -96,6 +105,10 @@ await notify.send({ to: '919876543210', template: 'text', text: 'Hello!' });
 ```
 
 This is the right choice if you're adding a new app to this monorepo (like `apps/api`/`apps/web` do) or running your own single-tenant deployment with your own Meta credentials. For multi-tenant hosting (serving many businesses' credentials from one process), use `TenantClientRegistry` — see [Multi-tenant hosting](packages/notify/README.md#multi-tenant-hosting) in the SDK README.
+
+### 3. MCP server (for AI assistants)
+
+For letting Claude Desktop, Cursor, or another MCP-compatible assistant read a tenant's message history or send messages on its behalf — same tenant API key as option 1, no new credentials. See [`packages/mcp-server`](packages/mcp-server/README.md) for setup.
 
 ## Getting started locally
 
@@ -173,6 +186,16 @@ pnpm dev
 cd packages/notify
 pnpm test
 ```
+
+### 9. Run the MCP server (optional)
+
+```bash
+cd packages/mcp-server
+pnpm build
+NOTIFY_API_KEY=nsk_... node dist/index.js   # same tenant API key as step 6
+```
+
+See [`packages/mcp-server/README.md`](packages/mcp-server/README.md) for env vars and an example MCP client config.
 
 ## Note: real messages require real Meta credentials
 

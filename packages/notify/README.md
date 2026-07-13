@@ -379,6 +379,23 @@ await client.send({ to: '919876543210', template: 'text', text: 'Hello!' });
 registry.invalidate(tenantId);
 ```
 
+Any feature that needs to react to a tenant's send/delivery/reply events (analytics, outbound webhooks, an AI auto-reply, a CRM sync — anything) should hook in via `onClientReady`, rather than editing `NotifyClient`/`WebhookHandler` themselves:
+
+```ts
+const registry = new TenantClientRegistry({
+  pool,
+  credentialsProvider,
+  onClientReady: (client, tenantId) => {
+    // Fires once per built client, before it's cached — safe to attach
+    // listeners here without guarding against double-registration.
+    client.eventBus.on('reply', (reply) => { /* ... */ });
+    client.eventBus.on('sent', (event) => { /* ... */ });
+  },
+});
+```
+
+Keep every listener's own side effects wrapped in try/catch — a slow or failing listener (an LLM call, a webhook delivery) must never affect the caller of `send()`, or the webhook route's response to Meta.
+
 ### Credential encryption
 
 `CredentialCipher` gives real per-tenant key separation from a single root key via HKDF — no per-tenant key storage, no KMS dependency:
@@ -418,7 +435,7 @@ Signature verification fails **closed**: a missing or invalid signature is alway
 | Adapter | Use case | Setup |
 |---|---|---|
 | `InMemoryAdapter` | Dev / testing | No setup |
-| `PostgresAdapter` | Production, single- or multi-tenant | Run `migrations/*.sql` in order (001 is the original single-tenant schema; 002+ add tenants, credentials, media, templates, contacts/campaigns, API keys, and audit log — see [Multi-tenant hosting](#multi-tenant-hosting)) |
+| `PostgresAdapter` | Production, single- or multi-tenant | Run `migrations/*.sql` in order (001 is the original single-tenant schema; 002+ add tenants, credentials, media, templates, contacts/campaigns, API keys, audit log, AI config, outbound webhooks, conversations, and contact tags — see [Multi-tenant hosting](#multi-tenant-hosting) and the table below) |
 
 ## Queue adapters
 
@@ -454,20 +471,24 @@ packages/notify/
 │   │   ├── queue/                   InlineQueueAdapter, BullQueueAdapter
 │   │   └── storage/
 │   │       ├── InMemoryAdapter.ts, PostgresAdapter.ts (tenant-scoped)
-│   │       └── migrations/          001 (base) → 009 (audit log) — see table below
-│   ├── tenant/TenantClientRegistry.ts  Multi-tenant client resolution + caching
+│   │       └── migrations/          001 (base) → 017 (contact tags) — see table below
+│   ├── tenant/TenantClientRegistry.ts  Multi-tenant client resolution + caching; onClientReady extension point
 │   ├── security/
 │   │   ├── CredentialCipher.ts      Per-tenant encryption, key rotation
 │   │   ├── PasswordHash.ts          scrypt-based (also reused for API key hashing)
-│   │   └── SessionCookie.ts         Signed+encrypted admin session cookies
+│   │   ├── SessionCookie.ts         Signed+encrypted admin session cookies
+│   │   └── SsrfGuard.ts             isDeliverableUrl() — guards outbound webhook delivery
 │   ├── bulk/BulkSender.ts           Bulk + BroadcastList
 │   ├── webhook/
 │   │   ├── WebhookHandler.ts        Express / Fastify / Next.js (single-tenant)
 │   │   ├── TenantWebhookRouter.ts   Multi-tenant webhook routing by phone_number_id
-│   │   └── signature.ts             Shared, fail-closed HMAC verification
+│   │   ├── signature.ts             Shared, fail-closed HMAC verification (inbound + signOutboundWebhookPayload for outbound)
+│   │   └── OutboundWebhookDispatcher.ts  deliverSignedWebhook() — SSRF-checked, signed, never throws
+│   ├── core/extractBodyPreview.ts   Pulls human-readable preview text from a built payload
 │   ├── http/WhatsAppHttpClient.ts   Meta API wrapper — messages, media upload, template listing
 │   └── react/index.tsx              NotifyProvider, useNotify, useOptIn, useBulkSend
-└── tests/NotifyClient.test.ts
+└── tests/                            NotifyClient.test.ts, SsrfGuard.test.ts, OutboundWebhookDispatcher.test.ts,
+                                       signOutboundWebhookPayload.test.ts, extractBodyPreview.test.ts
 ```
 
 ### Migrations
@@ -483,5 +504,13 @@ packages/notify/
 | `007_contacts_lists_campaigns.sql` | `contacts`, `broadcast_lists`, `broadcast_list_members`, `campaigns` |
 | `008_tenant_api_keys.sql` | `tenant_api_keys` (hashed, prefix-indexed) |
 | `009_admin_audit_log.sql` | `admin_audit_log` |
+| `010_message_replies.sql` | `message_replies` (persisted inbound replies, queryable independent of the event bus) |
+| `011_campaigns_broadcast_id.sql` | `campaigns.broadcast_id` |
+| `012_campaigns_header_media.sql` | `campaigns.header_media_type`/`header_media_url` |
+| `013_ai_configs.sql` | `ai_configs` (per-tenant BYO AI provider config) + `notify_preferences.ai_reply_count`/`ai_autoreply_disabled`/`ai_handoff_summary` + `claim_ai_reply_slot()` |
+| `014_webhook_endpoints.sql` | `webhook_endpoints` (per-tenant outbound event webhook config) |
+| `015_notify_log_body_preview.sql` | `notify_log.body_preview` |
+| `016_conversations.sql` | `conversations` (`UNIQUE(tenant_id, contact_phone)` from creation) |
+| `017_contacts_tags.sql` | `contacts.tags` (`TEXT[]`, GIN-indexed) |
 
 Run them in order against a fresh database; each is additive and idempotent (`CREATE TABLE IF NOT EXISTS`, etc.).
