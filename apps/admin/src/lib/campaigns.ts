@@ -1,5 +1,7 @@
 import { getPool } from './db';
 
+export type HeaderMediaType = 'image' | 'video' | 'document';
+
 export interface CampaignRecord {
   id: string;
   tenantId: string;
@@ -8,8 +10,11 @@ export interface CampaignRecord {
   hsmTemplateName: string;
   hsmLanguage: string;
   hsmParams: string[];
+  headerMediaType: HeaderMediaType | null;
+  headerMediaUrl: string | null;
   status: 'draft' | 'running' | 'completed' | 'failed';
   stats: Record<string, unknown> | null;
+  broadcastId: string | null;
   createdAt: string;
   completedAt: string | null;
 }
@@ -23,8 +28,11 @@ function rowToCampaign(row: Record<string, unknown>): CampaignRecord {
     hsmTemplateName:  row.hsm_template_name as string,
     hsmLanguage:      row.hsm_language as string,
     hsmParams:        (row.hsm_params as string[]) ?? [],
+    headerMediaType:  row.header_media_type as HeaderMediaType | null,
+    headerMediaUrl:   row.header_media_url as string | null,
     status:           row.status as CampaignRecord['status'],
     stats:            row.stats as Record<string, unknown> | null,
+    broadcastId:      row.broadcast_id as string | null,
     createdAt:        row.created_at as string,
     completedAt:      row.completed_at as string | null,
   };
@@ -53,14 +61,17 @@ export async function createCampaign(input: {
   hsmTemplateName: string;
   hsmLanguage: string;
   hsmParams: string[];
+  headerMediaType?: HeaderMediaType | null;
+  headerMediaUrl?: string | null;
   createdByAdminId: string;
 }): Promise<CampaignRecord> {
   const { rows } = await getPool().query(
-    `INSERT INTO campaigns (tenant_id, name, broadcast_list_id, hsm_template_name, hsm_language, hsm_params, created_by_admin_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    `INSERT INTO campaigns (tenant_id, name, broadcast_list_id, hsm_template_name, hsm_language, hsm_params, header_media_type, header_media_url, created_by_admin_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
     [
       input.tenantId, input.name, input.broadcastListId,
       input.hsmTemplateName, input.hsmLanguage, JSON.stringify(input.hsmParams),
+      input.headerMediaType ?? null, input.headerMediaUrl ?? null,
       input.createdByAdminId,
     ]
   );
@@ -76,8 +87,9 @@ export async function completeCampaign(
   status: 'completed' | 'failed',
   stats: Record<string, unknown>
 ): Promise<void> {
+  const broadcastId = typeof stats.broadcastId === 'string' ? stats.broadcastId : null;
   await getPool().query(
-    `UPDATE campaigns SET status = $1, stats = $2, completed_at = NOW() WHERE id = $3`,
-    [status, JSON.stringify(stats), campaignId]
+    `UPDATE campaigns SET status = $1, stats = $2, broadcast_id = $3, completed_at = NOW() WHERE id = $4`,
+    [status, JSON.stringify(stats), broadcastId, campaignId]
   );
 }

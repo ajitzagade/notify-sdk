@@ -27,11 +27,38 @@ export interface TenantClientRegistryOptions {
   /** How long a cached client is trusted before re-resolving credentials. Default: 5 min */
   ttlMs?: number;
   logger?: NotifyLogger;
+  /**
+   * Called once, right after a tenant's client is constructed (before it's
+   * cached) — the intended place for a caller to attach its own
+   * `client.eventBus.on(...)` listeners (AI auto-reply, outbound webhooks,
+   * etc.) without touching WebhookHandler.ts or this registry's own logic.
+   * Firing exactly once per built client (not per getClient() call) means
+   * callers never need to guard against attaching duplicate listeners.
+   */
+  onClientReady?: (client: NotifyClient, tenantId: string) => void;
 }
 
 interface CacheEntry {
   client: NotifyClient;
   expiresAt: number;
+}
+
+/**
+ * A single process may hold many tenants' clients at once, all logging
+ * through the same sink (console, or a shared logger passed to the
+ * registry) — without a tenant tag, "[Notify] Sent otp → 91987..." from
+ * tenant A is indistinguishable from tenant B's identical line. Every
+ * cached client gets its own wrapper that tags its own tenant.
+ */
+function tenantScopedLogger(tenantId: string, base?: NotifyLogger): NotifyLogger {
+  const target = base ?? console;
+  const tag = (msg: string) => `[tenant:${tenantId}] ${msg}`;
+  return {
+    info:  (msg, meta) => target.info(tag(msg), meta),
+    warn:  (msg, meta) => target.warn(tag(msg), meta),
+    error: (msg, meta) => target.error(tag(msg), meta),
+    debug: (msg, meta) => target.debug(tag(msg), meta),
+  };
 }
 
 /**
@@ -81,8 +108,10 @@ export class TenantClientRegistry {
       storage,
       queue,
       defaults: this.options.defaults,
-      logger:   this.options.logger,
+      logger:   tenantScopedLogger(tenantId, this.options.logger),
     });
+
+    this.options.onClientReady?.(client, tenantId);
 
     const ttlMs = this.options.ttlMs ?? 5 * 60 * 1000;
     this.cache.set(tenantId, { client, expiresAt: Date.now() + ttlMs });

@@ -2,7 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertTriangle, Check, Copy, AlertCircle, KeyRound } from 'lucide-react';
 import type { ApiKeyRecord } from '@/lib/apiKeys';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { toast } from '@/lib/toast';
 
 export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys: ApiKeyRecord[] }) {
   const router = useRouter();
@@ -29,9 +40,12 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
       if (!res.ok) throw new Error(data.error ?? 'Failed to create key');
       setNewKey(data.fullKey);
       setLabel('');
+      toast.success('New API key created — copy it now, it won’t be shown again');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setCreating(false);
     }
@@ -44,9 +58,12 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
       const res = await fetch(`/api/tenants/${tenantId}/api-keys/${keyId}/revoke`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to revoke key');
+      toast.success('API key revoked');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setRevokingId(null);
     }
@@ -56,80 +73,114 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
     if (!newKey) return;
     await navigator.clipboard.writeText(newKey);
     setCopied(true);
+    toast.success('Key copied to clipboard');
   };
 
   return (
-    <section style={{ padding: 20, border: '1px solid #eee', borderRadius: 8, marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>API keys</h2>
-      <p style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>
-        For this tenant&apos;s own backend to send messages programmatically via <code>POST /v1/send</code>.
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle>API keys</CardTitle>
+        <CardDescription>
+          For this tenant&apos;s own backend to send messages programmatically via <code>POST /v1/send</code>.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <form onSubmit={handleCreate} className="flex gap-2">
+          <Input
+            placeholder="Label (optional, e.g. production backend)"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={creating}>
+            {creating ? 'Creating…' : 'New key'}
+          </Button>
+        </form>
 
-      <form onSubmit={handleCreate} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input
-          placeholder="Label (optional, e.g. production backend)"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          style={{ flex: 1, padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }}
-        />
-        <button
-          type="submit"
-          disabled={creating}
-          style={{ padding: '8px 16px', fontSize: 14, border: 'none', borderRadius: 6, cursor: 'pointer', background: '#111', color: '#fff' }}
-        >
-          {creating ? 'Creating…' : 'New key'}
-        </button>
-      </form>
+        {newKey && (
+          <Alert className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+            <AlertTriangle />
+            <AlertDescription className="text-amber-700 dark:text-amber-400">
+              <p className="mb-2">Copy this now — it won&apos;t be shown again.</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 rounded-md bg-background px-2 py-1 text-xs break-all text-foreground">{newKey}</code>
+                <Button type="button" variant="outline" size="sm" onClick={copyKey}>
+                  {copied ? <Check /> : <Copy />}
+                  {copied ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {newKey && (
-        <div style={{ marginBottom: 16, padding: 12, background: '#fffbe6', border: '1px solid #f0d060', borderRadius: 6 }}>
-          <div style={{ fontSize: 12, color: '#7a5c00', marginBottom: 6 }}>
-            Copy this now — it won&apos;t be shown again.
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <code style={{ flex: 1, fontSize: 13, wordBreak: 'break-all', background: '#fff', padding: '6px 8px', borderRadius: 4 }}>{newKey}</code>
-            <button
-              type="button"
-              onClick={copyKey}
-              style={{ padding: '6px 12px', fontSize: 12, border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', background: '#fff' }}
-            >
-              {copied ? 'Copied' : 'Copy'}
-            </button>
-          </div>
-        </div>
-      )}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {error && <div style={{ fontSize: 13, color: '#c00', marginBottom: 12 }}>{error}</div>}
-
-      {apiKeys.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#999' }}>No API keys yet.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {apiKeys.map((k) => (
-            <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', border: '1px solid #f0f0f0', borderRadius: 6, fontSize: 13 }}>
-              <code>nsk_{k.keyPrefix}…</code>
-              <span style={{ color: '#999' }}>{k.label ?? 'unlabeled'}</span>
-              <span style={{ color: '#999', fontSize: 12 }}>
-                {k.lastUsedAt ? `last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : 'never used'}
-              </span>
-              <span style={{ marginLeft: 'auto' }}>
-                {k.revokedAt ? (
-                  <span style={{ color: '#c00', fontSize: 12 }}>revoked</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleRevoke(k.id)}
-                    disabled={revokingId === k.id}
-                    style={{ padding: '4px 10px', fontSize: 12, border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', background: '#fff' }}
-                  >
-                    {revokingId === k.id ? 'Revoking…' : 'Revoke'}
-                  </button>
-                )}
-              </span>
+        {apiKeys.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <div className="flex size-11 items-center justify-center rounded-full bg-muted">
+              <KeyRound className="size-5 text-muted-foreground" />
             </div>
-          ))}
-        </div>
-      )}
-    </section>
+            <div>
+              <p className="text-sm font-medium">No API keys yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">Create one above so this tenant&apos;s backend can call the API directly.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Key</TableHead>
+                  <TableHead>Label</TableHead>
+                  <TableHead>Last used</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {apiKeys.map((k) => (
+                  <TableRow key={k.id}>
+                    <TableCell><code>nsk_{k.keyPrefix}…</code></TableCell>
+                    <TableCell className="text-muted-foreground">{k.label ?? 'unlabeled'}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : 'never used'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {k.revokedAt ? (
+                        <span className="text-xs text-destructive">revoked</span>
+                      ) : (
+                        <AlertDialog>
+                          <AlertDialogTrigger render={<Button variant="outline" size="sm" disabled={revokingId === k.id} />}>
+                            {revokingId === k.id ? 'Revoking…' : 'Revoke'}
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Revoke this API key?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Any backend using <code>nsk_{k.keyPrefix}…</code> will immediately start getting 401s. This can&apos;t be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction variant="destructive" onClick={() => handleRevoke(k.id)}>
+                                Revoke key
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

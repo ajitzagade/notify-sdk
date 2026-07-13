@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { HsmComponent } from '@orgname/notify';
 import { withAdminSession } from '@/lib/auth';
 import { getTenant, getCredentialStatus } from '@/lib/tenants';
-import { getCampaign, markCampaignRunning, completeCampaign } from '@/lib/campaigns';
+import { getCampaign, markCampaignRunning, completeCampaign, type CampaignRecord } from '@/lib/campaigns';
 import { getListPhones } from '@/lib/broadcastLists';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
+
+/** Fills the template's media HEADER component, if the campaign has one attached. */
+function buildHeaderComponent(campaign: CampaignRecord): HsmComponent | null {
+  const { headerMediaType: type, headerMediaUrl: link } = campaign;
+  if (!type || !link) return null;
+  switch (type) {
+    case 'image':    return { type: 'header', parameters: [{ type: 'image', image: { link } }] };
+    case 'video':    return { type: 'header', parameters: [{ type: 'video', video: { link } }] };
+    case 'document': return { type: 'header', parameters: [{ type: 'document', document: { link } }] };
+    default:         return null;
+  }
+}
 
 /**
  * Runs synchronously (no background job queue — reasonable for an internal
@@ -34,16 +47,21 @@ export const POST = withAdminSession(
     await markCampaignRunning(campaign.id);
 
     try {
+      const components: HsmComponent[] = [];
+      const headerComponent = buildHeaderComponent(campaign);
+      if (headerComponent) components.push(headerComponent);
+      if (campaign.hsmParams.length) {
+        components.push({ type: 'body', parameters: campaign.hsmParams.map((v) => ({ type: 'text' as const, text: v })) });
+      }
+
       const client = await getTenantRegistry().getClient(tenant.id);
       const result = await client.sendBulk({
         recipients: phones,
         template:   'text',
         hsmTemplate: {
-          name:     campaign.hsmTemplateName,
-          language: campaign.hsmLanguage,
-          components: campaign.hsmParams.length
-            ? [{ type: 'body', parameters: campaign.hsmParams.map((v) => ({ type: 'text' as const, text: v })) }]
-            : undefined,
+          name:       campaign.hsmTemplateName,
+          language:   campaign.hsmLanguage,
+          components: components.length ? components : undefined,
         },
         batchSize:             50,
         delayBetweenBatchesMs: 1000,

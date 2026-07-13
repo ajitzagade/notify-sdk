@@ -2,6 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from '@/lib/toast';
 
 function slugify(name: string): string {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -9,6 +19,7 @@ function slugify(name: string): string {
 
 export function NewTenantForm() {
   const router = useRouter();
+  const [open, setOpen]   = useState(false);
   const [name, setName]   = useState('');
   const [slug, setSlug]   = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -27,48 +38,64 @@ export function NewTenantForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to create tenant');
+      setOpen(false);
+      toast.success(`"${name}" is ready — add branding and WhatsApp credentials next`, 'Tenant created');
       router.push(`/tenants/${data.tenant.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: 16, border: '1px solid #eee', borderRadius: 8 }}
-    >
-      <label style={{ flex: 1 }}>
-        <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Business name</span>
-        <input
-          required
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            if (!slugTouched) setSlug(slugify(e.target.value));
-          }}
-          style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }}
-        />
-      </label>
-      <label style={{ flex: 1 }}>
-        <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Slug</span>
-        <input
-          required
-          value={slug}
-          onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); }}
-          style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }}
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={loading}
-        style={{ padding: '8px 16px', fontSize: 14, border: 'none', borderRadius: 6, cursor: 'pointer', background: '#111', color: '#fff' }}
-      >
-        {loading ? 'Creating…' : 'New tenant'}
-      </button>
-      {error && <div style={{ fontSize: 12, color: '#c00' }}>{error}</div>}
-    </form>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button><Plus />New tenant</Button>} />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New tenant</DialogTitle>
+          <DialogDescription>Onboard a new business. You&apos;ll add branding and WhatsApp credentials next.</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Business name</Label>
+            <Input
+              id="name"
+              required
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (!slugTouched) setSlug(slugify(e.target.value));
+              }}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="slug">Slug</Label>
+            <Input
+              id="slug"
+              required
+              value={slug}
+              onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); }}
+            />
+          </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Creating…' : 'Create tenant'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

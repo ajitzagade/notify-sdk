@@ -1,50 +1,135 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { Megaphone, Inbox, Users } from 'lucide-react';
 import { requireAdminSessionOrRedirect } from '@/lib/auth';
 import { getTenant, getCredentialStatus } from '@/lib/tenants';
 import { listMediaAssets } from '@/lib/media';
 import { listTemplates } from '@/lib/templates';
 import { listApiKeys } from '@/lib/apiKeys';
+import { listAuditLog } from '@/lib/auditLog';
+import { getAiConfigStatus } from '@/lib/aiConfig';
+import { listWebhookEndpoints } from '@/lib/webhookEndpoints';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { BrandingForm } from './BrandingForm';
 import { CredentialsForm } from './CredentialsForm';
 import { TemplatesPanel } from './TemplatesPanel';
 import { TestSendForm } from './TestSendForm';
 import { ApiKeysPanel } from './ApiKeysPanel';
+import { AuditLogPanel } from './AuditLogPanel';
+import { AnalyticsPanel } from './AnalyticsPanel';
+import { AiAssistantPanel } from './AiAssistantPanel';
+import { WebhooksPanel } from './WebhooksPanel';
+
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
+  active:    'default',
+  suspended: 'secondary',
+  archived:  'outline',
+};
 
 export default async function TenantDetailPage({ params }: { params: { id: string } }) {
   requireAdminSessionOrRedirect();
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
-  const [credentials, mediaAssets, templates, apiKeys] = await Promise.all([
+  const [credentials, mediaAssets, templates, apiKeys, auditEntries, aiStatus, webhookEndpoints] = await Promise.all([
     getCredentialStatus(tenant.id),
     listMediaAssets(tenant.id),
     listTemplates(tenant.id),
     listApiKeys(tenant.id),
+    listAuditLog(tenant.id),
+    getAiConfigStatus(tenant.id),
+    listWebhookEndpoints(tenant.id),
   ]);
 
   return (
-    <main style={{ maxWidth: 640, margin: '48px auto', padding: '0 20px' }}>
-      <Link href="/tenants" style={{ fontSize: 13, color: '#666', textDecoration: 'none' }}>&larr; Tenants</Link>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0 24px' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 600 }}>{tenant.name}</h1>
-        <Link
-          href={`/tenants/${tenant.id}/campaigns`}
-          style={{ fontSize: 13, padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, textDecoration: 'none', color: '#333' }}
-        >
-          Campaigns &rarr;
-        </Link>
-      </div>
+    <>
+      <header className="border-b border-border px-8 py-5">
+        <Breadcrumb
+          className="mb-3"
+          items={[{ label: 'Tenants', href: '/tenants' }, { label: tenant.name }]}
+        />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3.5">
+            <Avatar className="size-10 rounded-lg">
+              {tenant.logoBlobUrl && <AvatarImage src={tenant.logoBlobUrl} alt="" />}
+              <AvatarFallback color={tenant.primaryColor} className="rounded-lg text-sm">
+                {tenant.name.slice(0, 1).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5">
+                <h1 className="truncate text-lg font-semibold tracking-tight">{tenant.name}</h1>
+                <Badge variant={STATUS_VARIANT[tenant.status] ?? 'outline'}>{tenant.status}</Badge>
+              </div>
+              <div className="font-mono text-xs text-muted-foreground">{tenant.slug}</div>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="outline" size="sm" render={<Link href={`/tenants/${tenant.id}/inbox`} />}>
+              <Inbox /> Inbox
+            </Button>
+            <Button variant="outline" size="sm" render={<Link href={`/tenants/${tenant.id}/contacts`} />}>
+              <Users /> Contacts
+            </Button>
+            <Button variant="outline" size="sm" render={<Link href={`/tenants/${tenant.id}/campaigns`} />}>
+              <Megaphone /> Campaigns
+            </Button>
+          </div>
+        </div>
+      </header>
 
-      <BrandingForm tenant={tenant} />
-      <CredentialsForm tenantId={tenant.id} status={credentials} />
-      <TemplatesPanel tenantId={tenant.id} templates={templates} />
-      <TestSendForm
-        tenantId={tenant.id}
-        credentialsConfigured={credentials.configured}
-        mediaAssets={mediaAssets}
-        templates={templates}
-      />
-      <ApiKeysPanel tenantId={tenant.id} apiKeys={apiKeys} />
-    </main>
+      <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
+        <Tabs defaultValue="analytics">
+          <TabsList variant="steps">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="branding">Branding</TabsTrigger>
+            <TabsTrigger value="credentials">Credentials</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="test-send">Test send</TabsTrigger>
+            <TabsTrigger value="ai">AI assistant</TabsTrigger>
+            <TabsTrigger value="api-keys">API keys</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+            <TabsTrigger value="audit">Audit log</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="analytics" className="mt-5">
+            <AnalyticsPanel tenantId={tenant.id} />
+          </TabsContent>
+          <TabsContent value="branding" className="mt-5">
+            <BrandingForm tenant={tenant} />
+          </TabsContent>
+          <TabsContent value="credentials" className="mt-5">
+            <CredentialsForm tenantId={tenant.id} status={credentials} />
+          </TabsContent>
+          <TabsContent value="templates" className="mt-5">
+            <TemplatesPanel tenantId={tenant.id} templates={templates} />
+          </TabsContent>
+          <TabsContent value="test-send" className="mt-5">
+            <TestSendForm
+              tenantId={tenant.id}
+              tenantName={tenant.name}
+              credentialsConfigured={credentials.configured}
+              mediaAssets={mediaAssets}
+              templates={templates}
+            />
+          </TabsContent>
+          <TabsContent value="ai" className="mt-5">
+            <AiAssistantPanel tenantId={tenant.id} status={aiStatus} />
+          </TabsContent>
+          <TabsContent value="api-keys" className="mt-5">
+            <ApiKeysPanel tenantId={tenant.id} apiKeys={apiKeys} />
+          </TabsContent>
+          <TabsContent value="webhooks" className="mt-5">
+            <WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />
+          </TabsContent>
+          <TabsContent value="audit" className="mt-5">
+            <AuditLogPanel entries={auditEntries} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </>
   );
 }

@@ -20,7 +20,7 @@ export const POST = withAdminSession(async (_session, req: NextRequest, ctx: { p
   const tenant = await getTenant(ctx.params.id);
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
 
-  const body = (await req.json()) as { csv?: string; listName?: string; alreadyOptedIn?: boolean };
+  const body = (await req.json()) as { csv?: string; listName?: string; alreadyOptedIn?: boolean; tags?: string[] };
   const csv      = body.csv?.trim();
   const listName = body.listName?.trim();
   if (!csv) return NextResponse.json({ error: 'csv is required' }, { status: 400 });
@@ -29,7 +29,10 @@ export const POST = withAdminSession(async (_session, req: NextRequest, ctx: { p
   const rows = parseContactsCsv(csv);
   if (!rows.length) return NextResponse.json({ error: 'No valid rows found (expected "phone,name" per line)' }, { status: 400 });
 
-  const contacts = await Promise.all(rows.map((r) => upsertContact(tenant.id, r.phone, r.name)));
+  // Tags apply to the whole batch (e.g. "Q3 signup form") — merged into any
+  // tags a contact already has, never a destructive replace on re-import.
+  const tags = body.tags?.filter(Boolean);
+  const contacts = await Promise.all(rows.map((r) => upsertContact(tenant.id, r.phone, r.name, tags)));
   const list = await findOrCreateBroadcastList(tenant.id, listName);
   await addMembersToList(list.id, contacts.map((c) => c.id));
 

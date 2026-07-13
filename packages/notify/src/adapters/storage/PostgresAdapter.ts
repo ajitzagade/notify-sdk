@@ -1,4 +1,4 @@
-import { IStorageAdapter, NotifyEvent, RecipientPreference } from '../../types';
+import { IStorageAdapter, NotifyEvent, RecipientPreference, InboundReply } from '../../types';
 
 /**
  * PostgresAdapter — persistent storage using PostgreSQL.
@@ -26,8 +26,8 @@ export class PostgresAdapter implements IStorageAdapter {
     const id = event.id ?? crypto.randomUUID();
     await this.pool.query(
       `INSERT INTO notify_log
-         (id, tenant_id, to_phone, template, status, tags, meta, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+         (id, tenant_id, to_phone, template, status, tags, meta, body_preview, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
       [
         id,
         this.tenantId,
@@ -36,6 +36,7 @@ export class PostgresAdapter implements IStorageAdapter {
         event.status ?? 'queued',
         JSON.stringify(event.tags ?? []),
         JSON.stringify(event.meta ?? {}),
+        event.bodyPreview ?? null,
       ]
     );
     return id;
@@ -128,6 +129,24 @@ export class PostgresAdapter implements IStorageAdapter {
     return rows.map((r: Record<string, unknown>) => this.rowToEvent(r));
   }
 
+  async logReply(reply: InboundReply): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO message_replies
+         (tenant_id, wa_message_id, in_reply_to_wa_message_id, from_phone, type, button_id, button_title, body)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        this.tenantId,
+        reply.messageId,
+        reply.inReplyToWaMessageId ?? null,
+        reply.from,
+        reply.type,
+        reply.buttonId ?? null,
+        reply.buttonTitle ?? null,
+        reply.text ?? null,
+      ]
+    );
+  }
+
   private rowToEvent(row: Record<string, unknown>): NotifyEvent {
     return {
       id:          row.id as string,
@@ -141,6 +160,7 @@ export class PostgresAdapter implements IStorageAdapter {
       tags:        parseJsonbColumn<string[]>(row.tags),
       meta:        parseJsonbColumn<Record<string, unknown>>(row.meta),
       error:       row.error_message as string | undefined,
+      bodyPreview: row.body_preview as string | undefined,
     };
   }
 }

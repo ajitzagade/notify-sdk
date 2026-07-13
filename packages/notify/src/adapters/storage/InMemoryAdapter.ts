@@ -1,4 +1,4 @@
-import { IStorageAdapter, NotifyEvent, RecipientPreference } from '../../types';
+import { IStorageAdapter, NotifyEvent, RecipientPreference, InboundReply } from '../../types';
 
 /**
  * InMemoryAdapter — zero dependencies, stores everything in Maps.
@@ -9,16 +9,18 @@ export class InMemoryAdapter implements IStorageAdapter {
   private events      = new Map<string, NotifyEvent>();
   private waIdIndex   = new Map<string, string>(); // waMessageId → logId
   private preferences = new Map<string, RecipientPreference>();
+  private replies: InboundReply[] = [];
 
   async logEvent(event: Partial<NotifyEvent>): Promise<string> {
     const id = event.id ?? crypto.randomUUID();
     const record: NotifyEvent = {
       id,
-      to:       event.to ?? '',
-      template: event.template ?? '',
-      status:   event.status ?? 'queued',
-      tags:     event.tags,
-      meta:     event.meta,
+      to:          event.to ?? '',
+      template:    event.template ?? '',
+      status:      event.status ?? 'queued',
+      tags:        event.tags,
+      meta:        event.meta,
+      bodyPreview: event.bodyPreview,
     };
     this.events.set(id, record);
     return id;
@@ -56,11 +58,16 @@ export class InMemoryAdapter implements IStorageAdapter {
     return Array.from(this.events.values()).slice(-limit);
   }
 
+  async logReply(reply: InboundReply): Promise<void> {
+    this.replies.push(reply);
+  }
+
   /** Dev helper — dump all stored data */
-  dump(): { events: NotifyEvent[]; preferences: RecipientPreference[] } {
+  dump(): { events: NotifyEvent[]; preferences: RecipientPreference[]; replies: InboundReply[] } {
     return {
       events:      Array.from(this.events.values()),
       preferences: Array.from(this.preferences.values()),
+      replies:     [...this.replies],
     };
   }
 }

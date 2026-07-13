@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { RefreshCw, AlertCircle, LayoutTemplate } from 'lucide-react';
 import type { TemplateRecord } from '@/lib/templates';
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from '@/lib/toast';
 
-const STATUS_COLOR: Record<string, string> = {
-  APPROVED: '#0a7',
-  PENDING:  '#c80',
-  REJECTED: '#c00',
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive'> = {
+  APPROVED: 'default',
+  PENDING:  'secondary',
+  REJECTED: 'destructive',
 };
 
 export function TemplatesPanel({ tenantId, templates }: { tenantId: string; templates: TemplateRecord[] }) {
@@ -22,48 +29,77 @@ export function TemplatesPanel({ tenantId, templates }: { tenantId: string; temp
       const res = await fetch(`/api/tenants/${tenantId}/templates/sync`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Sync failed');
+      toast.success(`Synced ${data.count ?? 0} template(s) from Meta`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setSyncing(false);
     }
   };
 
   return (
-    <section style={{ padding: 20, border: '1px solid #eee', borderRadius: 8, marginBottom: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600 }}>WhatsApp templates</h2>
-        <button
-          type="button"
-          onClick={handleSync}
-          disabled={syncing}
-          style={{ padding: '6px 14px', fontSize: 13, border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', background: '#fff' }}
-        >
-          {syncing ? 'Syncing…' : 'Sync from Meta'}
-        </button>
-      </div>
-      <p style={{ fontSize: 12, color: '#888', marginBottom: 12 }}>
-        Meta-approved templates — required to message a user outside the 24h session window.
-        Syncing requires a WhatsApp Business Account ID on the Credentials panel.
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle>WhatsApp templates</CardTitle>
+        <CardDescription>
+          Meta-approved templates — required to message a user outside the 24h session window.
+          Syncing requires a WhatsApp Business Account ID on Credentials.
+        </CardDescription>
+        <CardAction>
+          <Button type="button" variant="outline" size="sm" onClick={handleSync} disabled={syncing}>
+            <RefreshCw className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Syncing…' : 'Sync from Meta'}
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {error && <div style={{ fontSize: 13, color: '#c00', marginBottom: 12 }}>{error}</div>}
-
-      {templates.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#999' }}>No templates synced yet.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {templates.map((t) => (
-            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', border: '1px solid #f0f0f0', borderRadius: 6, fontSize: 13 }}>
-              <span style={{ fontWeight: 500 }}>{t.name}</span>
-              <span style={{ color: '#999' }}>{t.language}</span>
-              <span style={{ color: '#999' }}>{t.category}</span>
-              <span style={{ marginLeft: 'auto', color: STATUS_COLOR[t.status] ?? '#999', fontSize: 12 }}>{t.status}</span>
+        {templates.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <div className="flex size-11 items-center justify-center rounded-full bg-muted">
+              <LayoutTemplate className="size-5 text-muted-foreground" />
             </div>
-          ))}
-        </div>
-      )}
-    </section>
+            <div>
+              <p className="text-sm font-medium">No templates synced yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">Use &quot;Sync from Meta&quot; above to pull in this tenant&apos;s approved templates.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Language</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {templates.map((t) => (
+                  <TableRow key={t.id}>
+                    <TableCell className="font-medium">{t.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{t.language}</TableCell>
+                    <TableCell className="text-muted-foreground">{t.category}</TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANT[t.status] ?? 'outline'}>{t.status}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

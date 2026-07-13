@@ -1,12 +1,22 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertCircle } from 'lucide-react';
 import type { TenantRecord } from '@/lib/tenants';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from '@/lib/toast';
 
 export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // shadcn's Input wrapper doesn't forward refs (React 18) — remount via key instead of ref.value = ''.
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const [name, setName]                 = useState(tenant.name);
   const [primaryColor, setPrimaryColor] = useState(tenant.primaryColor ?? '#111111');
@@ -14,7 +24,6 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
   const [saving, setSaving]             = useState(false);
   const [uploading, setUploading]       = useState(false);
   const [error, setError]               = useState<string | null>(null);
-  const [savedAt, setSavedAt]           = useState<number | null>(null);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,10 +37,12 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to save');
-      setSavedAt(Date.now());
+      toast.success('Branding saved');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -48,53 +59,81 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
       const res = await fetch(`/api/tenants/${tenant.id}/logo`, { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      toast.success('Logo updated');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setFileInputKey((k) => k + 1);
     }
   };
 
   return (
-    <section style={{ padding: 20, border: '1px solid #eee', borderRadius: 8, marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Branding</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Branding</CardTitle>
+        <CardDescription>How this tenant appears across the platform.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form id="branding-form" onSubmit={handleSave} className="grid gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="size-14 rounded-lg">
+              {tenant.logoBlobUrl && <AvatarImage src={tenant.logoBlobUrl} alt="" />}
+              <AvatarFallback color={primaryColor} className="rounded-lg text-base" />
+            </Avatar>
+            <div className="grid gap-2">
+              <Input
+                key={fileInputKey}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={handleLogoChange}
+                disabled={uploading}
+                className="max-w-64"
+              />
+              {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+            </div>
+          </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-        {tenant.logoBlobUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={tenant.logoBlobUrl} alt="" width={56} height={56} style={{ borderRadius: 8, objectFit: 'cover', border: '1px solid #eee' }} />
-        ) : (
-          <div style={{ width: 56, height: 56, borderRadius: 8, background: primaryColor }} />
-        )}
-        <div>
-          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleLogoChange} disabled={uploading} />
-          {uploading && <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Uploading…</div>}
-        </div>
-      </div>
+          <div className="grid gap-2">
+            <Label htmlFor="branding-name">Business name</Label>
+            <Input id="branding-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="branding-color">Primary color</Label>
+            <Input
+              id="branding-color"
+              type="color"
+              value={primaryColor}
+              onChange={(e) => setPrimaryColor(e.target.value)}
+              className="h-9 w-16 p-1"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="branding-description">Business description</Label>
+            <Textarea
+              id="branding-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
+          </div>
 
-      <form onSubmit={handleSave}>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Business name</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Primary color</span>
-          <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} style={{ width: 60, height: 32, padding: 0, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-        <label style={{ display: 'block', marginBottom: 16 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Business description</span>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6, fontFamily: 'inherit' }} />
-        </label>
-
-        {error && <div style={{ fontSize: 13, color: '#c00', marginBottom: 12 }}>{error}</div>}
-
-        <button type="submit" disabled={saving} style={{ padding: '8px 16px', fontSize: 14, border: 'none', borderRadius: 6, cursor: 'pointer', background: '#111', color: '#fff' }}>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Button type="submit" form="branding-form" disabled={saving}>
           {saving ? 'Saving…' : 'Save branding'}
-        </button>
-        {savedAt && <span style={{ marginLeft: 12, fontSize: 12, color: '#0a7' }}>Saved</span>}
-      </form>
-    </section>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

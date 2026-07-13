@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminSession } from '@/lib/auth';
 import { listTenants, createTenant, isValidSlug } from '@/lib/tenants';
+import { recordAuditEvent } from '@/lib/auditLog';
 
 export const GET = withAdminSession(async () => {
   const tenants = await listTenants();
   return NextResponse.json({ tenants });
 });
 
-export const POST = withAdminSession(async (_session, req: NextRequest) => {
+export const POST = withAdminSession(async (session, req: NextRequest) => {
   const body = (await req.json()) as { name?: string; slug?: string; businessDescription?: string };
   const name = body.name?.trim();
   const slug = body.slug?.trim().toLowerCase();
@@ -24,6 +25,12 @@ export const POST = withAdminSession(async (_session, req: NextRequest) => {
 
   try {
     const tenant = await createTenant({ name, slug, businessDescription: body.businessDescription });
+    await recordAuditEvent({
+      tenantId:    tenant.id,
+      adminUserId: session.adminUserId,
+      action:      'tenant.created',
+      details:     { name, slug },
+    });
     return NextResponse.json({ tenant }, { status: 201 });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

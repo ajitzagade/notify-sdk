@@ -2,12 +2,23 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from '@/lib/toast';
 
 export function ImportContactsForm({ tenantId, lists }: { tenantId: string; lists: BroadcastListRecord[] }) {
   const router = useRouter();
   const [csv, setCsv]                     = useState('');
   const [listName, setListName]           = useState('');
+  const [tagsInput, setTagsInput]         = useState('');
   const [alreadyOptedIn, setAlreadyOptedIn] = useState(false);
   const [importing, setImporting]         = useState(false);
   const [result, setResult]               = useState<{ ok: boolean; text: string } | null>(null);
@@ -17,87 +28,106 @@ export function ImportContactsForm({ tenantId, lists }: { tenantId: string; list
     setImporting(true);
     setResult(null);
     try {
+      const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
       const res = await fetch(`/api/tenants/${tenantId}/contacts/import`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ csv, listName, alreadyOptedIn }),
+        body:    JSON.stringify({ csv, listName, alreadyOptedIn, tags }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Import failed');
-      setResult({ ok: true, text: `Imported ${data.imported} contact(s) into "${data.list.name}"${data.optedIn ? ' (marked opted-in)' : ''}.` });
+      const text = `Imported ${data.imported} contact(s) into "${data.list.name}"${data.optedIn ? ' (marked opted-in)' : ''}.`;
+      setResult({ ok: true, text });
+      toast.success(text, 'Contacts imported');
       setCsv('');
+      setTagsInput('');
       router.refresh();
     } catch (err) {
-      setResult({ ok: false, text: err instanceof Error ? err.message : String(err) });
+      const text = err instanceof Error ? err.message : String(err);
+      setResult({ ok: false, text });
+      toast.error(text);
     } finally {
       setImporting(false);
     }
   };
 
   return (
-    <section style={{ padding: 20, border: '1px solid #eee', borderRadius: 8, marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Import contacts</h2>
-      <p style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>
-        One contact per line: <code>phone,name</code> (name optional). Adds them all to a broadcast list.
-      </p>
-
-      <form onSubmit={handleImport}>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Contacts CSV</span>
-          <textarea
-            required
-            rows={6}
-            placeholder={'919876543210,Priya Sharma\n919123456789,Rahul Verma'}
-            value={csv}
-            onChange={(e) => setCsv(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', fontSize: 13, fontFamily: 'monospace', border: '1px solid #ddd', borderRadius: 6 }}
-          />
-        </label>
-
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Broadcast list name (existing or new)</span>
-          <input
-            required
-            list="existing-lists"
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }}
-          />
-          <datalist id="existing-lists">
-            {lists.map((l) => <option key={l.id} value={l.name} />)}
-          </datalist>
-        </label>
-
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 13 }}>
-          <input type="checkbox" checked={alreadyOptedIn} onChange={(e) => setAlreadyOptedIn(e.target.checked)} />
-          These contacts already consented to WhatsApp messages elsewhere (marks them opted-in — no message is sent)
-        </label>
-
-        <button
-          type="submit"
-          disabled={importing}
-          style={{ padding: '8px 16px', fontSize: 14, border: 'none', borderRadius: 6, cursor: 'pointer', background: '#111', color: '#fff' }}
-        >
-          {importing ? 'Importing…' : 'Import'}
-        </button>
-
-        {result && (
-          <div style={{ marginTop: 12, fontSize: 13, color: result.ok ? '#0a7' : '#c00' }}>{result.text}</div>
-        )}
-      </form>
-
-      {lists.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 8 }}>Existing lists</span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {lists.map((l) => (
-              <span key={l.id} style={{ padding: '4px 10px', fontSize: 12, borderRadius: 6, border: '1px solid #eee', color: '#555' }}>
-                {l.name} · {l.memberCount} member{l.memberCount === 1 ? '' : 's'}
-              </span>
-            ))}
+    <Card>
+      <CardHeader>
+        <CardTitle>Import contacts</CardTitle>
+        <CardDescription>
+          One contact per line: <code>phone,name</code> (name optional). Adds them all to a broadcast list.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form id="import-contacts-form" onSubmit={handleImport} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="contacts-csv">Contacts CSV</Label>
+            <Textarea
+              id="contacts-csv"
+              required
+              rows={6}
+              placeholder={'919876543210,Priya Sharma\n919123456789,Rahul Verma'}
+              value={csv}
+              onChange={(e) => setCsv(e.target.value)}
+              className="font-mono text-xs"
+            />
           </div>
-        </div>
-      )}
-    </section>
+
+          <div className="grid gap-2">
+            <Label htmlFor="list-name">Broadcast list name (existing or new)</Label>
+            <Input id="list-name" required list="existing-lists" value={listName} onChange={(e) => setListName(e.target.value)} />
+            <datalist id="existing-lists">
+              {lists.map((l) => <option key={l.id} value={l.name} />)}
+            </datalist>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="contact-tags-input">Tags (comma-separated, optional)</Label>
+            <Input
+              id="contact-tags-input"
+              placeholder="vip, wholesale"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Applied to every contact in this batch — merged with any tags they already have.</p>
+          </div>
+
+          <label className="flex items-start gap-2 text-sm">
+            <Checkbox
+              checked={alreadyOptedIn}
+              onCheckedChange={(checked) => setAlreadyOptedIn(checked === true)}
+              className="mt-0.5"
+            />
+            <span>These contacts already consented to WhatsApp messages elsewhere (marks them opted-in — no message is sent)</span>
+          </label>
+
+          {result && (
+            <Alert variant={result.ok ? 'default' : 'destructive'}>
+              {result.ok ? <CheckCircle2 /> : <XCircle />}
+              <AlertDescription>{result.text}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+
+        {lists.length > 0 && (
+          <div className="mt-5 grid gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Existing lists</span>
+            <div className="flex flex-wrap gap-2">
+              {lists.map((l) => (
+                <Badge key={l.id} variant="outline">
+                  {l.name} · {l.memberCount} member{l.memberCount === 1 ? '' : 's'}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button type="submit" form="import-contacts-form" disabled={importing}>
+          {importing ? 'Importing…' : 'Import'}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

@@ -73,3 +73,40 @@ export function decryptSecret(
 
   return plaintext.toString('utf8');
 }
+
+/**
+ * Root-key rotation. Rows encrypted under a previous NOTIFY_MASTER_KEY store
+ * their key_version; this ring resolves the correct root key bytes for a
+ * given version so old rows keep decrypting during a rotation window (before
+ * they've been re-encrypted to the current version).
+ */
+export interface MasterKeyRing {
+  currentVersion: number;
+  currentKey: Buffer;
+  /** Only needed while rows still exist at currentVersion - 1; drop after re-encrypting everything. */
+  previousKey?: Buffer;
+}
+
+export function resolveKeyForVersion(ring: MasterKeyRing, keyVersion: number): Buffer {
+  if (keyVersion === ring.currentVersion) return ring.currentKey;
+  if (keyVersion === ring.currentVersion - 1 && ring.previousKey) return ring.previousKey;
+  throw new Error(
+    `[CredentialCipher] No master key available for version ${keyVersion} ` +
+    `(current: ${ring.currentVersion}). Set NOTIFY_MASTER_KEY_PREVIOUS during a rotation window.`
+  );
+}
+
+/** Decrypts under the row's stored version, re-encrypts under the ring's current version. */
+export function reEncryptToCurrentVersion(
+  enc: EncryptedSecret,
+  tenantId: string,
+  storedVersion: number,
+  ring: MasterKeyRing
+): { enc: EncryptedSecret; keyVersion: number } {
+  const oldKey    = resolveKeyForVersion(ring, storedVersion);
+  const plaintext = decryptSecret(enc, tenantId, oldKey, storedVersion);
+  return {
+    enc:        encryptSecret(plaintext, tenantId, ring.currentKey, ring.currentVersion),
+    keyVersion: ring.currentVersion,
+  };
+}

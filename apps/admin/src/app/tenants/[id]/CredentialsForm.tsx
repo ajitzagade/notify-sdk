@@ -2,6 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from '@/lib/toast';
 
 export interface CredentialsStatus {
   configured: boolean;
@@ -22,7 +30,6 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
   const [verifying, setVerifying]       = useState(false);
   const [saving, setSaving]             = useState(false);
   const [error, setError]               = useState<string | null>(null);
-  const [savedAt, setSavedAt]           = useState<number | null>(null);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -35,13 +42,19 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
         body:    JSON.stringify({ accessToken, phoneNumberId }),
       });
       const data = await res.json();
-      setVerifyResult(
-        data.ok
-          ? { ok: true, message: `Verified — ${data.displayName ?? 'unnamed'} (${data.displayPhoneNumber ?? phoneNumberId})` }
-          : { ok: false, message: data.error ?? 'Verification failed' }
-      );
+      if (data.ok) {
+        const message = `Verified — ${data.displayName ?? 'unnamed'} (${data.displayPhoneNumber ?? phoneNumberId})`;
+        setVerifyResult({ ok: true, message });
+        toast.success(message, 'Credentials verified');
+      } else {
+        const message = data.error ?? 'Verification failed';
+        setVerifyResult({ ok: false, message });
+        toast.error(message);
+      }
     } catch (err) {
-      setVerifyResult({ ok: false, message: err instanceof Error ? err.message : String(err) });
+      const message = err instanceof Error ? err.message : String(err);
+      setVerifyResult({ ok: false, message });
+      toast.error(message);
     } finally {
       setVerifying(false);
     }
@@ -59,72 +72,88 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to save credentials');
-      setSavedAt(Date.now());
+      toast.success('Credentials saved');
       setAccessToken('');
       setAppSecret('');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <section style={{ padding: 20, border: '1px solid #eee', borderRadius: 8, marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>WhatsApp credentials</h2>
-      <p style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>
-        {status.configured
-          ? `Configured — last verified ${status.lastVerifiedAt ? new Date(status.lastVerifiedAt).toLocaleString() : 'never'} (${status.lastVerifiedStatus ?? 'unknown'})`
-          : 'Not configured yet.'}
-      </p>
-
-      <form onSubmit={handleSave}>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Phone Number ID</span>
-          <input required value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>WhatsApp Business Account ID (optional)</span>
-          <input value={wabaId} onChange={(e) => setWabaId(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>
-            Access Token {status.configured && <em style={{ color: '#999' }}>(leave blank to keep current)</em>}
-          </span>
-          <input required={!status.configured} type="password" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-        <label style={{ display: 'block', marginBottom: 16 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>App Secret (optional, enables webhook signature verification)</span>
-          <input type="password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-          <button
-            type="button"
-            onClick={handleVerify}
-            disabled={verifying || !accessToken || !phoneNumberId}
-            style={{ padding: '8px 16px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer', background: '#fff' }}
-          >
-            {verifying ? 'Verifying…' : 'Verify against Meta'}
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            style={{ padding: '8px 16px', fontSize: 14, border: 'none', borderRadius: 6, cursor: 'pointer', background: '#111', color: '#fff' }}
-          >
-            {saving ? 'Saving…' : 'Save credentials'}
-          </button>
-          {savedAt && <span style={{ fontSize: 12, color: '#0a7' }}>Saved</span>}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <CardTitle>WhatsApp credentials</CardTitle>
+          <Badge variant={status.configured ? 'default' : 'outline'}>
+            {status.configured ? 'Configured' : 'Not configured'}
+          </Badge>
         </div>
-
-        {verifyResult && (
-          <div style={{ fontSize: 13, color: verifyResult.ok ? '#0a7' : '#c00', marginBottom: 8 }}>
-            {verifyResult.message}
+        <CardDescription>
+          {status.configured
+            ? `Last verified ${status.lastVerifiedAt ? new Date(status.lastVerifiedAt).toLocaleString() : 'never'} (${status.lastVerifiedStatus ?? 'unknown'})`
+            : 'Enter and verify this tenant’s Meta credentials before sending anything.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form id="credentials-form" onSubmit={handleSave} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="phone-number-id">Phone Number ID</Label>
+            <Input id="phone-number-id" required value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} />
           </div>
-        )}
-        {error && <div style={{ fontSize: 13, color: '#c00' }}>{error}</div>}
-      </form>
-    </section>
+          <div className="grid gap-2">
+            <Label htmlFor="waba-id">WhatsApp Business Account ID (optional)</Label>
+            <Input id="waba-id" value={wabaId} onChange={(e) => setWabaId(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="access-token">
+              Access Token {status.configured && <span className="font-normal text-muted-foreground">(leave blank to keep current)</span>}
+            </Label>
+            <Input
+              id="access-token"
+              required={!status.configured}
+              type="password"
+              value={accessToken}
+              onChange={(e) => setAccessToken(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="app-secret">App Secret (optional, enables webhook signature verification)</Label>
+            <Input id="app-secret" type="password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} />
+          </div>
+
+          {verifyResult && (
+            <Alert variant={verifyResult.ok ? 'default' : 'destructive'}>
+              {verifyResult.ok ? <CheckCircle2 /> : <XCircle />}
+              <AlertDescription>{verifyResult.message}</AlertDescription>
+            </Alert>
+          )}
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+      </CardContent>
+      <CardFooter className="gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleVerify}
+          disabled={verifying || !accessToken || !phoneNumberId}
+        >
+          {verifying ? 'Verifying…' : 'Verify against Meta'}
+        </Button>
+        <Button type="submit" form="credentials-form" disabled={saving}>
+          {saving ? 'Saving…' : 'Save credentials'}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

@@ -18,15 +18,18 @@ export type {
 } from './tenant/TenantClientRegistry';
 
 // Security
-export { encryptSecret, decryptSecret, parseMasterKey } from './security/CredentialCipher';
-export type { EncryptedSecret }                          from './security/CredentialCipher';
+export { encryptSecret, decryptSecret, parseMasterKey, resolveKeyForVersion, reEncryptToCurrentVersion } from './security/CredentialCipher';
+export type { EncryptedSecret, MasterKeyRing }            from './security/CredentialCipher';
 export { hashPassword, verifyPassword }                   from './security/PasswordHash';
 export type { HashedPassword }                             from './security/PasswordHash';
 export { createSessionToken, verifySessionToken, parseSessionSecret } from './security/SessionCookie';
 export type { SessionPayload }                             from './security/SessionCookie';
+export { isPrivateOrReservedIp, isDeliverableUrl }         from './security/SsrfGuard';
 
 // Webhook
-export { verifyWhatsAppSignature } from './webhook/signature';
+export { verifyWhatsAppSignature, signOutboundWebhookPayload } from './webhook/signature';
+export { deliverSignedWebhook } from './webhook/OutboundWebhookDispatcher';
+export type { OutboundWebhookDeliveryResult } from './webhook/OutboundWebhookDispatcher';
 export { TenantWebhookRouter }     from './webhook/TenantWebhookRouter';
 export type { TenantWebhookRouterOptions, TenantWebhookResult } from './webhook/TenantWebhookRouter';
 

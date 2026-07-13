@@ -57,8 +57,14 @@ export interface MediaAttachment {
 // produces free-form session messages.
 
 export interface HsmParameter {
-  type: 'text' | 'currency' | 'date_time';
+  type: 'text' | 'currency' | 'date_time' | 'image' | 'video' | 'document';
   text?: string;
+  /** Used when type = 'image' — fills an approved template's IMAGE header. */
+  image?: { link: string };
+  /** Used when type = 'video' — fills an approved template's VIDEO header. */
+  video?: { link: string };
+  /** Used when type = 'document' — fills an approved template's DOCUMENT header. */
+  document?: { link: string; filename?: string };
 }
 
 export interface HsmComponent {
@@ -151,6 +157,8 @@ export interface NotifyEvent {
   tags?: string[];
   meta?: Record<string, unknown>;
   error?: string;
+  /** Short human-readable preview of what was actually sent (resolved text, caption, or `[Template: name]`) — see extractBodyPreview(). */
+  bodyPreview?: string;
 }
 
 export interface InboundReply {
@@ -160,6 +168,13 @@ export interface InboundReply {
   buttonId?: string;
   buttonTitle?: string;
   text?: string;
+  /**
+   * The wa_message_id of the outbound message this is a reply to, when Meta
+   * provides one (always present for button taps; only present for text
+   * replies if the user explicitly quoted a message — a fresh, unquoted text
+   * message has no context and this will be undefined).
+   */
+  inReplyToWaMessageId?: string;
   rawPayload: unknown;
 }
 
@@ -194,6 +209,8 @@ export interface IStorageAdapter {
   getPreference(phone: string): Promise<RecipientPreference | null>;
   setPreference(phone: string, pref: Partial<RecipientPreference>): Promise<void>;
   getRecentEvents(limit?: number): Promise<NotifyEvent[]>;
+  /** Persists an inbound reply/button tap so it's queryable later (e.g. for campaign reply-rate reporting), not just event-emitted. */
+  logReply(reply: InboundReply): Promise<void>;
 }
 
 // ─── Template ─────────────────────────────────────────────────────────────────

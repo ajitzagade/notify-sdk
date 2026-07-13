@@ -3,12 +3,13 @@ import crypto from 'crypto';
 import { encryptSecret } from '@orgname/notify';
 import { withAdminSession } from '@/lib/auth';
 import { getPool } from '@/lib/db';
-import { getMasterKey } from '@/lib/security';
+import { getMasterKeyRing } from '@/lib/security';
 import { getTenant } from '@/lib/tenants';
 import { verifyWhatsAppCredentials } from '@/lib/metaGraph';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
+import { recordAuditEvent } from '@/lib/auditLog';
 
-export const PUT = withAdminSession(async (_session, req: NextRequest, ctx: { params: { id: string } }) => {
+export const PUT = withAdminSession(async (session, req: NextRequest, ctx: { params: { id: string } }) => {
   const tenant = await getTenant(ctx.params.id);
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
 
@@ -33,10 +34,10 @@ export const PUT = withAdminSession(async (_session, req: NextRequest, ctx: { pa
     );
   }
 
-  const masterKey    = getMasterKey();
-  const accessToken  = encryptSecret(body.accessToken, tenant.id, masterKey);
-  const appSecretEnc = body.appSecret ? encryptSecret(body.appSecret, tenant.id, masterKey) : null;
-  const verifyToken  = body.verifyToken?.trim() || crypto.randomBytes(16).toString('hex');
+  const ring          = getMasterKeyRing();
+  const accessToken   = encryptSecret(body.accessToken, tenant.id, ring.currentKey, ring.currentVersion);
+  const appSecretEnc  = body.appSecret ? encryptSecret(body.appSecret, tenant.id, ring.currentKey, ring.currentVersion) : null;
+  const verifyToken   = body.verifyToken?.trim() || crypto.randomBytes(16).toString('hex');
 
   try {
     await getPool().query(
@@ -44,8 +45,8 @@ export const PUT = withAdminSession(async (_session, req: NextRequest, ctx: { pa
          (tenant_id, phone_number_id, waba_id,
           access_token_ciphertext, access_token_iv, access_token_tag,
           app_secret_ciphertext, app_secret_iv, app_secret_tag,
-          verify_token, last_verified_at, last_verified_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), 'ok')
+          verify_token, key_version, last_verified_at, last_verified_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'ok')
        ON CONFLICT (tenant_id) DO UPDATE SET
          phone_number_id         = EXCLUDED.phone_number_id,
          waba_id                 = EXCLUDED.waba_id,
@@ -56,6 +57,7 @@ export const PUT = withAdminSession(async (_session, req: NextRequest, ctx: { pa
          app_secret_iv           = EXCLUDED.app_secret_iv,
          app_secret_tag          = EXCLUDED.app_secret_tag,
          verify_token             = EXCLUDED.verify_token,
+         key_version              = EXCLUDED.key_version,
          last_verified_at        = NOW(),
          last_verified_status    = 'ok',
          updated_at               = NOW()`,
@@ -66,6 +68,7 @@ export const PUT = withAdminSession(async (_session, req: NextRequest, ctx: { pa
         accessToken.ciphertext, accessToken.iv, accessToken.tag,
         appSecretEnc?.ciphertext ?? null, appSecretEnc?.iv ?? null, appSecretEnc?.tag ?? null,
         verifyToken,
+        ring.currentVersion,
       ]
     );
   } catch (err: unknown) {
@@ -82,6 +85,13 @@ export const PUT = withAdminSession(async (_session, req: NextRequest, ctx: { pa
   // Credentials just changed — drop any cached NotifyClient for this tenant so the
   // next send picks up the new token instead of a stale one.
   getTenantRegistry().invalidate(tenant.id);
+
+  await recordAuditEvent({
+    tenantId:    tenant.id,
+    adminUserId: session.adminUserId,
+    action:      'tenant.credentials.updated',
+    details:     { phoneNumberId: body.phoneNumberId, wabaId: body.wabaId ?? null },
+  });
 
   return NextResponse.json({
     ok: true,

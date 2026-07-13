@@ -1,9 +1,18 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import type { MediaAssetRecord } from '@/lib/media';
 import type { TemplateRecord } from '@/lib/templates';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { WhatsAppPreview } from '@/components/whatsapp-preview';
+import { toast } from '@/lib/toast';
 
 type SendMode = 'text' | 'media' | 'template';
 
@@ -16,19 +25,29 @@ function placeholderCount(text: string): number {
   return matches.length ? Math.max(...matches) : 0;
 }
 
+function PickerPill({ selected, onClick, children, title }: { selected: boolean; onClick: () => void; children: React.ReactNode; title?: string }) {
+  return (
+    <Button type="button" variant={selected ? 'default' : 'outline'} size="sm" onClick={onClick} title={title}>
+      {children}
+    </Button>
+  );
+}
+
 export function TestSendForm({
   tenantId,
+  tenantName,
   credentialsConfigured,
   mediaAssets,
   templates,
 }: {
   tenantId: string;
+  tenantName: string;
   credentialsConfigured: boolean;
   mediaAssets: MediaAssetRecord[];
   templates: TemplateRecord[];
 }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const [mode, setMode]       = useState<SendMode>('text');
   const [phone, setPhone]     = useState('');
@@ -77,7 +96,7 @@ export function TestSendForm({
       setResult({ ok: false, text: err instanceof Error ? err.message : String(err) });
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setFileInputKey((k) => k + 1);
     }
   };
 
@@ -108,164 +127,164 @@ export function TestSendForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Send failed');
-      setResult({
-        ok:   data.ok,
-        text: data.ok
-          ? `Sent — status: ${data.event?.status}, WhatsApp message id: ${data.event?.waMessageId ?? 'n/a'}`
-          : `Failed — status: ${data.event?.status}, error: ${data.event?.error ?? 'unknown'}`,
-      });
+      if (data.ok) {
+        const text = `Sent — status: ${data.event?.status}, WhatsApp message id: ${data.event?.waMessageId ?? 'n/a'}`;
+        setResult({ ok: true, text });
+        toast.success(text, 'Test message sent');
+      } else {
+        const text = `Failed — status: ${data.event?.status}, error: ${data.event?.error ?? 'unknown'}`;
+        setResult({ ok: false, text });
+        toast.error(text);
+      }
     } catch (err) {
-      setResult({ ok: false, text: err instanceof Error ? err.message : String(err) });
+      const text = err instanceof Error ? err.message : String(err);
+      setResult({ ok: false, text });
+      toast.error(text);
     } finally {
       setSending(false);
     }
   };
 
-  const modeButton = (m: SendMode, label: string) => (
-    <button
-      type="button"
-      onClick={() => setMode(m)}
-      style={{
-        padding: '5px 12px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
-        border: mode === m ? '1px solid #111' : '1px solid #ddd',
-        background: mode === m ? '#111' : '#fff',
-        color: mode === m ? '#fff' : '#333',
-      }}
-    >
-      {label}
-    </button>
-  );
+  const handleModeChange = (next: SendMode) => {
+    setMode(next);
+    setMessage('');
+    setCaption('');
+    setResult(null);
+  };
 
   const canSend =
     !sending && credentialsConfigured &&
     (mode !== 'template' || (selectedTemplate && templateParams.every((p) => p.trim().length > 0)));
 
   return (
-    <section style={{ padding: 20, border: '1px solid #eee', borderRadius: 8, marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Test send</h2>
-      <p style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>
-        Opts in a phone number and sends it a real message through this tenant&apos;s WhatsApp number —
-        confirms credentials, sending, and logging all work end to end.
-      </p>
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {modeButton('text', 'Text')}
-        {modeButton('media', 'Media')}
-        {modeButton('template', 'Template')}
-      </div>
-
-      <form onSubmit={handleSend}>
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Phone number (international, no +)</span>
-          <input required placeholder="919876543210" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-        </label>
-
-        {mode === 'text' && (
-          <label style={{ display: 'block', marginBottom: 16 }}>
-            <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Message text</span>
-            <input value={message} onChange={(e) => setMessage(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-          </label>
-        )}
-
-        {mode === 'media' && (
-          <div style={{ marginBottom: 16, padding: 12, background: '#fafafa', borderRadius: 6 }}>
-            <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 8 }}>Attach media</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-              {mediaAssets.map((asset) => (
-                <button
-                  key={asset.id}
-                  type="button"
-                  onClick={() => setSelectedAssetId(asset.id)}
-                  title={asset.originalFilename ?? asset.blobUrl}
-                  style={{
-                    padding: '4px 10px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
-                    border: selectedAssetId === asset.id ? '1px solid #111' : '1px solid #ddd',
-                    background: selectedAssetId === asset.id ? '#111' : '#fff',
-                    color: selectedAssetId === asset.id ? '#fff' : '#333',
-                  }}
-                >
-                  {asset.kind} · {asset.originalFilename ?? asset.id.slice(0, 8)}
-                </button>
-              ))}
-            </div>
-            <input ref={fileInputRef} type="file" accept="image/*,video/*,audio/*,application/pdf" onChange={handleUpload} disabled={uploading} />
-            {uploading && <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Uploading…</div>}
-            {selectedAsset && selectedAsset.kind !== 'audio' && (
-              <label style={{ display: 'block', marginTop: 10 }}>
-                <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>Caption</span>
-                <input value={caption} onChange={(e) => setCaption(e.target.value)} style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }} />
-              </label>
-            )}
+    <Card>
+      <CardHeader>
+        <CardTitle>Test send</CardTitle>
+        <CardDescription>
+          Opts in a phone number and sends it a real message through this tenant&apos;s WhatsApp number —
+          confirms credentials, sending, and logging all work end to end.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <form id="test-send-form" onSubmit={handleSend} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="test-send-phone">Phone number (international, no +)</Label>
+            <Input id="test-send-phone" required placeholder="919876543210" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-        )}
 
-        {mode === 'template' && (
-          <div style={{ marginBottom: 16, padding: 12, background: '#fafafa', borderRadius: 6 }}>
-            <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 8 }}>Choose a template</span>
-            {templates.length === 0 ? (
-              <p style={{ fontSize: 12, color: '#999' }}>No templates synced yet — sync from the panel above.</p>
-            ) : (
-              <>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-                  {templates.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => selectTemplate(t.id)}
-                      style={{
-                        padding: '4px 10px', fontSize: 12, borderRadius: 6, cursor: 'pointer',
-                        border: selectedTemplateId === t.id ? '1px solid #111' : '1px solid #ddd',
-                        background: selectedTemplateId === t.id ? '#111' : '#fff',
-                        color: selectedTemplateId === t.id ? '#fff' : '#333',
-                      }}
+          <Tabs value={mode} onValueChange={(v) => handleModeChange(v as SendMode)}>
+            <TabsList>
+              <TabsTrigger value="text">Text</TabsTrigger>
+              <TabsTrigger value="media">Media</TabsTrigger>
+              <TabsTrigger value="template">Template</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="text" className="mt-4">
+              <div className="grid gap-2">
+                <Label htmlFor="test-send-message">Message text</Label>
+                <Input id="test-send-message" value={message} onChange={(e) => setMessage(e.target.value)} />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="media" className="mt-4">
+              <div className="grid gap-3 rounded-lg border bg-muted/30 p-3">
+                <span className="text-xs font-medium text-muted-foreground">Attach media</span>
+                <div className="flex flex-wrap gap-2">
+                  {mediaAssets.map((asset) => (
+                    <PickerPill
+                      key={asset.id}
+                      selected={selectedAssetId === asset.id}
+                      onClick={() => setSelectedAssetId(asset.id)}
+                      title={asset.originalFilename ?? asset.blobUrl}
                     >
-                      {t.name} ({t.language})
-                    </button>
+                      {asset.kind} · {asset.originalFilename ?? asset.id.slice(0, 8)}
+                    </PickerPill>
                   ))}
                 </div>
-                {selectedTemplate && (
+                <Input
+                  key={fileInputKey}
+                  type="file"
+                  accept="image/*,video/*,audio/*,application/pdf"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                />
+                {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+                {selectedAsset && selectedAsset.kind !== 'audio' && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="test-send-caption">Caption</Label>
+                    <Input id="test-send-caption" value={caption} onChange={(e) => setCaption(e.target.value)} />
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="template" className="mt-4">
+              <div className="grid gap-3 rounded-lg border bg-muted/30 p-3">
+                <span className="text-xs font-medium text-muted-foreground">Choose a template</span>
+                {templates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No templates synced yet — sync from the panel above.</p>
+                ) : (
                   <>
-                    {templateParams.map((val, i) => (
-                      <label key={i} style={{ display: 'block', marginBottom: 8 }}>
-                        <span style={{ fontSize: 12, color: '#444', display: 'block', marginBottom: 4 }}>{`{{${i + 1}}}`}</span>
-                        <input
-                          value={val}
-                          onChange={(e) => {
-                            const next = [...templateParams];
-                            next[i] = e.target.value;
-                            setTemplateParams(next);
-                          }}
-                          style={{ width: '100%', padding: '8px 10px', fontSize: 14, border: '1px solid #ddd', borderRadius: 6 }}
-                        />
-                      </label>
-                    ))}
-                    {preview && (
-                      <div style={{ marginTop: 8, padding: 8, background: '#fff', border: '1px dashed #ddd', borderRadius: 6, fontSize: 12, color: '#555', whiteSpace: 'pre-wrap' }}>
-                        {preview}
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      {templates.map((t) => (
+                        <PickerPill key={t.id} selected={selectedTemplateId === t.id} onClick={() => selectTemplate(t.id)}>
+                          {t.name} ({t.language})
+                        </PickerPill>
+                      ))}
+                    </div>
+                    {selectedTemplate && (
+                      <>
+                        {templateParams.map((val, i) => (
+                          <div key={i} className="grid gap-2">
+                            <Label htmlFor={`template-param-${i}`}>{`{{${i + 1}}}`}</Label>
+                            <Input
+                              id={`template-param-${i}`}
+                              value={val}
+                              onChange={(e) => {
+                                const next = [...templateParams];
+                                next[i] = e.target.value;
+                                setTemplateParams(next);
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </>
                     )}
                   </>
                 )}
-              </>
-            )}
-          </div>
-        )}
+              </div>
+            </TabsContent>
+          </Tabs>
 
-        <button
-          type="submit"
-          disabled={!canSend}
-          style={{ padding: '8px 16px', fontSize: 14, border: 'none', borderRadius: 6, cursor: 'pointer', background: '#111', color: '#fff' }}
-        >
+          {result && (
+            <Alert variant={result.ok ? 'default' : 'destructive'}>
+              {result.ok ? <CheckCircle2 /> : <XCircle />}
+              <AlertDescription>{result.text}</AlertDescription>
+            </Alert>
+          )}
+        </form>
+
+        <div className="lg:sticky lg:top-4 lg:self-start">
+          <span className="mb-2 block text-xs font-medium text-muted-foreground">Preview</span>
+          <WhatsAppPreview
+            senderName={tenantName}
+            body={mode === 'text' ? message : mode === 'template' ? preview : undefined}
+            mediaUrl={mode === 'media' ? selectedAsset?.blobUrl : undefined}
+            mediaKind={mode === 'media' ? selectedAsset?.kind : undefined}
+            caption={mode === 'media' ? caption : undefined}
+          />
+        </div>
+        </div>
+      </CardContent>
+      <CardFooter className="gap-3">
+        <Button type="submit" form="test-send-form" disabled={!canSend}>
           {sending ? 'Sending…' : 'Send test message'}
-        </button>
+        </Button>
         {!credentialsConfigured && (
-          <span style={{ marginLeft: 12, fontSize: 12, color: '#999' }}>Configure WhatsApp credentials first</span>
+          <span className="text-xs text-muted-foreground">Configure WhatsApp credentials first</span>
         )}
-
-        {result && (
-          <div style={{ marginTop: 12, fontSize: 13, color: result.ok ? '#0a7' : '#c00' }}>{result.text}</div>
-        )}
-      </form>
-    </section>
+      </CardFooter>
+    </Card>
   );
 }

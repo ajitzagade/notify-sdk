@@ -27,6 +27,17 @@ No Redis, no database needed for development — defaults to in-memory adapters.
 
 ---
 
+## Use cases
+
+- **Transactional**: OTP codes, task assignments, approval requests, status updates — see [Built-in templates](#built-in-templates)
+- **Operational alerts**: deploy notifications, custom interactive templates with action buttons
+- **Rich media**: images, videos, documents, audio with captions — see [Sending media](#sending-media)
+- **Marketing/broadcast campaigns**: real Meta-approved templates that work outside the 24h session window — see [Real WhatsApp templates (HSM)](#real-whatsapp-templates-hsm)
+- **Two-way conversations**: inbound replies, button clicks, automatic STOP/START handling — see [Webhooks](#webhooks)
+- **Multi-tenant hosting**: serve N businesses' WhatsApp credentials from one process, fully isolated — see [Multi-tenant hosting](#multi-tenant-hosting)
+
+---
+
 ## Installation
 
 ### In the monorepo (workspace reference)
@@ -179,6 +190,50 @@ await notify.sendToList('engineering', {
 });
 ```
 
+### Sending media
+
+Pass a public HTTPS URL (e.g. a Vercel Blob URL) — Meta fetches it directly, no need to pre-upload:
+
+```ts
+await notify.send({
+  to:       '919876543210',
+  template: 'text', // ignored when attachment is set
+  attachment: {
+    type:     'image',       // 'image' | 'video' | 'document' | 'audio'
+    link:     'https://example.com/invoice.pdf',
+    caption:  'Your invoice for March',  // not supported for type 'audio'
+    filename: 'invoice.pdf',              // only used for type 'document'
+  },
+});
+```
+
+For reusing the same uploaded asset across many sends without re-uploading each time, `WhatsAppHttpClient.uploadMedia()`/`getMediaUrl()` upload to Meta once and return a media ID you can pass as `attachment.id` instead of `link` — this is an advanced path (accessed via `NotifyClient`'s internal `http` client); for almost all cases, passing a public `link` (e.g. a Vercel Blob URL, as `apps/admin` does) is simpler and sufficient.
+
+### Real WhatsApp templates (HSM)
+
+The templates above (`registerTemplate`, built-ins) are local JS functions producing free-form **session messages** — they only deliver within a 24-hour window after the user last messaged you. To message someone outside that window (most marketing/campaign use cases), you need one of Meta's own pre-approved templates:
+
+```ts
+// Requires config.wabaId (WhatsApp Business Account ID — template listing is
+// WABA-scoped, not phone-number-scoped)
+const templates = await notify.syncTemplates();
+// → [{ id, name, language, category, status, components }, ...]
+
+await notify.send({
+  to:       '919876543210',
+  template: 'text', // ignored when hsmTemplate is set
+  hsmTemplate: {
+    name:     'order_shipped',
+    language: 'en_US',
+    components: [
+      { type: 'body', parameters: [{ type: 'text', text: 'Priya' }, { type: 'text', text: '#4821' }] },
+    ],
+  },
+});
+```
+
+Authoring/submitting new templates to Meta for approval isn't part of this SDK — sync and send only. `apps/admin` has a UI for both syncing a tenant's approved templates and composing a parameterized send against one.
+
 ---
 
 ## Built-in templates
@@ -294,12 +349,76 @@ await sendToRecipients(['9198...', '9191...'], { template: 'alert', data: { ... 
 
 ---
 
+## Multi-tenant hosting
+
+For serving many businesses' WhatsApp credentials from one process (rather than one hardcoded `NotifyClient` per deployment), use `TenantClientRegistry`. It resolves and caches a tenant-scoped `NotifyClient` on demand — each cached client has its own `PostgresAdapter` (tenant-scoped queries) and its own `WhatsAppHttpClient` (that tenant's access token baked in at construction), so there's no per-call `tenantId` threading needed anywhere else.
+
+```ts
+import { TenantClientRegistry, PostgresAdapter, decryptSecret, parseMasterKey } from '@orgname/notify';
+
+const registry = new TenantClientRegistry({
+  pool: pgPool, // shared pg.Pool
+  credentialsProvider: {
+    async getCredentials(tenantId) {
+      const row = await lookUpEncryptedCredentialsFor(tenantId); // your DB query
+      return {
+        accessToken: decryptSecret(row.accessTokenEnc, tenantId, masterKey, row.keyVersion),
+        phoneNumberId: row.phoneNumberId,
+        wabaId: row.wabaId,
+        verifyToken: row.verifyToken,
+        appSecret: row.appSecretEnc ? decryptSecret(row.appSecretEnc, tenantId, masterKey, row.keyVersion) : undefined,
+      };
+    },
+  },
+});
+
+const client = await registry.getClient(tenantId);
+await client.send({ to: '919876543210', template: 'text', text: 'Hello!' });
+
+// After rotating a tenant's credentials, drop the stale cached client:
+registry.invalidate(tenantId);
+```
+
+### Credential encryption
+
+`CredentialCipher` gives real per-tenant key separation from a single root key via HKDF — no per-tenant key storage, no KMS dependency:
+
+```ts
+import { encryptSecret, decryptSecret, parseMasterKey } from '@orgname/notify';
+
+const masterKey = parseMasterKey(process.env.NOTIFY_MASTER_KEY!); // openssl rand -base64 32
+const enc = encryptSecret(accessToken, tenantId, masterKey);       // { ciphertext, iv, tag } — store these
+const plaintext = decryptSecret(enc, tenantId, masterKey);
+```
+
+Root-key rotation is supported via `MasterKeyRing`/`resolveKeyForVersion`/`reEncryptToCurrentVersion` — see `apps/admin/scripts/rotate-master-key.ts` for the full rotation flow (bump `NOTIFY_MASTER_KEY_VERSION`, keep the old key in `NOTIFY_MASTER_KEY_PREVIOUS` during the migration window, re-encrypt every row, then drop the previous key).
+
+### Multi-tenant webhooks
+
+`TenantWebhookRouter` routes one shared Meta callback URL to the correct tenant by peeking `phone_number_id` out of the inbound payload, then verifies the signature against **that tenant's own** `appSecret` (never a globally-configured one) before dispatching:
+
+```ts
+import { TenantWebhookRouter } from '@orgname/notify';
+
+const router = new TenantWebhookRouter({
+  registry,
+  resolveTenantId: (phoneNumberId) => lookUpTenantIdByPhoneNumberId(phoneNumberId), // your DB query
+});
+
+const result = await router.handle(rawBodyBuffer, req.headers['x-hub-signature-256'], parsedBody);
+res.status(result.status).end(); // 200 handled, 401 bad signature, 404 unknown tenant
+```
+
+Signature verification fails **closed**: a missing or invalid signature is always rejected, never silently allowed through.
+
+---
+
 ## Storage adapters
 
 | Adapter | Use case | Setup |
 |---|---|---|
 | `InMemoryAdapter` | Dev / testing | No setup |
-| `PostgresAdapter` | Production | Run `migrations/001_notify.sql` |
+| `PostgresAdapter` | Production, single- or multi-tenant | Run `migrations/*.sql` in order (001 is the original single-tenant schema; 002+ add tenants, credentials, media, templates, contacts/campaigns, API keys, and audit log — see [Multi-tenant hosting](#multi-tenant-hosting)) |
 
 ## Queue adapters
 
@@ -326,18 +445,43 @@ npm test -- --coverage
 ```
 packages/notify/
 ├── src/
-│   ├── client/NotifyClient.ts      Main entry point
+│   ├── client/NotifyClient.ts       Main entry point — send, sendBulk, syncTemplates, opt-in/out, webhooks
 │   ├── core/
-│   │   ├── TemplateEngine.ts       Built-in + custom templates
-│   │   ├── GuardEngine.ts          Opt-in, quiet hours, mute
-│   │   └── EventBus.ts             Lifecycle events
+│   │   ├── TemplateEngine.ts        Built-in + custom templates, media attachments, HSM templates
+│   │   ├── GuardEngine.ts           Opt-in, quiet hours, mute
+│   │   └── EventBus.ts              Lifecycle events
 │   ├── adapters/
-│   │   ├── queue/                  InlineQueueAdapter, BullQueueAdapter
-│   │   └── storage/                InMemoryAdapter, PostgresAdapter
-│   ├── bulk/BulkSender.ts          Bulk + BroadcastList
-│   ├── webhook/WebhookHandler.ts   Express / Fastify / Next.js
-│   ├── http/WhatsAppHttpClient.ts  Meta API wrapper
-│   └── react/index.tsx             NotifyProvider, useNotify, useOptIn, useBulkSend
-├── tests/NotifyClient.test.ts
-└── src/adapters/storage/migrations/001_notify.sql
+│   │   ├── queue/                   InlineQueueAdapter, BullQueueAdapter
+│   │   └── storage/
+│   │       ├── InMemoryAdapter.ts, PostgresAdapter.ts (tenant-scoped)
+│   │       └── migrations/          001 (base) → 009 (audit log) — see table below
+│   ├── tenant/TenantClientRegistry.ts  Multi-tenant client resolution + caching
+│   ├── security/
+│   │   ├── CredentialCipher.ts      Per-tenant encryption, key rotation
+│   │   ├── PasswordHash.ts          scrypt-based (also reused for API key hashing)
+│   │   └── SessionCookie.ts         Signed+encrypted admin session cookies
+│   ├── bulk/BulkSender.ts           Bulk + BroadcastList
+│   ├── webhook/
+│   │   ├── WebhookHandler.ts        Express / Fastify / Next.js (single-tenant)
+│   │   ├── TenantWebhookRouter.ts   Multi-tenant webhook routing by phone_number_id
+│   │   └── signature.ts             Shared, fail-closed HMAC verification
+│   ├── http/WhatsAppHttpClient.ts   Meta API wrapper — messages, media upload, template listing
+│   └── react/index.tsx              NotifyProvider, useNotify, useOptIn, useBulkSend
+└── tests/NotifyClient.test.ts
 ```
+
+### Migrations
+
+| File | Adds |
+|---|---|
+| `001_notify.sql` | `notify_log`, `notify_preferences` (original single-tenant schema) |
+| `002_tenants.sql` | `tenants`, `admin_users` |
+| `003_tenant_wa_credentials.sql` | `tenant_wa_credentials` (encrypted access token/app secret) |
+| `004_tenant_scope_existing_tables.sql` | `tenant_id` on `notify_log`/`notify_preferences`, legacy-tenant backfill |
+| `005_media_assets.sql` | `media_assets` (per-tenant media library) |
+| `006_wa_templates.sql` | `wa_templates` (synced Meta-approved templates) |
+| `007_contacts_lists_campaigns.sql` | `contacts`, `broadcast_lists`, `broadcast_list_members`, `campaigns` |
+| `008_tenant_api_keys.sql` | `tenant_api_keys` (hashed, prefix-indexed) |
+| `009_admin_audit_log.sql` | `admin_audit_log` |
+
+Run them in order against a fresh database; each is additive and idempotent (`CREATE TABLE IF NOT EXISTS`, etc.).

@@ -132,14 +132,10 @@ export class WebhookHandler {
   }
 
   private async handleInboundMessage(message: Record<string, unknown>): Promise<void> {
-    // Mark as read (blue ticks)
-    await this.client.http.post('/messages', {
-      messaging_product: 'whatsapp',
-      status:            'read',
-      message_id:        message.id,
-    });
-
+    // Persisting the reply and running STOP/START must not depend on Meta's
+    // API being reachable — do those first, then best-effort mark as read.
     const reply = this.parseReply(message);
+    await this.client.storage.logReply(reply);
     this.client.config.onReply?.(reply);
     this.client.eventBus.emit('reply', reply);
 
@@ -152,12 +148,27 @@ export class WebhookHandler {
         await this.client.optIn(reply.from);
       }
     }
+
+    // Mark as read (blue ticks) — best-effort; a failure here (rate limit,
+    // expired token, transient Meta outage) must not lose the reply above.
+    try {
+      await this.client.http.post('/messages', {
+        messaging_product: 'whatsapp',
+        status:            'read',
+        message_id:        message.id,
+      });
+    } catch (err) {
+      const logger = this.client.config.logger ?? console;
+      logger.warn('[Notify] Failed to mark inbound message as read (non-fatal)', err);
+    }
   }
 
   private parseReply(message: Record<string, unknown>): InboundReply {
+    const context = message.context as Record<string, unknown> | undefined;
     const base = {
       from:        message.from as string,
       messageId:   message.id  as string,
+      inReplyToWaMessageId: context?.id as string | undefined,
       rawPayload:  message,
     };
 

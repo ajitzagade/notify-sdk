@@ -1,44 +1,98 @@
 import Link from 'next/link';
+import { Building2, ChevronRight } from 'lucide-react';
 import { requireAdminSessionOrRedirect } from '@/lib/auth';
 import { listTenants } from '@/lib/tenants';
 import { NewTenantForm } from './NewTenantForm';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
+  active:    'default',
+  suspended: 'secondary',
+  archived:  'outline',
+};
 
 export default async function TenantsPage() {
   requireAdminSessionOrRedirect();
   const tenants = await listTenants();
 
+  const active = tenants.filter((t) => t.status === 'active').length;
+  const suspended = tenants.filter((t) => t.status === 'suspended').length;
+
   return (
-    <main style={{ maxWidth: 800, margin: '48px auto', padding: '0 20px' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 24 }}>Tenants</h1>
+    <>
+      <header className="flex items-center justify-between border-b border-border px-8 py-5">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Tenants</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Every business running on this platform, in one place.</p>
+        </div>
+        <NewTenantForm />
+      </header>
 
-      <NewTenantForm />
+      <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
+        <div className="mb-8 grid grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="py-5">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Total tenants</div>
+              <div className="mt-1.5 text-2xl font-semibold tabular-nums">{tenants.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-5">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Active</div>
+              <div className="mt-1.5 text-2xl font-semibold tabular-nums text-primary">{active}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-5">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Suspended</div>
+              <div className="mt-1.5 text-2xl font-semibold tabular-nums">{suspended}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <div style={{ marginTop: 32 }}>
-        {tenants.length === 0 && <p style={{ color: '#666', fontSize: 14 }}>No tenants yet.</p>}
-        {tenants.map((t) => (
-          <Link
-            key={t.id}
-            href={`/tenants/${t.id}`}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: 14,
-              border: '1px solid #eee', borderRadius: 8, marginBottom: 8,
-              textDecoration: 'none', color: '#111',
-            }}
-          >
-            {t.logoBlobUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={t.logoBlobUrl} alt="" width={32} height={32} style={{ borderRadius: 6, objectFit: 'cover' }} />
-            ) : (
-              <div style={{ width: 32, height: 32, borderRadius: 6, background: t.primaryColor ?? '#ddd' }} />
-            )}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{t.name}</div>
-              <div style={{ fontSize: 12, color: '#888' }}>{t.slug}</div>
-            </div>
-            <span style={{ fontSize: 12, color: t.status === 'active' ? '#0a7' : '#999' }}>{t.status}</span>
-          </Link>
-        ))}
+        {tenants.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+              <div className="flex size-11 items-center justify-center rounded-full bg-muted">
+                <Building2 className="size-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">No tenants yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">Create one to onboard the first business onto this platform.</p>
+              </div>
+              <div className="mt-2"><NewTenantForm /></div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="overflow-hidden p-0">
+            <ul>
+              {tenants.map((t, i) => (
+                <li key={t.id} className={i > 0 ? 'border-t border-border' : ''}>
+                  <Link
+                    href={`/tenants/${t.id}`}
+                    className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/50"
+                  >
+                    <Avatar className="size-9 rounded-lg">
+                      {t.logoBlobUrl && <AvatarImage src={t.logoBlobUrl} alt="" />}
+                      <AvatarFallback color={t.primaryColor} className="rounded-lg text-xs">
+                        {t.name.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">{t.name}</div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">{t.slug}</div>
+                    </div>
+                    <Badge variant={STATUS_VARIANT[t.status] ?? 'outline'}>{t.status}</Badge>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </div>
-    </main>
+    </>
   );
 }

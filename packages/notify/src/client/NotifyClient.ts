@@ -2,6 +2,7 @@ import { WhatsAppHttpClient }  from '../http/WhatsAppHttpClient';
 import { TemplateEngine }       from '../core/TemplateEngine';
 import { GuardEngine }          from '../core/GuardEngine';
 import { EventBus }             from '../core/EventBus';
+import { extractBodyPreview }   from '../core/extractBodyPreview';
 import { InlineQueueAdapter }   from '../adapters/queue/InlineQueueAdapter';
 import { InMemoryAdapter }      from '../adapters/storage/InMemoryAdapter';
 import { BulkSender, BroadcastList } from '../bulk/BulkSender';
@@ -83,11 +84,12 @@ export class NotifyClient {
 
     const payload = this.templates.build(options);
     const logId   = await this.storage.logEvent({
-      to:       options.to,
-      template: options.template,
-      status:   'queued',
-      tags:     options.tags,
-      meta:     options.meta,
+      to:          options.to,
+      template:    options.template,
+      status:      'queued',
+      tags:        options.tags,
+      meta:        options.meta,
+      bodyPreview: extractBodyPreview(payload),
     });
 
     const job: QueueJob = { logId, sendOptions: options, payload };
@@ -105,13 +107,22 @@ export class NotifyClient {
       await this.queue.enqueue(job);
     }
 
-    return {
-      id:       logId,
-      to:       options.to,
-      template: options.template,
-      status:   'queued',
-      tags:     options.tags,
-      meta:     options.meta,
+    // Some queue adapters (e.g. InlineQueueAdapter with no delay) fully
+    // execute the job synchronously inside enqueue() before it resolves —
+    // by this point storage may already reflect the real 'sent'/'failed'
+    // outcome, not 'queued'. Read it back rather than assuming the status
+    // logged just above is still current. For genuinely async adapters
+    // (BullQueueAdapter, or a delayed/scheduled send) the row is still
+    // 'queued' at this point, so this correctly falls through unchanged.
+    const current = await this.storage.getEvent(logId);
+    return current ?? {
+      id:          logId,
+      to:          options.to,
+      template:    options.template,
+      status:      'queued',
+      tags:        options.tags,
+      meta:        options.meta,
+      bodyPreview: extractBodyPreview(payload),
     };
   }
 
