@@ -191,7 +191,12 @@ export function CampaignsPanel({
 
             <div className="grid gap-2">
               <Label>Broadcast list</Label>
-              <Select value={listId} onValueChange={(v) => setListId(v ?? '')}>
+              <Select
+                value={listId}
+                onValueChange={(v) => setListId(v ?? '')}
+                // items map so the trigger shows the list name, not the raw UUID
+                items={Object.fromEntries(lists.map((l) => [l.id, `${l.name} (${l.memberCount} members)`]))}
+              >
                 <SelectTrigger className="w-full"><SelectValue placeholder="Choose a list…" /></SelectTrigger>
                 <SelectContent>
                   {lists.map((l) => (
@@ -203,7 +208,11 @@ export function CampaignsPanel({
 
             <div className="grid gap-2">
               <Label>Template</Label>
-              <Select value={templateId} onValueChange={selectTemplate}>
+              <Select
+                value={templateId}
+                onValueChange={selectTemplate}
+                items={Object.fromEntries(templates.map((t) => [t.id, `${t.name} (${t.language}) — ${t.status}`]))}
+              >
                 <SelectTrigger className="w-full"><SelectValue placeholder="Choose a template…" /></SelectTrigger>
                 <SelectContent>
                   {templates.map((t) => (

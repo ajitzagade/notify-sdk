@@ -223,7 +223,12 @@ export function InboxClient({
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {showAssignment && (
-                  <Select value={selected.assignedAdminId ?? '__unassigned__'} onValueChange={(v) => v && handleAssign(v)}>
+                  <Select
+                    value={selected.assignedAdminId ?? '__unassigned__'}
+                    onValueChange={(v) => v && handleAssign(v)}
+                    // items map so the trigger shows the admin's email, not the raw UUID
+                    items={{ __unassigned__: 'Unassigned', ...Object.fromEntries(adminUsers.map((a) => [a.id, a.email])) }}
+                  >
                     <SelectTrigger className="w-44"><SelectValue placeholder="Assign to…" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__unassigned__">Unassigned</SelectItem>

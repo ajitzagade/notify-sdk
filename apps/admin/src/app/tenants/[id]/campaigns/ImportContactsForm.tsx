@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, XCircle, Upload, Loader2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Upload, Loader2, FileSpreadsheet, Download } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,33 @@ export function ImportContactsForm({
   const [alreadyOptedIn, setAlreadyOptedIn] = useState(false);
   const [importing, setImporting]         = useState(false);
   const [result, setResult]               = useState<{ ok: boolean; text: string } | null>(null);
+  // Remount key clears the file input after a read — the shadcn Input wrapper
+  // doesn't forward refs under React 18, so `ref.value = ''` isn't an option.
+  const [fileInputKey, setFileInputKey]   = useState(0);
+  const [fileNote, setFileNote]           = useState<string | null>(null);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    const text = await file.text();
+    const lines = text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      // Tolerate a header row — drop it if the first line looks like column names.
+      .filter((l, i) => !(i === 0 && /^phone\b/i.test(l.replace(/["']/g, ''))))
+      .map((l) => l.replace(/["']/g, ''));
+    setCsv(lines.join('\n'));
+    setFileNote(`Loaded ${lines.length} row(s) from ${file.name} — review below, then import.`);
+    setFileInputKey((k) => k + 1);
+  };
+
+  const downloadTemplate = () => {
+    const sample = 'phone,name\n919876543210,Priya Sharma\n919123456789,Rahul Verma\n14155550123,Sam Carter\n';
+    const url = URL.createObjectURL(new Blob([sample], { type: 'text/csv' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'contacts-template.csv' });
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +92,32 @@ export function ImportContactsForm({
       <CardContent>
         <form id="import-contacts-form" onSubmit={handleImport} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="contacts-csv">Contacts CSV</Label>
+            <Label htmlFor="contacts-file">Bulk upload a CSV file</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                key={fileInputKey}
+                id="contacts-file"
+                type="file"
+                accept=".csv,text/csv"
+                className="max-w-xs"
+                onChange={(e) => handleFile(e.target.files?.[0])}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={downloadTemplate}>
+                <Download /> CSV template
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Columns: <code>phone,name</code> — one contact per row, header row optional. The file fills the box below so you can review before importing.
+            </p>
+            {fileNote && (
+              <p className="flex items-center gap-1.5 text-xs text-signal">
+                <FileSpreadsheet className="size-3.5" /> {fileNote}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="contacts-csv">Contacts (or paste them here directly)</Label>
             <Textarea
               id="contacts-csv"
               required

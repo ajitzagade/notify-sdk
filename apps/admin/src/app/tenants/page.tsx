@@ -1,4 +1,6 @@
+import { Building2 } from 'lucide-react';
 import { requireAdminSessionOrRedirect } from '@/lib/auth';
+import { PageTitle } from '@/components/page-title';
 import { listTenants } from '@/lib/tenants';
 import { NewTenantForm } from './NewTenantForm';
 import { TenantsOverview } from './TenantsOverview';
@@ -10,10 +12,7 @@ export default async function TenantsPage() {
   return (
     <>
       <header className="flex items-center justify-between border-b border-border px-8 py-5">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight">Tenants</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Every business running on this platform, in one place.</p>
-        </div>
+        <PageTitle icon={Building2} title="Tenants" description="Every business running on this platform, in one place." />
         <NewTenantForm />
       </header>
 

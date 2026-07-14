@@ -5,7 +5,9 @@ import { listBroadcastLists } from '@/lib/broadcastLists';
 import { listTemplates } from '@/lib/templates';
 import { listCampaigns } from '@/lib/campaigns';
 import { listMediaAssets } from '@/lib/media';
+import { Megaphone } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { PageTitle } from '@/components/page-title';
 import { ImportContactsForm } from './ImportContactsForm';
 import { CampaignsPanel } from './CampaignsPanel';
 
@@ -32,8 +34,7 @@ export default async function CampaignsPage({ params }: { params: { id: string }
             { label: 'Campaigns' },
           ]}
         />
-        <h1 className="text-lg font-semibold tracking-tight">Campaigns</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Broadcast lists and bulk sends for {tenant.name}.</p>
+        <PageTitle icon={Megaphone} title="Campaigns" description={`Broadcast lists and bulk sends for ${tenant.name}.`} />
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">

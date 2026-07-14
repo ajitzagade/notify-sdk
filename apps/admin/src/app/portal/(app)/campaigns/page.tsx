@@ -1,3 +1,5 @@
+import { Megaphone } from 'lucide-react';
+import { PageTitle } from '@/components/page-title';
 import { requirePortalSessionOrRedirect } from '@/lib/tenantPortalAuth';
 import { listBroadcastLists } from '@/lib/broadcastLists';
 import { listTemplates } from '@/lib/templates';
@@ -21,8 +23,7 @@ export default async function PortalCampaignsPage() {
   return (
     <>
       <header className="border-b border-border px-8 py-5">
-        <h1 className="text-lg font-semibold tracking-tight">Campaigns</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Broadcast lists and bulk sends.</p>
+        <PageTitle icon={Megaphone} title="Campaigns" description={"Broadcast lists and bulk sends."} />
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">

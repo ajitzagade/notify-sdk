@@ -3,7 +3,9 @@ import { requireAdminSessionOrRedirect } from '@/lib/auth';
 import { getTenant } from '@/lib/tenants';
 import { listConversations } from '@/lib/conversations';
 import { listAdminUsers } from '@/lib/adminUsers';
+import { Inbox } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { PageTitle } from '@/components/page-title';
 import { InboxClient } from './InboxClient';
 
 export default async function InboxPage({ params }: { params: { id: string } }) {
@@ -27,8 +29,7 @@ export default async function InboxPage({ params }: { params: { id: string } }) 
             { label: 'Inbox' },
           ]}
         />
-        <h1 className="text-lg font-semibold tracking-tight">Inbox</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Every conversation with {tenant.name}&apos;s customers, in one place.</p>
+        <PageTitle icon={Inbox} title="Inbox" description={`Every conversation with ${tenant.name}'s customers, in one place.`} />
       </header>
 
       <div className="flex-1 overflow-hidden">

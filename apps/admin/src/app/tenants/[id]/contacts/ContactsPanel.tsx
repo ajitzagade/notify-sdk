@@ -116,7 +116,13 @@ export function ContactsPanel({
             <CardTitle>Contacts</CardTitle>
             <CardDescription>Everyone imported for this tenant, with tags and custom fields.</CardDescription>
           </div>
-          <Select value={tagFilter} onValueChange={(v) => v && applyFilter(v)}>
+          <Select
+            value={tagFilter}
+            onValueChange={(v) => v && applyFilter(v)}
+            // Base UI's Select.Value renders the raw value unless the root is
+            // given an items map — without this the trigger shows "__all__".
+            items={{ [ALL_TAGS_VALUE]: 'All tags', ...Object.fromEntries(allTags.map((t) => [t, t])) }}
+          >
             <SelectTrigger className="w-44"><SelectValue placeholder="Filter by tag…" /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_TAGS_VALUE}>All tags</SelectItem>

@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation';
 import { requireAdminSessionOrRedirect } from '@/lib/auth';
 import { getTenant } from '@/lib/tenants';
 import { listContacts, listDistinctTags } from '@/lib/contacts';
+import { Users } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { PageTitle } from '@/components/page-title';
 import { ContactsPanel } from './ContactsPanel';
 
 export default async function ContactsPage({ params }: { params: { id: string } }) {
@@ -26,8 +28,7 @@ export default async function ContactsPage({ params }: { params: { id: string } 
             { label: 'Contacts' },
           ]}
         />
-        <h1 className="text-lg font-semibold tracking-tight">Contacts</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Tags and custom fields for {tenant.name}&apos;s contacts.</p>
+        <PageTitle icon={Users} title="Contacts" description={`Tags and custom fields for ${tenant.name}'s contacts.`} />
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">

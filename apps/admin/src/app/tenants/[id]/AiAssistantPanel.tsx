@@ -110,7 +110,11 @@ export function AiAssistantPanel({ tenantId, status }: { tenantId: string; statu
         <form id="ai-assistant-form" onSubmit={handleSave} className="grid gap-4">
           <div className="grid gap-2">
             <Label>Provider</Label>
-            <Select value={provider} onValueChange={(v) => v && setProvider(v as AiProvider)}>
+            <Select
+              value={provider}
+              onValueChange={(v) => v && setProvider(v as AiProvider)}
+              items={{ openai: 'OpenAI', anthropic: 'Anthropic' }}
+            >
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="openai">OpenAI</SelectItem>

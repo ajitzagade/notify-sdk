@@ -1,3 +1,5 @@
+import { Inbox } from 'lucide-react';
+import { PageTitle } from '@/components/page-title';
 import { requirePortalSessionOrRedirect } from '@/lib/tenantPortalAuth';
 import { listConversations } from '@/lib/conversations';
 import { InboxClient } from '@/app/tenants/[id]/inbox/InboxClient';
@@ -9,8 +11,7 @@ export default async function PortalInboxPage() {
   return (
     <>
       <header className="border-b border-border px-8 py-5">
-        <h1 className="text-lg font-semibold tracking-tight">Inbox</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Every conversation with your customers, in one place.</p>
+        <PageTitle icon={Inbox} title="Inbox" description={"Every conversation with your customers, in one place."} />
       </header>
 
       <div className="flex-1 overflow-hidden">

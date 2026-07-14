@@ -1,3 +1,5 @@
+import { LayoutTemplate } from 'lucide-react';
+import { PageTitle } from '@/components/page-title';
 import { requirePortalSessionOrRedirect } from '@/lib/tenantPortalAuth';
 import { listTemplates } from '@/lib/templates';
 import { TemplatesPanel } from '@/app/tenants/[id]/TemplatesPanel';
@@ -9,8 +11,7 @@ export default async function PortalTemplatesPage() {
   return (
     <>
       <header className="border-b border-border px-8 py-5">
-        <h1 className="text-lg font-semibold tracking-tight">Templates</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Meta-approved WhatsApp templates.</p>
+        <PageTitle icon={LayoutTemplate} title="Templates" description={"Meta-approved WhatsApp templates."} />
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
