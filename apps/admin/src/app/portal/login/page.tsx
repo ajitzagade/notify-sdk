@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function PortalLoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -31,8 +30,11 @@ export default function PortalLoginPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Login failed');
-      router.push(searchParams.get('next') ?? '/portal');
-      router.refresh();
+      // Full navigation, not router.push: /portal is a redirect-only page, and a
+      // client-side push raced with router.refresh() leaves the URL parked there
+      // with an empty content tree — which reads as a failed login.
+      window.location.assign(searchParams.get('next') ?? '/portal');
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

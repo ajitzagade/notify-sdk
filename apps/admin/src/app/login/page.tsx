@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -31,8 +30,11 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Login failed');
-      router.push(searchParams.get('next') ?? '/tenants');
-      router.refresh();
+      // Full navigation, not router.push + refresh: if `next` is a redirect-only
+      // page (e.g. /), the push races the refresh and strands a blank tree —
+      // same failure mode fixed in portal/login/page.tsx.
+      window.location.assign(searchParams.get('next') ?? '/tenants');
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
