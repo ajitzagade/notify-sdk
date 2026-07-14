@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAdminSession } from '@/lib/auth';
 import { getTenant } from '@/lib/tenants';
 import { listCampaigns, createCampaign, type HeaderMediaType } from '@/lib/campaigns';
+import { getBroadcastList } from '@/lib/broadcastLists';
 
 export const GET = withAdminSession(async (_session, _req: NextRequest, ctx: { params: { id: string } }) => {
   const tenant = await getTenant(ctx.params.id);
@@ -34,6 +35,9 @@ export const POST = withAdminSession(async (session, req: NextRequest, ctx: { pa
   if (body.headerMediaType && !body.headerMediaUrl) {
     return NextResponse.json({ error: 'headerMediaUrl is required when headerMediaType is set' }, { status: 400 });
   }
+
+  const list = await getBroadcastList(tenant.id, body.broadcastListId);
+  if (!list) return NextResponse.json({ error: 'Broadcast list not found' }, { status: 404 });
 
   const campaign = await createCampaign({
     tenantId:          tenant.id,

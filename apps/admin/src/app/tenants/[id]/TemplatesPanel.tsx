@@ -17,7 +17,10 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive'> = 
   REJECTED: 'destructive',
 };
 
-export function TemplatesPanel({ tenantId, templates }: { tenantId: string; templates: TemplateRecord[] }) {
+export function TemplatesPanel({
+  tenantId, templates, baseApiPath,
+}: { tenantId: string; templates: TemplateRecord[]; baseApiPath?: string }) {
+  const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -26,7 +29,7 @@ export function TemplatesPanel({ tenantId, templates }: { tenantId: string; temp
     setSyncing(true);
     setError(null);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/templates/sync`, { method: 'POST' });
+      const res = await fetch(`${apiBase}/templates/sync`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Sync failed');
       toast.success(`Synced ${data.count ?? 0} template(s) from Meta`);

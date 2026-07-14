@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -29,21 +30,28 @@ export function SidebarTenantNav({ tenants }: { tenants: TenantNavItem[] }) {
             key={t.id}
             href={`/tenants/${t.id}`}
             className={cn(
-              'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
+              'relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
               active
-                ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+                ? 'font-medium text-sidebar-accent-foreground'
                 : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
             )}
           >
-            <Avatar className="size-5 rounded">
+            {active && (
+              <motion.span
+                layoutId="tenant-nav-active"
+                className="absolute inset-0 rounded-lg bg-sidebar-accent shadow-xs ring-1 ring-foreground/[0.04]"
+                transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.6 }}
+              />
+            )}
+            <Avatar className="relative z-10 size-5 rounded">
               {t.logoBlobUrl && <AvatarImage src={t.logoBlobUrl} alt="" />}
               <AvatarFallback color={t.primaryColor} className="rounded text-[9px]">
                 {t.name.slice(0, 1).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span className="truncate">{t.name}</span>
+            <span className="relative z-10 truncate">{t.name}</span>
             {t.status !== 'active' && (
-              <span className="ml-auto size-1.5 shrink-0 rounded-full bg-muted-foreground" />
+              <span className="relative z-10 ml-auto size-1.5 shrink-0 rounded-full bg-muted-foreground" />
             )}
           </Link>
         );

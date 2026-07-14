@@ -20,6 +20,19 @@ function rowToList(row: Record<string, unknown>): BroadcastListRecord {
   };
 }
 
+/** Ownership check — a campaign must never reference another tenant's list. Null if the list doesn't exist or belongs to a different tenant. */
+export async function getBroadcastList(tenantId: string, listId: string): Promise<BroadcastListRecord | null> {
+  const { rows } = await getPool().query(
+    `SELECT l.*, COUNT(m.contact_id) AS member_count
+       FROM broadcast_lists l
+       LEFT JOIN broadcast_list_members m ON m.list_id = l.id
+      WHERE l.tenant_id = $1 AND l.id = $2
+      GROUP BY l.id`,
+    [tenantId, listId]
+  );
+  return rows[0] ? rowToList(rows[0]) : null;
+}
+
 export async function listBroadcastLists(tenantId: string): Promise<BroadcastListRecord[]> {
   const { rows } = await getPool().query(
     `SELECT l.*, COUNT(m.contact_id) AS member_count

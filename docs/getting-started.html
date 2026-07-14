@@ -1,0 +1,549 @@
+<title>notify-sdk — Getting Started</title>
+<style>
+  /* ============ Reset ============ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; }
+  img, svg { display: block; max-width: 100%; }
+  ul, ol { margin: 0; padding: 0; list-style: none; }
+  h1, h2, h3, h4, p, figure { margin: 0; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+  /* ============ Tokens — same family as docs/presentation.html ============ */
+  :root {
+    --bg: #f2f5f3;
+    --bg-raise: #e9efeb;
+    --surface: #ffffff;
+    --surface-2: #eef3f0;
+    --border: rgba(14, 31, 26, 0.12);
+    --border-strong: rgba(14, 31, 26, 0.22);
+    --text: #0e1f1a;
+    --text-muted: #4f6b60;
+    --text-faint: #7c9186;
+    --accent: #c85a16;
+    --accent-strong: #a8480f;
+    --accent-soft: rgba(200, 90, 22, 0.12);
+    --accent-ink: #fff8f2;
+    --signal: #1f8f63;
+    --signal-soft: rgba(31, 143, 99, 0.12);
+    --danger: #a5433a;
+    --danger-soft: rgba(165, 67, 58, 0.1);
+    --shadow: 0 1px 2px rgba(14, 31, 26, 0.06), 0 12px 32px -16px rgba(14, 31, 26, 0.18);
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+
+    --container: 1080px;
+    --radius-s: 3px;
+    --radius-m: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a1614; --bg-raise: #0d1c19; --surface: #0f211d; --surface-2: #152b25;
+      --border: rgba(234, 255, 245, 0.09); --border-strong: rgba(234, 255, 245, 0.16);
+      --text: #eaf2ee; --text-muted: #8fa69d; --text-faint: #607269;
+      --accent: #ff8a3d; --accent-strong: #ffa564; --accent-soft: rgba(255, 138, 61, 0.14); --accent-ink: #1a0f04;
+      --signal: #3ddc9e; --signal-soft: rgba(61, 220, 158, 0.12);
+      --danger: #e5726b; --danger-soft: rgba(229, 114, 107, 0.12);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a1614; --bg-raise: #0d1c19; --surface: #0f211d; --surface-2: #152b25;
+    --border: rgba(234, 255, 245, 0.09); --border-strong: rgba(234, 255, 245, 0.16);
+    --text: #eaf2ee; --text-muted: #8fa69d; --text-faint: #607269;
+    --accent: #ff8a3d; --accent-strong: #ffa564; --accent-soft: rgba(255, 138, 61, 0.14); --accent-ink: #1a0f04;
+    --signal: #3ddc9e; --signal-soft: rgba(61, 220, 158, 0.12);
+    --danger: #e5726b; --danger-soft: rgba(229, 114, 107, 0.12);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f5f3; --bg-raise: #e9efeb; --surface: #ffffff; --surface-2: #eef3f0;
+    --border: rgba(14, 31, 26, 0.12); --border-strong: rgba(14, 31, 26, 0.22);
+    --text: #0e1f1a; --text-muted: #4f6b60; --text-faint: #7c9186;
+    --accent: #c85a16; --accent-strong: #a8480f; --accent-soft: rgba(200, 90, 22, 0.12); --accent-ink: #fff8f2;
+    --signal: #1f8f63; --signal-soft: rgba(31, 143, 99, 0.12);
+    --danger: #a5433a; --danger-soft: rgba(165, 67, 58, 0.1);
+    --shadow: 0 1px 2px rgba(14, 31, 26, 0.06), 0 12px 32px -16px rgba(14, 31, 26, 0.18);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  code {
+    font-family: var(--font-mono); font-size: 0.86em;
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 0.1em 0.4em; border-radius: 4px;
+  }
+  pre {
+    font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.6;
+    background: var(--text); color: var(--bg);
+    border-radius: var(--radius-m); padding: 16px 18px;
+    overflow-x: auto; white-space: pre;
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent);
+    display: inline-flex; align-items: center; gap: 0.6em;
+  }
+  .eyebrow::before { content: ""; width: 1.1em; height: 1px; background: var(--accent); display: inline-block; }
+  h2.section-title {
+    font-size: clamp(1.5rem, 2.6vw, 2.1rem); font-weight: 800; letter-spacing: -0.02em;
+    line-height: 1.12; text-wrap: balance; margin-top: 0.6rem;
+  }
+  .section-lead { font-size: 1.02rem; color: var(--text-muted); max-width: 62ch; line-height: 1.65; margin-top: 0.9rem; }
+
+  .wrap { max-width: var(--container); margin-inline: auto; padding-inline: 28px; }
+  .section { padding-block: 56px; border-top: 1px solid var(--border); }
+  .section:first-of-type { border-top: none; }
+  .section-head { max-width: 720px; }
+  .grid { display: grid; gap: 16px; }
+
+  /* ============ Nav ============ */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: color-mix(in oklab, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; height: 58px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.01em; font-size: 0.96rem; flex: none; }
+  .brand-mark { width: 22px; height: 22px; color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 20px; font-size: 0.82rem; color: var(--text-muted); overflow-x: auto; }
+  .nav-links a { white-space: nowrap; transition: color 0.15s ease; }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ============ Hero ============ */
+  .hero { padding-top: 56px; padding-bottom: 40px; }
+  .hero h1 {
+    font-size: clamp(2rem, 4.4vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em;
+    line-height: 1.06; text-wrap: balance; max-width: 18ch;
+  }
+  .hero h1 .hl { color: var(--accent); }
+  .hero-sub { margin-top: 20px; font-size: 1.08rem; color: var(--text-muted); max-width: 58ch; line-height: 1.6; }
+  .time-chip {
+    margin-top: 26px; display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);
+    padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+  }
+  .time-chip svg { width: 14px; height: 14px; color: var(--accent); }
+
+  /* ============ Lanes (who does what) ============ */
+  .lane-wrap { margin-top: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .lane-wrap { grid-template-columns: 1fr; } }
+  .lane {
+    border-radius: var(--radius-m); padding: 22px; background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .lane.ops { border-top: 3px solid var(--accent); }
+  .lane.client { border-top: 3px solid var(--signal); }
+  .lane .role { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); }
+  .lane h3 { margin-top: 8px; font-size: 1.05rem; font-weight: 700; }
+  .lane p { margin-top: 8px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; }
+  .lane .where { margin-top: 14px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--accent); }
+  .lane.client .where { color: var(--signal); }
+
+  .callout {
+    margin-top: 16px; padding: 14px 16px; border-radius: var(--radius-m);
+    background: var(--accent-soft); border: 1px solid rgba(200, 90, 22, 0.25);
+    font-size: 0.86rem; color: var(--text); line-height: 1.55;
+  }
+  .callout strong { color: var(--accent-strong); }
+
+  /* ============ Checklist (prerequisites) ============ */
+  .check-grid { grid-template-columns: repeat(2, 1fr); margin-top: 28px; }
+  @media (max-width: 720px) { .check-grid { grid-template-columns: 1fr; } }
+  .check-card {
+    display: flex; gap: 12px; padding: 16px; border-radius: var(--radius-m);
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .check-card svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--signal); }
+  .check-card h4 { font-size: 0.9rem; font-weight: 700; }
+  .check-card p { margin-top: 4px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+  .check-card code { font-size: 0.76rem; }
+
+  /* ============ Numbered steps ============ */
+  .steps { margin-top: 32px; display: flex; flex-direction: column; }
+  .step { display: grid; grid-template-columns: 44px 1fr; gap: 20px; padding-block: 26px; border-top: 1px solid var(--border); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-num {
+    width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; color: var(--text-muted);
+  }
+  .step.done .step-num { background: var(--signal); border-color: var(--signal); color: #fff; }
+  .step-body h4 { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.005em; }
+  .step-body .sub { margin-top: 2px; font-size: 0.82rem; color: var(--text-faint); }
+  .step-body p { margin-top: 8px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; max-width: 64ch; }
+  .step-body pre { margin-top: 12px; }
+  .step-body .tag {
+    display: inline-block; margin-top: 10px; font-family: var(--font-mono); font-size: 0.72rem;
+    padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--text-faint);
+    border: 1px solid var(--border);
+  }
+  .step-body .where-tab {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    font-size: 0.82rem; color: var(--accent); font-weight: 600;
+  }
+  .step-body .where-tab svg { width: 13px; height: 13px; }
+
+  /* ============ API example ============ */
+  .api-card { margin-top: 20px; border-radius: var(--radius-m); overflow: hidden; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+  .api-chrome { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+  .api-chrome .verb { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--accent-ink); background: var(--accent); padding: 2px 8px; border-radius: 4px; }
+  .api-chrome .path { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); }
+  .api-card pre { border-radius: 0; margin: 0; }
+
+  /* ============ Optional features ============ */
+  .opt-grid { grid-template-columns: repeat(3, 1fr); margin-top: 28px; }
+  @media (max-width: 860px) { .opt-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .opt-grid { grid-template-columns: 1fr; } }
+  .opt-card { padding: 18px; border-radius: var(--radius-m); background: var(--surface-2); }
+  .opt-card h4 { font-size: 0.92rem; font-weight: 700; }
+  .opt-card p { margin-top: 6px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+  .opt-card .tab { margin-top: 8px; display: block; font-family: var(--font-mono); font-size: 0.72rem; color: var(--signal); }
+
+  /* ============ Troubleshooting ============ */
+  .trouble { margin-top: 28px; display: grid; gap: 12px; }
+  .trouble-item { padding: 16px 18px; border-radius: var(--radius-m); border: 1px solid var(--border); background: var(--surface); }
+  .trouble-item .q { font-size: 0.9rem; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
+  .trouble-item .q::before { content: "?"; font-family: var(--font-mono); color: var(--danger); font-weight: 800; }
+  .trouble-item .a { margin-top: 6px; font-size: 0.86rem; color: var(--text-muted); line-height: 1.6; }
+
+  footer { padding-block: 36px; border-top: 1px solid var(--border); }
+  .foot-fine { font-size: 0.78rem; color: var(--text-faint); font-family: var(--font-mono); }
+</style>
+
+<nav class="nav">
+  <div class="wrap nav-row">
+    <a class="brand" href="#top">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/><circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12.5" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>
+      Getting started
+    </a>
+    <div class="nav-links">
+      <a href="#who">Who's who</a>
+      <a href="#prereqs">Prerequisites</a>
+      <a href="#setup">Setup</a>
+      <a href="#onboard">First tenant</a>
+      <a href="#api">Sending via API</a>
+      <a href="#optional">AI &amp; automation</a>
+      <a href="#trouble">Troubleshooting</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">How to use notify-sdk</span>
+      <h1>From a fresh clone to your first WhatsApp message, <span class="hl">step by step.</span></h1>
+      <p class="hero-sub">
+        This walks through everything in order: standing up the infrastructure, logging into
+        the admin console, onboarding a client business as a "tenant," and sending its first
+        message — both from the dashboard and programmatically.
+      </p>
+      <span class="time-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        About 15 minutes, first time through
+      </span>
+    </div>
+  </section>
+
+  <!-- ============ WHO DOES WHAT ============ -->
+  <section class="section" id="who">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Read this part first</span>
+        <h2 class="section-title">There is no tenant login. Two different people use this platform, two different ways.</h2>
+        <p class="section-lead">
+          "Tenant" means a client business you're running WhatsApp for — not a user account.
+          A tenant never signs into anything. Knowing which lane you're in decides everything
+          that follows.
+        </p>
+      </div>
+      <div class="lane-wrap">
+        <div class="lane ops">
+          <span class="role">Your internal ops team</span>
+          <h3>Logs into the admin console</h3>
+          <p>Creates and configures tenants, enters WhatsApp credentials, sends test messages, watches analytics, issues API keys. This is the only place anyone actually signs in.</p>
+          <div class="where">→ apps/admin, port 3012</div>
+        </div>
+        <div class="lane client">
+          <span class="role">A tenant's own backend</span>
+          <h3>Calls the REST API with a key</h3>
+          <p>The client business's developers — or their MCP-connected AI assistant — send messages and read logs using an API key ops issued them. No dashboard, no password, ever.</p>
+          <div class="where">→ apps/api's /v1/*, port 3001</div>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>In short:</strong> steps 1–4 below are things <em>you</em> (ops) do once, in the
+        admin console. Step 5 is what you hand off to a client's developers so their systems
+        can integrate — that's the only "tenant-facing" part of this platform.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PREREQUISITES ============ -->
+  <section class="section" id="prereqs">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Before you start</span>
+        <h2 class="section-title">Two separate checklists — one for your machine, one for the client's WhatsApp account.</h2>
+      </div>
+      <div class="grid check-grid">
+        <div class="check-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Node.js + pnpm installed</h4><p>This is a pnpm workspace monorepo — <code>npm</code> alone won't resolve the internal packages correctly.</p></div>
+        </div>
+        <div class="check-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Docker (or Colima on macOS) running</h4><p>Postgres runs in a container on <code>localhost:5434</code> — nothing else in this app needs a database elsewhere.</p></div>
+        </div>
+        <div class="check-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4><code>apps/admin/.env.local</code> filled in</h4><p><code>DATABASE_URL</code>, <code>NOTIFY_MASTER_KEY</code>, <code>SESSION_SECRET</code>, <code>BLOB_READ_WRITE_TOKEN</code>, plus <code>ADMIN_SEED_EMAIL</code>/<code>ADMIN_SEED_PASSWORD</code> for your first login.</p></div>
+        </div>
+        <div class="check-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>A verified Meta Business Manager + WABA</h4><p>The client business must already own this — you'll need a System User access token, the WABA ID, an app secret, and a webhook verify token. This part isn't optional or fakeable in production.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section class="section" id="setup">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Step 1 of 2 — one-time machine setup</span>
+        <h2 class="section-title">Get the admin console running locally.</h2>
+        <p class="section-lead">Run these once, in order, from the repo root. Later runs just need the last two.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Install dependencies</h4>
+            <pre><code>pnpm install</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Start Postgres</h4>
+            <p>Boots a container on port 5434. Data persists in a named volume between restarts.</p>
+            <pre><code>docker compose up -d</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Apply database migrations</h4>
+            <p>Safe to re-run — every migration file is idempotent.</p>
+            <pre><code>for f in packages/notify/src/adapters/storage/migrations/*.sql; do
+  PGPASSWORD=notify psql -h localhost -p 5434 -U notify -d notify_sdk -f "$f"
+done</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Build the core SDK</h4>
+            <p>The admin app and the API import compiled output from <code>packages/notify</code> — this step has to run at least once, and again after any SDK change.</p>
+            <pre><code>pnpm --filter @orgname/notify build</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Seed your first admin user</h4>
+            <p>Reads <code>ADMIN_SEED_EMAIL</code> / <code>ADMIN_SEED_PASSWORD</code> from <code>.env.local</code>. There's no signup page by design — this script is the only way in the first time.</p>
+            <pre><code>pnpm --filter admin seed:admin</code></pre>
+          </div>
+        </div>
+        <div class="step done">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <h4>Start the admin console and log in</h4>
+            <p>Opens on <code>localhost:3012</code>. Sign in with the email/password from step 5.</p>
+            <pre><code>pnpm --filter admin dev</code></pre>
+            <span class="tag">You're in. Everything from here happens in the browser.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ONBOARD FIRST TENANT ============ -->
+  <section class="section" id="onboard">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Step 2 of 2 — inside the admin console</span>
+        <h2 class="section-title">Onboard your first tenant and send its first message.</h2>
+        <p class="section-lead">Every one of these is a page or tab in the console — no code, no redeploy.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Create the tenant</h4>
+            <p>From the <strong>Tenants</strong> list, click <strong>New tenant</strong> and give it a name and slug. It appears immediately in the sidebar.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Add branding</h4>
+            <p>Logo and brand color — carried through their avatar and dashboard views from here on.</p>
+            <span class="where-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>Branding tab</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Enter WhatsApp credentials</h4>
+            <p>The WABA ID, phone number ID, System User token, app secret, and webhook verify token from your prerequisites checklist. These are checked live against Meta's Graph API — a typo won't be allowed to save.</p>
+            <span class="where-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>Credentials tab</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Send a real test message</h4>
+            <p>Pick a built-in template (or a synced HSM template for marketing sends), enter a phone number, hit send — and watch it move sent → delivered → read on your own phone.</p>
+            <span class="where-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>Test Send tab</span>
+          </div>
+        </div>
+        <div class="step done">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Issue an API key — this is what you hand to the client</h4>
+            <p>Generate a key scoped to this tenant only. This is the credential their backend (or MCP-connected AI assistant) uses to send messages and read logs — <strong>they never get a login to this console.</strong></p>
+            <span class="where-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>API Keys tab</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ API EXAMPLE ============ -->
+  <section class="section" id="api">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">What the client's backend actually does</span>
+        <h2 class="section-title">One API call, authenticated with the key from step 5.</h2>
+        <p class="section-lead">
+          Requires <code>apps/api</code> running too — that's the process that actually serves
+          <code>/v1/*</code>. Start it once with <code>pnpm --filter @orgname/api-example dev</code>
+          (defaults to port 3001).
+        </p>
+      </div>
+      <div class="api-card">
+        <div class="api-chrome"><span class="verb">POST</span><span class="path">http://localhost:3001/v1/send</span></div>
+        <pre><code>curl -X POST http://localhost:3001/v1/send \
+  -H "Authorization: Bearer &lt;the API key from step 5&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "+15551234567",
+    "template": "order_shipped",
+    "data": { "orderId": "10482", "eta": "Friday" }
+  }'</code></pre>
+      </div>
+      <p class="section-lead" style="margin-top:20px;">
+        Swap <code>template</code> for <code>hsmTemplate: { "name": "...", "language": "en_US" }</code>
+        to send a Meta-approved marketing template instead of a session message — the only
+        way to reach someone outside the 24-hour customer-service window.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ OPTIONAL FEATURES ============ -->
+  <section class="section" id="optional">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Once the basics work</span>
+        <h2 class="section-title">Optional, per-tenant — turn on only what a given client needs.</h2>
+      </div>
+      <div class="grid opt-grid">
+        <div class="opt-card">
+          <h4>AI auto-reply</h4>
+          <p>Bring the tenant's own OpenAI/Anthropic key; it answers routine inbound messages and hands off to a human when it can't.</p>
+          <span class="tab">AI Assistant tab</span>
+        </div>
+        <div class="opt-card">
+          <h4>Outbound webhooks</h4>
+          <p>Push send/delivery/reply events into the tenant's own CRM or helpdesk.</p>
+          <span class="tab">Webhooks tab</span>
+        </div>
+        <div class="opt-card">
+          <h4>Shared inbox</h4>
+          <p>A merged conversation view for support agents — assignment, status, reply, all in one place.</p>
+          <span class="tab">Inbox page</span>
+        </div>
+        <div class="opt-card">
+          <h4>Contacts &amp; tags</h4>
+          <p>Import a CSV, tag contacts, build segmented lists to target with campaigns.</p>
+          <span class="tab">Contacts page</span>
+        </div>
+        <div class="opt-card">
+          <h4>Campaigns</h4>
+          <p>Broadcast an approved HSM template to a whole list, with live sent/delivered/read stats.</p>
+          <span class="tab">Campaigns page</span>
+        </div>
+        <div class="opt-card">
+          <h4>MCP server for AI assistants</h4>
+          <p>Point Claude Desktop or Cursor at <code>packages/mcp-server</code> with the tenant's API key — read-only unless writes are explicitly enabled.</p>
+          <span class="tab">packages/mcp-server/README.md</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TROUBLESHOOTING ============ -->
+  <section class="section" id="trouble">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">When something doesn't work</span>
+        <h2 class="section-title">The four things that trip people up first.</h2>
+      </div>
+      <div class="trouble">
+        <div class="trouble-item">
+          <div class="q">The admin console won't log in / says credentials invalid</div>
+          <div class="a">Re-run <code>pnpm --filter admin seed:admin</code> — it's idempotent and prints the account it finds or creates. Check <code>ADMIN_SEED_EMAIL</code>/<code>ADMIN_SEED_PASSWORD</code> in <code>.env.local</code> match what you're typing.</div>
+        </div>
+        <div class="trouble-item">
+          <div class="q">I edited something in <code>apps/api</code> and nothing changed</div>
+          <div class="a"><code>apps/api</code> runs via <code>ts-node</code> with no file watcher. Kill and restart <code>pnpm --filter @orgname/api-example dev</code> after editing anything under <code>src/lib/tenantRegistry.ts</code> or its imports.</div>
+        </div>
+        <div class="trouble-item">
+          <div class="q">Credential save fails with a Meta API error</div>
+          <div class="a">That's the platform working as intended — credentials are verified live against Meta's Graph API before they're allowed to persist. Double-check the token hasn't expired and has WhatsApp messaging permission.</div>
+        </div>
+        <div class="trouble-item">
+          <div class="q">A change to <code>packages/notify</code> isn't showing up</div>
+          <div class="a">Re-run <code>pnpm --filter @orgname/notify build</code> — both <code>apps/admin</code> and <code>apps/api</code>'s <code>/v1</code> routes only pick up the compiled output, not the source directly.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-fine">notify-sdk — internal ops console (apps/admin) + tenant-facing /v1 REST API (apps/api). No tenant self-service login exists by design.</div>
+  </div>
+</footer>

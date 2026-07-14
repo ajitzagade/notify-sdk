@@ -36,11 +36,17 @@ export function InboxClient({
   tenantId,
   initialConversations,
   adminUsers,
+  baseApiPath,
+  showAssignment = true,
 }: {
   tenantId: string;
   initialConversations: ConversationRecord[];
   adminUsers: AdminUserSummary[];
+  baseApiPath?: string;
+  /** Assigning to an internal ops teammate is an admin-only concept — the tenant portal hides this control. */
+  showAssignment?: boolean;
 }) {
+  const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const [conversations, setConversations] = useState(initialConversations);
   const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);
   const [selected, setSelected] = useState<ConversationRecord | null>(null);
@@ -53,7 +59,7 @@ export function InboxClient({
   const refreshList = async () => {
     setRefreshingList(true);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/inbox/conversations`);
+      const res = await fetch(`${apiBase}/inbox/conversations`);
       const data = await res.json();
       if (res.ok) setConversations(data.conversations);
     } finally {
@@ -65,7 +71,7 @@ export function InboxClient({
     setSelectedId(id);
     setLoadingThread(true);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/inbox/conversations/${id}/messages`);
+      const res = await fetch(`${apiBase}/inbox/conversations/${id}/messages`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to load conversation');
       setSelected(data.conversation);
@@ -89,7 +95,7 @@ export function InboxClient({
     if (!selected || !replyText.trim()) return;
     setSending(true);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/inbox/conversations/${selected.id}/reply`, {
+      const res = await fetch(`${apiBase}/inbox/conversations/${selected.id}/reply`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ text: replyText.trim() }),
@@ -107,10 +113,13 @@ export function InboxClient({
   };
 
   const handleAssign = async (adminId: string) => {
-    if (!selected) return;
+    // No portal-side /assign route exists — assignment is an admin-only
+    // concept. showAssignment already hides the only UI that calls this,
+    // but guard here too so a future caller can't silently 404 against it.
+    if (!showAssignment || !selected) return;
     const value = adminId === '__unassigned__' ? null : adminId;
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/inbox/conversations/${selected.id}/assign`, {
+      const res = await fetch(`${apiBase}/inbox/conversations/${selected.id}/assign`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ adminId: value }),
@@ -128,7 +137,7 @@ export function InboxClient({
     if (!selected) return;
     const nextStatus = selected.status === 'open' ? 'closed' : 'open';
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/inbox/conversations/${selected.id}/status`, {
+      const res = await fetch(`${apiBase}/inbox/conversations/${selected.id}/status`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ status: nextStatus }),
@@ -213,15 +222,17 @@ export function InboxClient({
                 <div className="font-mono text-xs text-muted-foreground">{selected.contactPhone}</div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Select value={selected.assignedAdminId ?? '__unassigned__'} onValueChange={(v) => v && handleAssign(v)}>
-                  <SelectTrigger className="w-44"><SelectValue placeholder="Assign to…" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__unassigned__">Unassigned</SelectItem>
-                    {adminUsers.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>{a.email}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {showAssignment && (
+                  <Select value={selected.assignedAdminId ?? '__unassigned__'} onValueChange={(v) => v && handleAssign(v)}>
+                    <SelectTrigger className="w-44"><SelectValue placeholder="Assign to…" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__unassigned__">Unassigned</SelectItem>
+                      {adminUsers.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>{a.email}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <Button type="button" variant="outline" size="sm" onClick={handleToggleStatus}>
                   {selected.status === 'open' ? 'Close' : 'Reopen'}
                 </Button>

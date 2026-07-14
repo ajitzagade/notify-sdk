@@ -42,11 +42,14 @@ export function ContactsPanel({
   tenantId,
   initialContacts,
   allTags,
+  baseApiPath,
 }: {
   tenantId: string;
   initialContacts: ContactRecord[];
   allTags: string[];
+  baseApiPath?: string;
 }) {
+  const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const router = useRouter();
   const [contacts, setContacts] = useState(initialContacts);
   const [tagFilter, setTagFilter] = useState<string>(ALL_TAGS_VALUE);
@@ -63,7 +66,7 @@ export function ContactsPanel({
     setLoading(true);
     try {
       const qs = tag === ALL_TAGS_VALUE ? '' : `?tag=${encodeURIComponent(tag)}`;
-      const res = await fetch(`/api/tenants/${tenantId}/contacts${qs}`);
+      const res = await fetch(`${apiBase}/contacts${qs}`);
       const data = await res.json();
       if (res.ok) setContacts(data.contacts);
     } finally {
@@ -85,7 +88,7 @@ export function ContactsPanel({
     try {
       const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
       const attributes = parseAttributesInput(attributesInput);
-      const res = await fetch(`/api/tenants/${tenantId}/contacts/${editing.id}`, {
+      const res = await fetch(`${apiBase}/contacts/${editing.id}`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ tags, attributes }),

@@ -6,6 +6,7 @@ import { getTenant, getCredentialStatus } from '@/lib/tenants';
 import { listMediaAssets } from '@/lib/media';
 import { listTemplates } from '@/lib/templates';
 import { listApiKeys } from '@/lib/apiKeys';
+import { listPortalUsers } from '@/lib/tenantPortalUsers';
 import { listAuditLog } from '@/lib/auditLog';
 import { getAiConfigStatus } from '@/lib/aiConfig';
 import { listWebhookEndpoints } from '@/lib/webhookEndpoints';
@@ -19,6 +20,7 @@ import { CredentialsForm } from './CredentialsForm';
 import { TemplatesPanel } from './TemplatesPanel';
 import { TestSendForm } from './TestSendForm';
 import { ApiKeysPanel } from './ApiKeysPanel';
+import { PortalAccessPanel } from './PortalAccessPanel';
 import { AuditLogPanel } from './AuditLogPanel';
 import { AnalyticsPanel } from './AnalyticsPanel';
 import { AiAssistantPanel } from './AiAssistantPanel';
@@ -34,11 +36,12 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
   requireAdminSessionOrRedirect();
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
-  const [credentials, mediaAssets, templates, apiKeys, auditEntries, aiStatus, webhookEndpoints] = await Promise.all([
+  const [credentials, mediaAssets, templates, apiKeys, portalUsers, auditEntries, aiStatus, webhookEndpoints] = await Promise.all([
     getCredentialStatus(tenant.id),
     listMediaAssets(tenant.id),
     listTemplates(tenant.id),
     listApiKeys(tenant.id),
+    listPortalUsers(tenant.id),
     listAuditLog(tenant.id),
     getAiConfigStatus(tenant.id),
     listWebhookEndpoints(tenant.id),
@@ -91,6 +94,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
             <TabsTrigger value="test-send">Test send</TabsTrigger>
             <TabsTrigger value="ai">AI assistant</TabsTrigger>
             <TabsTrigger value="api-keys">API keys</TabsTrigger>
+            <TabsTrigger value="portal-access">Portal access</TabsTrigger>
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             <TabsTrigger value="audit">Audit log</TabsTrigger>
           </TabsList>
@@ -121,6 +125,9 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
           </TabsContent>
           <TabsContent value="api-keys" className="mt-5">
             <ApiKeysPanel tenantId={tenant.id} apiKeys={apiKeys} />
+          </TabsContent>
+          <TabsContent value="portal-access" className="mt-5">
+            <PortalAccessPanel tenantId={tenant.id} users={portalUsers} />
           </TabsContent>
           <TabsContent value="webhooks" className="mt-5">
             <WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />

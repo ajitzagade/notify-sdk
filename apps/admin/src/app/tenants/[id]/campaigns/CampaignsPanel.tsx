@@ -50,6 +50,8 @@ export function CampaignsPanel({
   templates,
   campaigns,
   mediaAssets,
+  baseApiPath,
+  mediaUploadHint = "upload one from the Test Send tab first",
 }: {
   tenantId: string;
   tenantName: string;
@@ -57,7 +59,11 @@ export function CampaignsPanel({
   templates: TemplateRecord[];
   campaigns: CampaignRecord[];
   mediaAssets: MediaAssetRecord[];
+  /** Defaults to the admin console's own API — pass '/api/portal' to run this panel inside the tenant portal instead. */
+  baseApiPath?: string;
+  mediaUploadHint?: string;
 }) {
+  const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const router = useRouter();
   const [name, setName]                 = useState('');
   const [listId, setListId]             = useState('');
@@ -97,7 +103,7 @@ export function CampaignsPanel({
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/campaigns`, {
+      const res = await fetch(`${apiBase}/campaigns`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +138,7 @@ export function CampaignsPanel({
     setRunningId(campaignId);
     setError(null);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/campaigns/${campaignId}/run`, { method: 'POST' });
+      const res = await fetch(`${apiBase}/campaigns/${campaignId}/run`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Run failed');
       const stats = data.result;
@@ -214,7 +220,7 @@ export function CampaignsPanel({
                 </Label>
                 {matchingAssets.length === 0 ? (
                   <p className="text-xs text-muted-foreground">
-                    No {requiredHeader} assets in this tenant&apos;s media library yet — upload one from the Test Send tab first.
+                    No {requiredHeader} assets in this tenant&apos;s media library yet — {mediaUploadHint}.
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login'];
+const PUBLIC_PATHS = ['/login', '/api/auth/login', '/portal/login', '/api/portal/auth/login'];
 
 /**
  * Next 14's middleware runs on the Edge runtime, which doesn't have Node's
@@ -10,6 +10,11 @@ const PUBLIC_PATHS = ['/login', '/api/auth/login'];
  * and route handler, which run in the Node runtime). This middleware is a
  * UX nicety (fast redirect for the common case), not the authorization
  * boundary — every route enforces its own auth regardless.
+ *
+ * `/portal/*` and `/api/portal/*` are a fully separate tenant-facing login
+ * (see src/lib/tenantPortalAuth.ts) — same cheap-cookie-presence pattern,
+ * but keyed on its own cookie and its own login redirect, so admin and
+ * portal sessions never satisfy each other's gate.
  */
 export function middleware(req: NextRequest): NextResponse {
   const { pathname } = req.nextUrl;
@@ -17,12 +22,16 @@ export function middleware(req: NextRequest): NextResponse {
     return NextResponse.next();
   }
 
-  const hasCookie = req.cookies.has('notify_admin_session');
+  const isPortal    = pathname.startsWith('/portal') || pathname.startsWith('/api/portal');
+  const cookieName  = isPortal ? 'notify_tenant_session' : 'notify_admin_session';
+  const loginPath   = isPortal ? '/portal/login' : '/login';
+
+  const hasCookie = req.cookies.has(cookieName);
   if (!hasCookie) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const loginUrl = new URL('/login', req.url);
+    const loginUrl = new URL(loginPath, req.url);
     loginUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(loginUrl);
   }

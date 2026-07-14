@@ -4,6 +4,8 @@ A WhatsApp Business Platform SaaS: onboard any number of client businesses, each
 
 Started as a single-tenant Node SDK (`packages/notify`); the SDK is still the core of everything, but the platform around it now handles multi-tenant credential management, media/template messaging, campaigns, and a tenant-facing send API.
 
+A shareable, standalone overview of the platform (open it directly in a browser) lives at [`docs/presentation.html`](docs/presentation.html). For a step-by-step walkthrough of setup, onboarding a tenant, and sending a message, see [`docs/getting-started.html`](docs/getting-started.html).
+
 ## Packages & apps
 
 | Path | What it is |

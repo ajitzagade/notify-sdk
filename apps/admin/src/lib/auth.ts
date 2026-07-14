@@ -6,12 +6,23 @@ import { getSessionSecret } from './security';
 
 export const SESSION_COOKIE = 'notify_admin_session';
 
-/** Reads + verifies the session cookie. Null if absent/expired/tampered. */
+/**
+ * Reads + verifies the session cookie. Null if absent/expired/tampered — or,
+ * defense-in-depth, if the decrypted payload isn't actually admin-shaped.
+ * verifySessionToken (packages/notify) only checks `exp`; it has no way to
+ * know this cookie's payload should carry a real adminUserId/role, so that
+ * check belongs here, at the one call site that treats the result as
+ * "this request is an internal admin."
+ */
 export function getAdminSession(): SessionPayload | null {
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
-    return verifySessionToken(token, getSessionSecret());
+    const session = verifySessionToken(token, getSessionSecret());
+    if (!session?.adminUserId || (session.role !== 'super_admin' && session.role !== 'ops')) {
+      return null;
+    }
+    return session;
   } catch {
     return null; // e.g. SESSION_SECRET missing/misconfigured
   }

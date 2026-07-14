@@ -14,7 +14,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/lib/toast';
 
-export function ImportContactsForm({ tenantId, lists }: { tenantId: string; lists: BroadcastListRecord[] }) {
+export function ImportContactsForm({
+  tenantId, lists, baseApiPath,
+}: { tenantId: string; lists: BroadcastListRecord[]; baseApiPath?: string }) {
+  const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const router = useRouter();
   const [csv, setCsv]                     = useState('');
   const [listName, setListName]           = useState('');
@@ -29,7 +32,7 @@ export function ImportContactsForm({ tenantId, lists }: { tenantId: string; list
     setResult(null);
     try {
       const tags = tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
-      const res = await fetch(`/api/tenants/${tenantId}/contacts/import`, {
+      const res = await fetch(`${apiBase}/contacts/import`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ csv, listName, alreadyOptedIn, tags }),

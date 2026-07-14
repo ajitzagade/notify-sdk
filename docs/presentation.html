@@ -1,0 +1,1233 @@
+<title>notify-sdk — Multi-Tenant WhatsApp Business Platform</title>
+<style>
+  /* ============ Reset ============ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; }
+  img, svg { display: block; max-width: 100%; }
+  ul, ol { margin: 0; padding: 0; list-style: none; }
+  h1, h2, h3, h4, p, figure { margin: 0; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+  /* ============ Tokens — light is the base :root ============ */
+  :root {
+    --bg: #f2f5f3;
+    --bg-raise: #e9efeb;
+    --surface: #ffffff;
+    --surface-2: #eef3f0;
+    --border: rgba(14, 31, 26, 0.12);
+    --border-strong: rgba(14, 31, 26, 0.22);
+    --text: #0e1f1a;
+    --text-muted: #4f6b60;
+    --text-faint: #7c9186;
+    --accent: #c85a16;
+    --accent-strong: #a8480f;
+    --accent-soft: rgba(200, 90, 22, 0.12);
+    --accent-ink: #fff8f2;
+    --signal: #1f8f63;
+    --signal-soft: rgba(31, 143, 99, 0.12);
+    --danger: #a5433a;
+    --danger-soft: rgba(165, 67, 58, 0.1);
+    --shadow: 0 1px 2px rgba(14, 31, 26, 0.06), 0 12px 32px -16px rgba(14, 31, 26, 0.18);
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+
+    --container: 1180px;
+    --radius-s: 3px;
+    --radius-m: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a1614;
+      --bg-raise: #0d1c19;
+      --surface: #0f211d;
+      --surface-2: #152b25;
+      --border: rgba(234, 255, 245, 0.09);
+      --border-strong: rgba(234, 255, 245, 0.16);
+      --text: #eaf2ee;
+      --text-muted: #8fa69d;
+      --text-faint: #607269;
+      --accent: #ff8a3d;
+      --accent-strong: #ffa564;
+      --accent-soft: rgba(255, 138, 61, 0.14);
+      --accent-ink: #1a0f04;
+      --signal: #3ddc9e;
+      --signal-soft: rgba(61, 220, 158, 0.12);
+      --danger: #e5726b;
+      --danger-soft: rgba(229, 114, 107, 0.12);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a1614; --bg-raise: #0d1c19; --surface: #0f211d; --surface-2: #152b25;
+    --border: rgba(234, 255, 245, 0.09); --border-strong: rgba(234, 255, 245, 0.16);
+    --text: #eaf2ee; --text-muted: #8fa69d; --text-faint: #607269;
+    --accent: #ff8a3d; --accent-strong: #ffa564; --accent-soft: rgba(255, 138, 61, 0.14); --accent-ink: #1a0f04;
+    --signal: #3ddc9e; --signal-soft: rgba(61, 220, 158, 0.12);
+    --danger: #e5726b; --danger-soft: rgba(229, 114, 107, 0.12);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f5f3; --bg-raise: #e9efeb; --surface: #ffffff; --surface-2: #eef3f0;
+    --border: rgba(14, 31, 26, 0.12); --border-strong: rgba(14, 31, 26, 0.22);
+    --text: #0e1f1a; --text-muted: #4f6b60; --text-faint: #7c9186;
+    --accent: #c85a16; --accent-strong: #a8480f; --accent-soft: rgba(200, 90, 22, 0.12); --accent-ink: #fff8f2;
+    --signal: #1f8f63; --signal-soft: rgba(31, 143, 99, 0.12);
+    --danger: #a5433a; --danger-soft: rgba(165, 67, 58, 0.1);
+    --shadow: 0 1px 2px rgba(14, 31, 26, 0.06), 0 12px 32px -16px rgba(14, 31, 26, 0.18);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  /* ============ Type scale ============ */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 1.1em;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+  h2.section-title {
+    font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+    margin-top: 0.7rem;
+  }
+  h3.card-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    line-height: 1.3;
+  }
+  .section-lead {
+    font-size: 1.08rem;
+    color: var(--text-muted);
+    max-width: 62ch;
+    line-height: 1.65;
+    margin-top: 1rem;
+  }
+  p.body-copy { color: var(--text-muted); line-height: 1.7; max-width: 65ch; }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ============ Layout utilities ============ */
+  .wrap { max-width: var(--container); margin-inline: auto; padding-inline: 28px; }
+  .section { padding-block: clamp(64px, 9vw, 116px); }
+  .section-head { max-width: 720px; }
+  .section-head.center { max-width: 640px; margin-inline: auto; text-align: center; }
+  .section-head.center .eyebrow::before { display: none; }
+  .section-head.center .eyebrow { justify-content: center; }
+  .grid { display: grid; gap: 18px; }
+  .divider { height: 1px; background: var(--border); border: none; }
+
+  [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 0.7s cubic-bezier(.16,.8,.3,1), transform 0.7s cubic-bezier(.16,.8,.3,1); }
+  [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ============ Nav ============ */
+  .nav {
+    position: fixed; inset-inline: 0; top: 0; z-index: 50;
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: color-mix(in oklab, var(--bg) 78%, transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.01em; font-size: 1rem; }
+  .brand-mark { width: 26px; height: 26px; color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 28px; font-size: 0.87rem; color: var(--text-muted); }
+  .nav-links a { transition: color 0.15s ease; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta-wrap { display: flex; align-items: center; gap: 18px; }
+  @media (max-width: 860px) { .nav-links { display: none; } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: var(--radius-s);
+    font-size: 0.87rem; font-weight: 600; letter-spacing: -0.005em;
+    white-space: nowrap; transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: var(--accent-strong); transform: translateY(-1px); }
+  .btn-ghost { border: 1px solid var(--border-strong); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn svg { width: 15px; height: 15px; }
+
+  /* ============ Hero ============ */
+  .hero {
+    padding-top: clamp(140px, 18vw, 200px);
+    padding-bottom: clamp(60px, 8vw, 100px);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; top: -20%; right: -10%; width: 60%; height: 70%;
+    background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; max-width: 900px; }
+  .hero h1 {
+    font-size: clamp(2.6rem, 6vw, 5.1rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.03;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: normal; font-weight: 300; color: var(--text-muted); }
+  .hero h1 .hl { color: var(--accent); }
+  .hero-sub {
+    margin-top: 26px; font-size: 1.2rem; color: var(--text-muted);
+    max-width: 56ch; line-height: 1.6;
+  }
+  .hero-actions { display: flex; align-items: center; gap: 16px; margin-top: 38px; flex-wrap: wrap; }
+  .proof-strip {
+    margin-top: 64px; display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .chip {
+    font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.02em;
+    padding: 8px 13px; border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-muted); display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface);
+  }
+  .chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--signal); flex: none; }
+
+  /* ============ What is / value framing ============ */
+  .value-grid { grid-template-columns: repeat(3, 1fr); margin-top: 48px; }
+  @media (max-width: 860px) { .value-grid { grid-template-columns: 1fr; } }
+  .value-card {
+    padding: 26px; border: 1px solid var(--border); border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+  .value-card .tag {
+    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .value-card h3 { margin-top: 10px; font-size: 1.15rem; font-weight: 700; }
+  .value-card p { margin-top: 10px; color: var(--text-muted); line-height: 1.6; font-size: 0.94rem; }
+
+  /* ============ Signal-path workflow ============ */
+  .flow-band { background: var(--bg-raise); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .flow-track {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 0;
+    margin-top: 56px; position: relative;
+  }
+  @media (max-width: 980px) { .flow-track { grid-template-columns: 1fr; gap: 0; } }
+  .flow-node { position: relative; padding-right: 22px; }
+  .flow-node:last-child { padding-right: 0; }
+  .flow-connector {
+    position: absolute; top: 27px; left: 100%; width: 22px; height: 2px;
+    background: linear-gradient(90deg, var(--border-strong), var(--border-strong));
+    overflow: visible;
+  }
+  .flow-node:last-child .flow-connector { display: none; }
+  .flow-pulse {
+    position: absolute; top: 50%; left: 0; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); transform: translateY(-50%);
+    box-shadow: 0 0 8px 1px var(--accent);
+    animation: pulse-travel 3.6s linear infinite;
+  }
+  @keyframes pulse-travel {
+    0% { left: -4px; opacity: 0; }
+    8% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .flow-pulse { animation: none; opacity: 0.6; left: 40%; } }
+  @media (max-width: 980px) {
+    .flow-node { padding-right: 0; padding-bottom: 30px; }
+    .flow-connector { top: auto; left: 27px; bottom: 0; width: 2px; height: 30px; }
+    .flow-pulse { animation: pulse-travel-v 3.6s linear infinite; left: 50%; top: 0; }
+    @keyframes pulse-travel-v { 0% { top: -4px; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+  }
+  .flow-step-num {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); letter-spacing: 0.06em;
+  }
+  .flow-icon {
+    width: 40px; height: 40px; border-radius: var(--radius-m);
+    background: var(--surface); border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 10px; color: var(--accent);
+  }
+  .flow-icon svg { width: 19px; height: 19px; }
+  .flow-node h4 { margin-top: 16px; font-size: 1rem; font-weight: 700; letter-spacing: -0.005em; }
+  .flow-node p { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ============ Feature grid ============ */
+  .feature-grid { grid-template-columns: repeat(4, 1fr); margin-top: 48px; }
+  @media (max-width: 980px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } }
+  .feature-card {
+    padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-m);
+    background: var(--surface); transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .feature-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .feature-icon {
+    width: 34px; height: 34px; color: var(--accent);
+  }
+  .feature-icon svg { width: 100%; height: 100%; }
+  .feature-card h3 { margin-top: 16px; }
+  .feature-card p { margin-top: 8px; font-size: 0.87rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ============ Architecture diagram ============ */
+  .arch-wrap { margin-top: 56px; }
+  .arch-diagram {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    padding: clamp(24px, 4vw, 48px); position: relative;
+  }
+  .arch-core {
+    max-width: 320px; margin-inline: auto; text-align: center;
+    padding: 22px; border: 1px solid var(--accent); border-radius: var(--radius-m);
+    background: var(--accent-soft);
+  }
+  .arch-core .eyebrow { justify-content: center; }
+  .arch-core .eyebrow::before { display: none; }
+  .arch-core h4 { margin-top: 8px; font-weight: 800; font-size: 1.05rem; }
+  .arch-core p { margin-top: 6px; font-size: 0.82rem; color: var(--text-muted); }
+  .arch-spokes {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 40px;
+    position: relative;
+  }
+  @media (max-width: 760px) { .arch-spokes { grid-template-columns: 1fr; } }
+  .arch-spokes::before {
+    content: ""; position: absolute; top: -20px; left: 16.5%; right: 16.5%; height: 1px;
+    background: var(--border-strong);
+  }
+  @media (max-width: 760px) { .arch-spokes::before { display: none; } }
+  .arch-tenant {
+    border: 1px dashed var(--border-strong); border-radius: var(--radius-m); padding: 18px;
+    position: relative;
+  }
+  .arch-tenant::before {
+    content: ""; position: absolute; top: -20px; left: 50%; width: 1px; height: 20px; background: var(--border-strong);
+  }
+  @media (max-width: 760px) { .arch-tenant::before { display: none; } }
+  .arch-tenant .tname { font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
+  .arch-tenant .tname .sw { width: 8px; height: 8px; border-radius: 2px; }
+  .arch-tenant ul { margin-top: 12px; display: grid; gap: 6px; }
+  .arch-tenant li { font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 8px; align-items: baseline; font-family: var(--font-mono); }
+  .arch-tenant li::before { content: "·"; color: var(--accent); }
+  .arch-note { margin-top: 28px; font-size: 0.88rem; color: var(--text-muted); max-width: 60ch; }
+
+  /* ============ Dashboard mockup ============ */
+  .dash-mock {
+    margin-top: 48px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    background: var(--surface); box-shadow: var(--shadow);
+  }
+  .dash-chrome { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .dash-chrome .cdot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); }
+  .dash-chrome .label { margin-left: 8px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); }
+  .dash-body { display: grid; grid-template-columns: 220px 1fr; min-height: 340px; }
+  @media (max-width: 760px) { .dash-body { grid-template-columns: 1fr; } }
+  .dash-tabs { border-right: 1px solid var(--border); padding: 16px 10px; display: grid; gap: 2px; }
+  @media (max-width: 760px) { .dash-tabs { border-right: none; border-bottom: 1px solid var(--border); grid-auto-flow: column; overflow-x: auto; padding: 10px; } }
+  .dash-tab { padding: 9px 12px; border-radius: var(--radius-s); font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+  .dash-tab svg { width: 15px; height: 15px; flex: none; }
+  .dash-tab.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .dash-main { padding: 22px; }
+  .dash-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 620px) { .dash-stats { grid-template-columns: repeat(2, 1fr); } }
+  .dash-stat { border: 1px solid var(--border); border-radius: var(--radius-s); padding: 12px; }
+  .dash-stat .k { font-size: 0.72rem; color: var(--text-faint); }
+  .dash-stat .v { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; margin-top: 4px; }
+  .dash-stat .v.accent { color: var(--accent); }
+  .dash-stat .v.signal { color: var(--signal); }
+  .dash-bars { margin-top: 20px; display: flex; align-items: flex-end; gap: 6px; height: 90px; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+  .dash-bars i { flex: 1; background: linear-gradient(180deg, var(--accent), var(--accent-soft)); border-radius: 2px 2px 0 0; opacity: 0.85; }
+  .dash-caption { margin-top: 12px; font-size: 0.74rem; color: var(--text-faint); font-family: var(--font-mono); }
+
+  /* ============ Tenant capabilities list ============ */
+  .cap-list { margin-top: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 40px; }
+  @media (max-width: 760px) { .cap-list { grid-template-columns: 1fr; } }
+  .cap-item { display: flex; gap: 14px; padding-block: 14px; border-top: 1px solid var(--border); }
+  .cap-item:nth-child(1), .cap-item:nth-child(2) { border-top: none; }
+  .cap-check { width: 20px; height: 20px; flex: none; color: var(--signal); margin-top: 2px; }
+  .cap-item h4 { font-size: 0.95rem; font-weight: 700; }
+  .cap-item p { margin-top: 4px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ============ Security grid ============ */
+  .sec-grid { grid-template-columns: repeat(3, 1fr); margin-top: 48px; }
+  @media (max-width: 860px) { .sec-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .sec-grid { grid-template-columns: 1fr; } }
+  .sec-card { padding: 22px; border-radius: var(--radius-m); border-top: 2px solid var(--accent); background: var(--surface); border-inline: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .sec-card .n { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); }
+  .sec-card h3 { margin-top: 10px; font-size: 1rem; }
+  .sec-card p { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ============ Use cases ============ */
+  .uc-grid { grid-template-columns: repeat(4, 1fr); margin-top: 48px; }
+  @media (max-width: 980px) { .uc-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .uc-grid { grid-template-columns: 1fr; } }
+  .uc-card {
+    padding: 22px; border-radius: var(--radius-m); background: var(--surface-2);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .uc-card .uc-icon { width: 26px; height: 26px; color: var(--accent); }
+  .uc-card h3 { font-size: 0.98rem; }
+  .uc-card p { font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ============ Comparison ============ */
+  .cmp-wrap { margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .cmp-wrap { grid-template-columns: 1fr; } }
+  .cmp-col { border-radius: 8px; padding: 26px; border: 1px solid var(--border); }
+  .cmp-col.diy { background: var(--surface); }
+  .cmp-col.platform { background: var(--surface); border-color: var(--accent); position: relative; }
+  .cmp-col.platform::before {
+    content: "notify-sdk"; position: absolute; top: -11px; left: 22px; font-family: var(--font-mono);
+    font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--accent);
+    color: var(--accent-ink); padding: 3px 9px; border-radius: 999px; font-weight: 700;
+  }
+  .cmp-col h4 { font-size: 1.02rem; font-weight: 700; }
+  .cmp-col .sub { font-size: 0.8rem; color: var(--text-faint); margin-top: 4px; }
+  .cmp-col ul { margin-top: 18px; display: grid; gap: 12px; }
+  .cmp-col li { display: flex; gap: 10px; font-size: 0.87rem; color: var(--text-muted); line-height: 1.5; }
+  .cmp-col li svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+  .cmp-col.diy li svg { color: var(--danger); }
+  .cmp-col.platform li svg { color: var(--signal); }
+
+  /* ============ Value band ============ */
+  .value-band { background: var(--bg-raise); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .vb-grid { grid-template-columns: repeat(4, 1fr); margin-top: 48px; }
+  @media (max-width: 860px) { .vb-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .vb-grid { grid-template-columns: 1fr; } }
+  .vb-item { padding-right: 20px; }
+  .vb-item .big { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; color: var(--accent); letter-spacing: -0.01em; }
+  .vb-item p { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; }
+
+  /* ============ Roadmap ============ */
+  .road-track { margin-top: 48px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .road-track { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .road-track { grid-template-columns: 1fr; } }
+  .road-card { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-m); background: var(--surface); }
+  .road-card .tag { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--signal); }
+  .road-card h4 { margin-top: 10px; font-size: 0.95rem; }
+  .road-card p { margin-top: 8px; font-size: 0.83rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* ============ Getting started ============ */
+  .gs-groups { margin-top: 48px; display: flex; flex-direction: column; gap: 52px; }
+  .gs-group-head { display: flex; align-items: flex-start; gap: 14px; max-width: 640px; }
+  .gs-group-head .gh-ic {
+    width: 36px; height: 36px; border-radius: var(--radius-m); background: var(--surface-2);
+    border: 1px solid var(--border); color: var(--accent); display: flex; align-items: center;
+    justify-content: center; flex: none;
+  }
+  .gs-group-head .gh-ic svg { width: 17px; height: 17px; }
+  .gs-group.verify .gh-ic { color: var(--signal); }
+  .gs-group-head h3 { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.005em; }
+  .gs-group-head p { margin-top: 4px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+
+  .req-grid, .verify-grid { margin-top: 22px; display: grid; gap: 14px; }
+  .req-grid { grid-template-columns: repeat(3, 1fr); }
+  .verify-grid { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 980px) { .req-grid, .verify-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .req-grid, .verify-grid { grid-template-columns: 1fr; } }
+
+  .mini-card {
+    padding: 18px; border: 1px solid var(--border); border-radius: var(--radius-m);
+    background: var(--surface); display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .mini-card:hover { transform: translateY(-2px); }
+  .req-grid .mini-card:hover { border-color: var(--accent); }
+  .verify-grid .mini-card:hover { border-color: var(--signal); }
+  .mc-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-s);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mc-icon svg { width: 15px; height: 15px; }
+  .req-grid .mc-icon { background: var(--accent-soft); color: var(--accent); }
+  .verify-grid .mc-icon { background: var(--signal-soft); color: var(--signal); }
+  .mini-card h4 { font-size: 0.89rem; font-weight: 700; letter-spacing: -0.005em; line-height: 1.32; }
+  .mini-card p { font-size: 0.81rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* ============ CTA ============ */
+  .cta-section { position: relative; overflow: hidden; }
+  .cta-band {
+    border-radius: 12px; padding: clamp(40px, 6vw, 80px); text-align: center;
+    background: linear-gradient(160deg, var(--surface-2), var(--surface));
+    border: 1px solid var(--border); position: relative;
+  }
+  .cta-band::after {
+    content: ""; position: absolute; inset: 0; border-radius: 12px; padding: 1px;
+    background: radial-gradient(600px circle at 50% 0%, var(--accent-soft), transparent 60%);
+    pointer-events: none;
+  }
+  .cta-band h2 { font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; max-width: 720px; margin-inline: auto; }
+  .cta-band p { margin-top: 16px; color: var(--text-muted); font-size: 1.05rem; max-width: 56ch; margin-inline: auto; }
+  .cta-actions { margin-top: 32px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  /* ============ Footer ============ */
+  footer { border-top: 1px solid var(--border); padding-block: 40px; }
+  .foot-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+  .foot-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .foot-brand svg { width: 20px; height: 20px; color: var(--accent); }
+  .foot-links { display: flex; gap: 22px; font-size: 0.84rem; color: var(--text-muted); flex-wrap: wrap; }
+  .foot-links a:hover { color: var(--text); }
+  .foot-fine { margin-top: 20px; font-size: 0.78rem; color: var(--text-faint); font-family: var(--font-mono); }
+</style>
+
+<nav class="nav">
+  <div class="wrap nav-row">
+    <a class="brand" href="#top">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/><circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12.5" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>
+      notify-sdk
+    </a>
+    <div class="nav-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#ai-automation">AI &amp; automation</a>
+      <a href="#security">Security</a>
+      <a href="#use-cases">Use cases</a>
+      <a href="#why-us">Why us</a>
+      <a href="#get-started">Get started</a>
+    </div>
+    <div class="nav-cta-wrap">
+      <a class="btn btn-primary" href="#cta">
+        Talk to us
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <span class="eyebrow">Multi-tenant WhatsApp Business Platform</span>
+      <h1>
+        One platform.<br>
+        <span class="hl">Every client's</span> WhatsApp,<br>
+        <em>fully isolated.</em>
+      </h1>
+      <p class="hero-sub">
+        notify-sdk lets you run WhatsApp messaging for an unlimited number of client
+        businesses from a single deployment — each with its own encrypted credentials,
+        its own number, its own branding, and its own data, without a single line of
+        tenant-specific code.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#how-it-works">
+          See how it works
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="#security">View the security model</a>
+      </div>
+      <div class="proof-strip" data-reveal>
+        <span class="chip"><span class="dot"></span>Multi-tenant by construction</span>
+        <span class="chip"><span class="dot"></span>AES-256-GCM credentials at rest</span>
+        <span class="chip"><span class="dot"></span>Fail-closed webhook verification</span>
+        <span class="chip"><span class="dot"></span>Live, uncached analytics</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHAT IS THE PLATFORM ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">What it is</span>
+        <h2 class="section-title">A shared engine, run separately for every business you serve.</h2>
+        <p class="section-lead">
+          Most teams that offer WhatsApp messaging to multiple client businesses end up
+          building the same thing three times: credential storage, webhook routing, and
+          campaign tooling — once per client, because nothing was built to share. notify-sdk
+          is that shared layer, built once and hardened for every tenant that runs on it,
+          reachable through an internal admin console for your operators and a REST API
+          for your — or your clients' — developers.
+        </p>
+      </div>
+      <div class="grid value-grid">
+        <div class="value-card" data-reveal>
+          <span class="tag">For operators</span>
+          <h3>Onboard a business in minutes</h3>
+          <p>Create a tenant, drop in their WhatsApp credentials, verify them against Meta, and they're live — no deploy, no config file, no new server.</p>
+        </div>
+        <div class="value-card" data-reveal>
+          <span class="tag">For businesses</span>
+          <h3>Their own number, their own brand</h3>
+          <p>Every tenant messages customers from their own WhatsApp Business number, with their logo and colors reflected back in their own dashboard.</p>
+        </div>
+        <div class="value-card" data-reveal>
+          <span class="tag">For developers</span>
+          <h3>One API, scoped per tenant</h3>
+          <p>A single <code>/v1</code> REST surface, authenticated with a per-tenant API key, so integration work happens once and reuses cleanly for the next client.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="section flow-band" id="how-it-works">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">How it works</span>
+        <h2 class="section-title">From onboarding to an answered customer, in six stages.</h2>
+        <p class="section-lead">
+          Every message — a single reply or a campaign to twenty thousand contacts — moves
+          through the same six-stage path. Nothing about stage four changes when a new
+          tenant is added in stage one.
+        </p>
+      </div>
+
+      <div class="flow-track">
+        <div class="flow-node" data-reveal>
+          <span class="flow-step-num">01 / ADMIN</span>
+          <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></div>
+          <h4>Admin onboards</h4>
+          <p>Ops creates a tenant — name, logo, brand color, WhatsApp Business credentials.</p>
+          <div class="flow-connector"><span class="flow-pulse" style="animation-delay:0s"></span></div>
+        </div>
+        <div class="flow-node" data-reveal>
+          <span class="flow-step-num">02 / ONBOARDING</span>
+          <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h4>Credentials verified &amp; sealed</h4>
+          <p>Checked live against Meta's Graph API, then encrypted with a per-tenant key before storage.</p>
+          <div class="flow-connector"><span class="flow-pulse" style="animation-delay:0.6s"></span></div>
+        </div>
+        <div class="flow-node" data-reveal>
+          <span class="flow-step-num">03 / API</span>
+          <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 12l4 9M16 3l4 9-4 9"/></svg></div>
+          <h4>Integration</h4>
+          <p>Their developers integrate against <code>/v1/send</code> with a scoped API key — or ops sends straight from the dashboard.</p>
+          <div class="flow-connector"><span class="flow-pulse" style="animation-delay:1.2s"></span></div>
+        </div>
+        <div class="flow-node" data-reveal>
+          <span class="flow-step-num">04 / MESSAGING</span>
+          <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h4>Message sent</h4>
+          <p>Text, media, or an approved template — from that tenant's own number, one-off or as a campaign.</p>
+          <div class="flow-connector"><span class="flow-pulse" style="animation-delay:1.8s"></span></div>
+        </div>
+        <div class="flow-node" data-reveal>
+          <span class="flow-step-num">05 / INTERACTION</span>
+          <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01M12 10h.01M15 10h.01M21 12a9 9 0 1 1-9-9c4.97 0 9 3.582 9 8.5Z"/></svg></div>
+          <h4>Customer replies</h4>
+          <p>One webhook resolves the right tenant, checks its signature, routes the reply, and handles STOP/START.</p>
+          <div class="flow-connector"><span class="flow-pulse" style="animation-delay:2.4s"></span></div>
+        </div>
+        <div class="flow-node" data-reveal>
+          <span class="flow-step-num">06 / ANALYTICS</span>
+          <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M8 17V10M13 17V6M18 17v-4"/></svg></div>
+          <h4>Numbers update live</h4>
+          <p>Sent, delivered, read, failed, and replies roll up per tenant and per campaign — recomputed on every refresh.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURES ============ -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Key features</span>
+        <h2 class="section-title">Everything a business needs to run WhatsApp — already built.</h2>
+      </div>
+      <div class="grid feature-grid">
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+          <h3 class="card-title">Isolation by construction</h3>
+          <p>Each tenant gets its own client instance bound to its own credentials at creation — there's no code path where one tenant's request can read another's data.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></div>
+          <h3 class="card-title">Real approved templates</h3>
+          <p>Synced directly from Meta's WABA template list, with a parameterized send flow — no re-typing template bodies by hand.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>
+          <h3 class="card-title">Rich media messaging</h3>
+          <p>Images, video, documents, and audio with captions — uploaded once, sent to one contact or a whole broadcast list.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3 class="card-title">Contacts &amp; campaigns</h3>
+          <p>CSV import, segmented broadcast lists, and campaign runs with live send, delivery, and reply stats per campaign.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.5"/></svg></div>
+          <h3 class="card-title">Encrypted credential vault</h3>
+          <p>AES-256-GCM, per-tenant keys derived by HKDF from one rotatable root key — never a plaintext token at rest.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v6c0 5.25 3.75 9.75 9 11 5.25-1.25 9-5.75 9-11V7z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3 class="card-title">Dashboard and API, both</h3>
+          <p>Your ops team works from the console; your clients' developers work from a REST API with their own scoped key — same platform underneath.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M18 9l-5 5-4-4-3 3"/></svg></div>
+          <h3 class="card-title">Live analytics, never cached</h3>
+          <p>Delivery rate, read rate, and reply rate — recomputed straight from the message log on every dashboard refresh.</p>
+        </div>
+        <div class="feature-card" data-reveal>
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3 class="card-title">A record of every change</h3>
+          <p>Credential rotations, branding edits, API key issuance — every admin action logged against the operator who made it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section class="section" id="architecture">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Multi-tenant architecture</span>
+        <h2 class="section-title">One process. One database. Zero cross-tenant paths.</h2>
+        <p class="section-lead">
+          A tenant's identity is decided once, when its client is constructed — never
+          passed around later as a parameter that a bug could drop or swap. Every
+          tenant's rows in the shared database are scoped by <code>tenant_id</code> at
+          the query level, and every tenant's decrypted credentials live only inside
+          its own in-memory client instance.
+        </p>
+      </div>
+
+      <div class="arch-wrap" data-reveal>
+        <div class="arch-diagram">
+          <div class="arch-core">
+            <span class="eyebrow">Platform core</span>
+            <h4>PostgreSQL — tenant-scoped tables</h4>
+            <p>One schema, every table keyed by tenant_id, one running deployment</p>
+          </div>
+          <div class="arch-spokes">
+            <div class="arch-tenant">
+              <div class="tname"><span class="sw" style="background:var(--accent)"></span>Tenant A — Retail Co.</div>
+              <ul>
+                <li>Own WhatsApp number</li>
+                <li>Own encrypted credentials</li>
+                <li>Own logo &amp; brand color</li>
+              </ul>
+            </div>
+            <div class="arch-tenant">
+              <div class="tname"><span class="sw" style="background:var(--signal)"></span>Tenant B — Clinic Group</div>
+              <ul>
+                <li>Own WhatsApp number</li>
+                <li>Own encrypted credentials</li>
+                <li>Own contact lists</li>
+              </ul>
+            </div>
+            <div class="arch-tenant">
+              <div class="tname"><span class="sw" style="background:var(--text-faint)"></span>Tenant C — Logistics Inc.</div>
+              <ul>
+                <li>Own WhatsApp number</li>
+                <li>Own encrypted credentials</li>
+                <li>Own API keys</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <p class="arch-note">
+          Adding tenant D means creating a database row and entering credentials in the
+          admin console — not writing code, not deploying, not touching tenant A, B, or C.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ADMIN DASHBOARD ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Admin dashboard</span>
+        <h2 class="section-title">Everything your ops team needs, per tenant, in one workspace.</h2>
+        <p class="section-lead">
+          Every tenant gets the same seven-tab workspace: what your team sees for a
+          five-person clinic looks exactly like what they see for a national retailer —
+          just with different numbers underneath.
+        </p>
+      </div>
+
+      <div class="dash-mock" data-reveal>
+        <div class="dash-chrome">
+          <span class="cdot"></span><span class="cdot"></span><span class="cdot"></span>
+          <span class="label">admin · tenants/retail-co</span>
+        </div>
+        <div class="dash-body">
+          <div class="dash-tabs">
+            <div class="dash-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M18 9l-5 5-4-4-3 3"/></svg>Analytics</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Branding</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Credentials</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Templates</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Test send</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>AI assistant</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>API keys</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a15.3 15.3 0 0 0 0 20 15.3 15.3 0 0 0 0-20zM2 12h20"/></svg>Webhooks</div>
+            <div class="dash-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Audit log</div>
+          </div>
+          <div class="dash-main">
+            <div class="dash-stats">
+              <div class="dash-stat"><div class="k">SENT</div><div class="v">4,812</div></div>
+              <div class="dash-stat"><div class="k">DELIVERED</div><div class="v accent">4,701</div></div>
+              <div class="dash-stat"><div class="k">READ</div><div class="v accent">3,340</div></div>
+              <div class="dash-stat"><div class="k">FAILED</div><div class="v">36</div></div>
+              <div class="dash-stat"><div class="k">REPLIES</div><div class="v signal">612</div></div>
+            </div>
+            <div class="dash-bars" aria-hidden="true">
+              <i style="height:38%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:70%"></i>
+              <i style="height:61%"></i><i style="height:80%"></i><i style="height:66%"></i><i style="height:90%"></i>
+              <i style="height:74%"></i><i style="height:58%"></i><i style="height:85%"></i><i style="height:63%"></i>
+            </div>
+            <div class="dash-caption">/* illustrative dashboard view — figures for layout purposes */</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TENANT CAPABILITIES ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">What each business gets</span>
+        <h2 class="section-title">A full WhatsApp operation, without operating any infrastructure.</h2>
+      </div>
+      <div class="cap-list">
+        <div class="cap-item" data-reveal>
+          <svg class="cap-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Their own branded presence</h4><p>Logo and brand colors carried through their dashboard views and reporting.</p></div>
+        </div>
+        <div class="cap-item" data-reveal>
+          <svg class="cap-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Transactional &amp; marketing sends</h4><p>One-off confirmations and scheduled broadcast campaigns from the same tool.</p></div>
+        </div>
+        <div class="cap-item" data-reveal>
+          <svg class="cap-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Segmented contact lists</h4><p>Import contacts by CSV, group them into broadcast lists, target campaigns precisely.</p></div>
+        </div>
+        <div class="cap-item" data-reveal>
+          <svg class="cap-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Automatic opt-out handling</h4><p>A customer texting STOP is suppressed platform-wide, immediately, no manual step.</p></div>
+        </div>
+        <div class="cap-item" data-reveal>
+          <svg class="cap-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Programmatic access</h4><p>A scoped API key for their own developers to send messages directly from their systems.</p></div>
+        </div>
+        <div class="cap-item" data-reveal>
+          <svg class="cap-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><h4>Live performance visibility</h4><p>Delivery, read, and reply rates for every campaign, without asking anyone to pull a report.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AI & AUTOMATION ============ -->
+  <section class="section" id="ai-automation">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">AI &amp; automation</span>
+        <h2 class="section-title">A first response that never oversteps, and an assistant that never sends without asking.</h2>
+        <p class="section-lead">
+          Automation on top of a customer-messaging platform has an unusually high cost
+          of getting it wrong — so every piece here is capped, attributed, or gated by
+          design, not left to run unsupervised.
+        </p>
+      </div>
+      <div class="grid uc-grid">
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+          <h3>AI-assisted first response</h3>
+          <p>A tenant's own OpenAI or Anthropic key answers routine replies, capped per conversation, and hands off to a human — deterministically, not silently — the moment it can't help or hits that cap. It never sends to a contact who's opted out.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a15.3 15.3 0 0 0 0 20 15.3 15.3 0 0 0 0-20zM2 12h20"/></svg>
+          <h3>Outbound event webhooks</h3>
+          <p>Send, delivery, read, and reply events pushed to a tenant's own CRM or helpdesk, HMAC-signed and SSRF-guarded, with an endpoint automatically disabled after 10 consecutive failures rather than retried forever.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          <h3>A shared inbox, tagged and assignable</h3>
+          <p>One merged thread per customer — sends and replies together — with assignment, status, and searchable tags on every contact, so support agents stop reconstructing history from raw logs.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+          <h3>An MCP server for Claude, Cursor, and friends</h3>
+          <p>Any MCP client reads a tenant's logs through the exact same API key and guardrails as every other caller. Write access is opt-in and off by default; bulk send is never exposed to it at all.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECURITY ============ -->
+  <section class="section" id="security">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Security &amp; data isolation</span>
+        <h2 class="section-title">Built to survive a bad actor, a bad deploy, and a bad admin.</h2>
+        <p class="section-lead">
+          Security in a multi-tenant system isn't one feature — it's a property that
+          has to hold at every layer: storage, transport, and process boundaries. Here's
+          what holds it up.
+        </p>
+      </div>
+      <div class="grid sec-grid">
+        <div class="sec-card" data-reveal>
+          <span class="n">01</span>
+          <h3>Per-tenant encryption keys</h3>
+          <p>Every tenant's WhatsApp credentials are encrypted with AES-256-GCM using a key derived via HKDF from a single root key — no tenant shares another's key material.</p>
+        </div>
+        <div class="sec-card" data-reveal>
+          <span class="n">02</span>
+          <h3>Rotatable root key</h3>
+          <p>The root key itself can be rotated without downtime; each credential tracks the key version it was sealed with, so rotation is a background migration, not a cutover.</p>
+        </div>
+        <div class="sec-card" data-reveal>
+          <span class="n">03</span>
+          <h3>Fail-closed webhooks</h3>
+          <p>Every inbound webhook's HMAC-SHA256 signature is verified against the receiving tenant's own app secret. Missing or invalid — the payload is rejected, not silently accepted.</p>
+        </div>
+        <div class="sec-card" data-reveal>
+          <span class="n">04</span>
+          <h3>Tenant-scoped storage</h3>
+          <p>Every query against messages, contacts, campaigns, and preferences is scoped to a tenant_id — there is no query shape that spans tenants by accident.</p>
+        </div>
+        <div class="sec-card" data-reveal>
+          <span class="n">05</span>
+          <h3>Salted, hashed credentials</h3>
+          <p>Admin passwords and API keys are hashed with scrypt before storage — never compared or logged in plaintext.</p>
+        </div>
+        <div class="sec-card" data-reveal>
+          <span class="n">06</span>
+          <h3>A full audit trail</h3>
+          <p>Every credential rotation, branding change, and API key issuance is recorded against the admin who made it, with a timestamp.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ USE CASES ============ -->
+  <section class="section" id="use-cases">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Real-world use cases</span>
+        <h2 class="section-title">The same platform, seven different jobs.</h2>
+      </div>
+      <div class="grid uc-grid">
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <h3>OTP &amp; verification</h3>
+          <p>One-time codes delivered through a channel customers already have open, with delivery confirmation on receipt.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <h3>Order &amp; appointment updates</h3>
+          <p>Shipping status, booking confirmations, and reminders sent the moment a backend event fires.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <h3>Marketing campaigns</h3>
+          <p>Approved templates broadcast to a segmented list, with delivery and reply rates visible the moment the send finishes.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <h3>Customer support</h3>
+          <p>Two-way reply threads land back on the tenant's own systems through webhooks, ready to route to a human.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+          <h3>Media &amp; documents</h3>
+          <p>Invoices, receipts, catalogs, and product photos sent as first-class WhatsApp attachments, not links to click.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a15.3 15.3 0 0 0 0 20 15.3 15.3 0 0 0 0-20zM2 12h20"/></svg>
+          <h3>Webhooks into their stack</h3>
+          <p>Delivery receipts and inbound replies feed directly into a tenant's own CRM, helpdesk, or order system.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M8 17V10M13 17V6M18 17v-4"/></svg>
+          <h3>Campaign analytics</h3>
+          <p>Sent, delivered, read, and reply counts per campaign — computed live, going well beyond what Meta's own reporting shows.</p>
+        </div>
+        <div class="uc-card" data-reveal>
+          <svg class="uc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v6c0 5.25 3.75 9.75 9 11 5.25-1.25 9-5.75 9-11V7z"/></svg>
+          <h3>Compliance by default</h3>
+          <p>STOP/START honored automatically, per tenant, so opt-out compliance doesn't depend on any one integration remembering to check.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHY US / COMPARISON ============ -->
+  <section class="section" id="why-us">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Why not just call Meta's API directly</span>
+        <h2 class="section-title">The Cloud API gives you a wire. It doesn't give you a platform.</h2>
+        <p class="section-lead">
+          WhatsApp's Cloud API is a capable, low-level primitive — but it has no concept
+          of "tenant." Every team that wants to serve more than one client business ends
+          up rebuilding the same layer around it. notify-sdk is that layer, already built.
+        </p>
+      </div>
+      <div class="cmp-wrap">
+        <div class="cmp-col diy" data-reveal>
+          <h4>Building it yourself</h4>
+          <div class="sub">Raw WhatsApp Cloud API, per client</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Design and secure your own multi-tenant credential store, from scratch</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Write and test webhook signature verification, and get it fail-closed</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Build contact, list, and campaign tooling for every new client</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Build an analytics layer, because Meta's own reporting stops short</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Repeat the security review for every new integration</li>
+          </ul>
+        </div>
+        <div class="cmp-col platform" data-reveal>
+          <h4>notify-sdk</h4>
+          <div class="sub">One hardened platform, every client</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Encrypted, per-tenant credential vault, already built and tested</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Fail-closed webhook routing to the correct tenant, out of the box</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Contacts, lists, and campaigns ready on day one for every tenant</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Live delivery, read, and reply analytics per tenant and campaign</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>One security posture, audited once, inherited by every new tenant</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUSINESS VALUE / ROI ============ -->
+  <section class="section value-band">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Business value</span>
+        <h2 class="section-title">What you stop having to build, every time you sign a new client.</h2>
+      </div>
+      <div class="grid vb-grid">
+        <div class="vb-item" data-reveal>
+          <div class="big">1 → N</div>
+          <p>One deployment serves any number of tenants — onboarding client N+1 costs a database row, not a new engineering project.</p>
+        </div>
+        <div class="vb-item" data-reveal>
+          <div class="big">Days</div>
+          <p>Time from "new client signs" to "their first WhatsApp message goes out" — bounded by credential setup, not development time.</p>
+        </div>
+        <div class="vb-item" data-reveal>
+          <div class="big">1x</div>
+          <p>The security review, encryption design, and webhook hardening happen once — every tenant inherits the same audited posture.</p>
+        </div>
+        <div class="vb-item" data-reveal>
+          <div class="big">0</div>
+          <p>Custom code required to onboard a typical new tenant — branding, credentials, and campaigns are all admin-console operations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FUTURE / ROADMAP ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Built to extend</span>
+        <h2 class="section-title">The foundation is multi-tenant already — the roadmap builds outward from there.</h2>
+        <p class="section-lead">
+          Because tenancy is handled at the core, none of the following require touching
+          how existing tenants work — each is an addition, not a rewrite.
+        </p>
+      </div>
+      <div class="road-track">
+        <div class="road-card" data-reveal>
+          <span class="tag">Channels</span>
+          <h4>Beyond WhatsApp</h4>
+          <p>The same tenant, contact, and campaign model extends naturally to SMS and email as additional channels.</p>
+        </div>
+        <div class="road-card" data-reveal>
+          <span class="tag">Onboarding</span>
+          <h4>Self-serve signup</h4>
+          <p>Today, tenants are onboarded by your ops team by design — a self-serve signup flow is a natural next layer on top.</p>
+        </div>
+        <div class="road-card" data-reveal>
+          <span class="tag">Analytics</span>
+          <h4>Deeper reporting</h4>
+          <p>Cohort and funnel views on top of the same live message log already powering today's per-campaign stats.</p>
+        </div>
+        <div class="road-card" data-reveal>
+          <span class="tag">Key management</span>
+          <h4>KMS-backed rotation</h4>
+          <p>The root-key model already supports rotation — a managed KMS is a drop-in replacement when that's the requirement.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GETTING STARTED ============ -->
+  <section class="section" id="get-started">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Getting started</span>
+        <h2 class="section-title">What we need from you — and how you confirm it's actually working.</h2>
+        <p class="section-lead">
+          Onboarding a tenant is a checklist, not an engineering project. Once a tenant
+          is live, every number on their dashboard is independently checkable —
+          nothing asks you to take it on faith.
+        </p>
+      </div>
+
+      <div class="gs-groups">
+        <div class="gs-group" data-reveal>
+          <div class="gs-group-head">
+            <span class="gh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+            <div>
+              <h3>Required from you</h3>
+              <p>Everything below is provided by the client business itself — the platform never provisions a WhatsApp number on their behalf.</p>
+            </div>
+          </div>
+          <div class="req-grid">
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M9 7h1M9 11h1M9 15h1M14 7h1M14 11h1M14 15h1"/></svg></span>
+              <h4>A verified Meta Business Manager account</h4>
+              <p>The account that legally owns the WhatsApp Business number you'll send from.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>
+              <h4>A WhatsApp Business Account (WABA) ID</h4>
+              <p>With at least one phone number already registered and connected to it.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span>
+              <h4>A System User access token</h4>
+              <p>Generated from Meta Business Settings, scoped to WhatsApp messaging permissions.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <h4>An app secret &amp; webhook verify token</h4>
+              <p>Authenticates every inbound delivery receipt and customer reply as genuinely from Meta.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>
+              <h4>Logo &amp; brand colors</h4>
+              <p>Reflected back into their own dashboard views once onboarded.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span>
+              <h4>Approved templates, for marketing sends</h4>
+              <p>Submitted to and approved by Meta ahead of any broadcast campaign — transactional sends don't need this.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-group verify" data-reveal>
+          <div class="gs-group-head">
+            <span class="gh-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M18 9l-5 5-4-4-3 3"/></svg></span>
+            <div>
+              <h3>How you verify the dashboard</h3>
+              <p>Four independent ways to confirm a number on screen reflects reality — not four ways to trust us.</p>
+            </div>
+          </div>
+          <div class="verify-grid">
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 9-18 9 4-9-4-9z"/></svg></span>
+              <h4>Send a real test message</h4>
+              <p>Watch one message move sent → delivered → read live, on your own phone, before trusting a campaign's worth.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></span>
+              <h4>Cross-check against Meta directly</h4>
+              <p>Every message keeps the WhatsApp message ID Meta issued — look it up in Meta's own WhatsApp Manager and compare.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M4.5 9A8 8 0 0 1 19 7.5"/><path d="M19.5 15A8 8 0 0 1 5 16.5"/></svg></span>
+              <h4>Nothing shown is a cached snapshot</h4>
+              <p>The Analytics tab recomputes sent/delivered/read/failed/reply counts on every refresh.</p>
+            </div>
+            <div class="mini-card">
+              <span class="mc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+              <h4>An audit log of who changed what</h4>
+              <p>Every credential rotation, branding edit, and API key issued is attributed to the admin who did it.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="section cta-section" id="cta">
+    <div class="wrap">
+      <div class="cta-band" data-reveal>
+        <span class="eyebrow" style="justify-content:center;">Let's talk</span>
+        <h2>Ready to run WhatsApp for every client from one platform?</h2>
+        <p>Walk through the admin console, the API, and the isolation model with your own use case in front of us.</p>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="mailto:hello@notifysdk.io">
+            Talk to us
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="#how-it-works">Revisit the workflow</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <div class="foot-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/><circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12.5" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>
+        notify-sdk
+      </div>
+      <div class="foot-links">
+        <a href="#how-it-works">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#ai-automation">AI &amp; automation</a>
+        <a href="#security">Security</a>
+        <a href="#use-cases">Use cases</a>
+      </div>
+    </div>
+    <div class="foot-fine">Multi-tenant WhatsApp Business Platform — internal admin console + /v1 REST API</div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var els = document.querySelectorAll("[data-reveal]");
+    if (prefersReduced || !("IntersectionObserver" in window)) {
+      els.forEach(function (el) { el.classList.add("is-visible"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+
+</body></html>

@@ -63,16 +63,18 @@ export async function createCampaign(input: {
   hsmParams: string[];
   headerMediaType?: HeaderMediaType | null;
   headerMediaUrl?: string | null;
-  createdByAdminId: string;
+  /** Exactly one of these two should be set — attributes the campaign to who created it. */
+  createdByAdminId?: string;
+  createdByTenantUserId?: string;
 }): Promise<CampaignRecord> {
   const { rows } = await getPool().query(
-    `INSERT INTO campaigns (tenant_id, name, broadcast_list_id, hsm_template_name, hsm_language, hsm_params, header_media_type, header_media_url, created_by_admin_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    `INSERT INTO campaigns (tenant_id, name, broadcast_list_id, hsm_template_name, hsm_language, hsm_params, header_media_type, header_media_url, created_by_admin_id, created_by_tenant_user_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
     [
       input.tenantId, input.name, input.broadcastListId,
       input.hsmTemplateName, input.hsmLanguage, JSON.stringify(input.hsmParams),
       input.headerMediaType ?? null, input.headerMediaUrl ?? null,
-      input.createdByAdminId,
+      input.createdByAdminId ?? null, input.createdByTenantUserId ?? null,
     ]
   );
   return rowToCampaign(rows[0]);

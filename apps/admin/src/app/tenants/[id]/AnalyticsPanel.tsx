@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { RefreshCw, AlertCircle, Send, CheckCheck, Eye, XCircle as XCircleIcon, MessageSquareReply, BarChart3 } from 'lucide-react';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,19 +31,23 @@ function pct(fraction: number): string {
 }
 
 function StatCard({
-  icon: Icon, label, value, sub,
-}: { icon: React.ComponentType<{ className?: string }>; label: string; value: number; sub?: string }) {
+  icon: Icon, label, value, sub, accent = 'var(--muted-foreground)', delay = 0,
+}: { icon: React.ComponentType<{ className?: string }>; label: string; value: number; sub?: string; accent?: string; delay?: number }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border bg-card p-4">
-      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
-        <Icon className="size-4 text-muted-foreground" />
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.24, delay, ease: [0.16, 1, 0.3, 1] }}
+      className="rounded-lg border-l-2 bg-card p-4 shadow-xs"
+      style={{ borderLeftColor: accent }}
+    >
+      <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+        <Icon className="size-3.5" />
+        {label}
       </div>
-      <div className="min-w-0">
-        <div className="text-[13px] text-muted-foreground">{label}</div>
-        <div className="text-xl font-semibold tabular-nums leading-tight">{value.toLocaleString()}</div>
-        {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
-      </div>
-    </div>
+      <div className="mt-1 text-xl font-semibold tabular-nums leading-tight">{value.toLocaleString()}</div>
+      {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
+    </motion.div>
   );
 }
 
@@ -82,7 +87,8 @@ function AnalyticsSkeleton() {
   );
 }
 
-export function AnalyticsPanel({ tenantId }: { tenantId: string }) {
+export function AnalyticsPanel({ tenantId, baseApiPath }: { tenantId: string; baseApiPath?: string }) {
+  const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const [data, setData]       = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -91,7 +97,7 @@ export function AnalyticsPanel({ tenantId }: { tenantId: string }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/analytics`);
+      const res = await fetch(`${apiBase}/analytics`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Failed to load analytics');
       setData(json);
@@ -100,7 +106,7 @@ export function AnalyticsPanel({ tenantId }: { tenantId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [tenantId]);
+  }, [apiBase]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -135,18 +141,23 @@ export function AnalyticsPanel({ tenantId }: { tenantId: string }) {
             {rollup && (
               <>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                  <StatCard icon={Send} label="Sent" value={rollup.sent} />
-                  <StatCard icon={CheckCheck} label="Delivered" value={rollup.delivered} sub={`${pct(rollup.deliveryRate)} of sent`} />
-                  <StatCard icon={Eye} label="Read" value={rollup.read} sub={`${pct(rollup.readRate)} of delivered`} />
-                  <StatCard icon={XCircleIcon} label="Failed" value={rollup.failed} />
-                  <StatCard icon={MessageSquareReply} label="Replies" value={rollup.replies} sub={`${pct(rollup.replyRate)} of sent`} />
+                  <StatCard icon={Send} label="Sent" value={rollup.sent} accent="var(--primary)" delay={0} />
+                  <StatCard icon={CheckCheck} label="Delivered" value={rollup.delivered} sub={`${pct(rollup.deliveryRate)} of sent`} accent="var(--signal)" delay={0.04} />
+                  <StatCard icon={Eye} label="Read" value={rollup.read} sub={`${pct(rollup.readRate)} of delivered`} accent="var(--chart-3)" delay={0.08} />
+                  <StatCard icon={XCircleIcon} label="Failed" value={rollup.failed} accent="var(--destructive)" delay={0.12} />
+                  <StatCard icon={MessageSquareReply} label="Replies" value={rollup.replies} sub={`${pct(rollup.replyRate)} of sent`} accent="var(--primary-2)" delay={0.16} />
                 </div>
 
-                <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-3 sm:gap-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.28, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-3 sm:gap-6"
+                >
                   <RateBar label="Delivery rate" fraction={rollup.deliveryRate} color="var(--primary)" />
                   <RateBar label="Read rate" fraction={rollup.readRate} color="var(--signal)" />
                   <RateBar label="Reply rate" fraction={rollup.replyRate} color="var(--chart-3)" />
-                </div>
+                </motion.div>
               </>
             )}
 

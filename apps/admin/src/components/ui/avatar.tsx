@@ -9,7 +9,7 @@ function Avatar({ className, ...props }: React.ComponentProps<typeof AvatarPrimi
   return (
     <AvatarPrimitive.Root
       data-slot="avatar"
-      className={cn("relative flex size-8 shrink-0 overflow-hidden rounded-lg", className)}
+      className={cn("relative flex size-8 shrink-0 overflow-hidden rounded-lg ring-1 ring-foreground/10", className)}
       {...props}
     />
   )
@@ -36,7 +36,7 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn("flex size-full items-center justify-center text-xs font-semibold text-white", className)}
-      style={{ background: color ?? "var(--muted-foreground)", ...style }}
+      style={{ background: color ?? "var(--primary)", ...style }}
       {...props}
     />
   )
