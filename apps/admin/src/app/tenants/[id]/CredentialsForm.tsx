@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, XCircle, Save, Loader2, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardTitleGroup } from '@/components/card-title-group';
+import { HelpSteps } from '@/components/help-steps';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -103,7 +104,8 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
         />
       </CardHeader>
       <CardContent>
-        <form id="credentials-form" onSubmit={handleSave} className="grid max-w-2xl gap-4">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <form id="credentials-form" onSubmit={handleSave} className="grid max-w-2xl content-start gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="phone-number-id">Phone Number ID</Label>
@@ -144,6 +146,33 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
             </Alert>
           )}
         </form>
+
+        <HelpSteps
+          title="Where to find these"
+          intro="All four values come from Meta's developer console — you'll need a Meta Business account and a WhatsApp Business app."
+          steps={[
+            {
+              text: <>Sign in at Meta for Developers and create an app of type <b>Business</b> (or open your existing one).</>,
+              href: 'https://developers.facebook.com/apps/',
+              hrefLabel: 'developers.facebook.com',
+            },
+            {
+              text: <>On the app dashboard, click <b>Add product</b> and set up <b>WhatsApp</b>.</>,
+            },
+            {
+              text: <>Open <b>WhatsApp → API Setup</b>: the <b>Phone Number ID</b> and <b>WhatsApp Business Account ID</b> are shown at the top, next to your test number.</>,
+            },
+            {
+              text: <>The token on that page expires in 24h — for production, create a <b>System User</b> in Business Settings and generate a permanent <b>Access Token</b> with the <code>whatsapp_business_messaging</code> permission.</>,
+              href: 'https://business.facebook.com/settings/system-users',
+              hrefLabel: 'System users',
+            },
+            {
+              text: <>The <b>App Secret</b> is under <b>App settings → Basic</b> — it lets us verify inbound webhooks really came from Meta.</>,
+            },
+          ]}
+        />
+        </div>
       </CardContent>
       <CardFooter className="gap-2">
         <Button

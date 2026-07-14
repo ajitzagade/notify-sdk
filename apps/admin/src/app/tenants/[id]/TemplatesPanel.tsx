@@ -6,6 +6,7 @@ import { RefreshCw, AlertCircle, LayoutTemplate } from 'lucide-react';
 import type { TemplateRecord } from '@/lib/templates';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardTitleGroup } from '@/components/card-title-group';
+import { HelpSteps } from '@/components/help-steps';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -68,14 +69,30 @@ export function TemplatesPanel({
         )}
 
         {templates.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <div className="flex size-11 items-center justify-center rounded-full bg-muted">
-              <LayoutTemplate className="size-5 text-muted-foreground" />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+              <div className="flex size-11 items-center justify-center rounded-full bg-muted">
+                <LayoutTemplate className="size-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">No templates synced yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">Use &quot;Sync from Meta&quot; above to pull in this tenant&apos;s approved templates.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">No templates synced yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">Use &quot;Sync from Meta&quot; above to pull in this tenant&apos;s approved templates.</p>
-            </div>
+            <HelpSteps
+              title="Creating templates"
+              intro="Templates are authored and approved on Meta's side — this page only pulls in what's already approved."
+              steps={[
+                {
+                  text: <>Open <b>WhatsApp Manager → Message templates</b> for this tenant&apos;s business account.</>,
+                  href: 'https://business.facebook.com/wa/manage/message-templates/',
+                  hrefLabel: 'WhatsApp Manager',
+                },
+                { text: <>Create a template — pick a category (<b>Marketing</b>, <b>Utility</b>, or <b>Authentication</b>), a language, and write the body. Use <code>{'{{1}}'}</code>, <code>{'{{2}}'}</code>… for values filled at send time.</> },
+                { text: <>Submit it — Meta usually reviews within minutes to a few hours.</> },
+                { text: <>Once approved, make sure the <b>Business Account ID</b> is saved on the Credentials step, then hit <b>Sync from Meta</b> here.</> },
+              ]}
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">

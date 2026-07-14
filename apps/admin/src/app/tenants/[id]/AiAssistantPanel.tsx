@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, XCircle, Sparkles, Save, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { CardTitleGroup } from '@/components/card-title-group';
+import { HelpSteps } from '@/components/help-steps';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -107,7 +108,8 @@ export function AiAssistantPanel({ tenantId, status }: { tenantId: string; statu
         />
       </CardHeader>
       <CardContent>
-        <form id="ai-assistant-form" onSubmit={handleSave} className="grid max-w-2xl gap-5">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <form id="ai-assistant-form" onSubmit={handleSave} className="grid max-w-2xl content-start gap-5">
           <fieldset className="grid gap-4">
             <legend className="mb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Connection</legend>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -185,6 +187,25 @@ export function AiAssistantPanel({ tenantId, status }: { tenantId: string; statu
             </Alert>
           )}
         </form>
+
+        <HelpSteps
+          title="Getting an API key"
+          intro="The tenant brings their own LLM key — usage is billed to their account, not yours."
+          steps={[
+            {
+              text: <><b>OpenAI</b>: create a key under API keys in the platform dashboard. Models like <code>gpt-4o-mini</code> keep per-reply cost negligible.</>,
+              href: 'https://platform.openai.com/api-keys',
+              hrefLabel: 'platform.openai.com',
+            },
+            {
+              text: <><b>Anthropic</b>: create a key in the console under Settings → API keys. <code>claude-3-5-haiku-20241022</code> is the economical pick.</>,
+              href: 'https://console.anthropic.com/settings/keys',
+              hrefLabel: 'console.anthropic.com',
+            },
+            { text: <>Paste the key here and hit <b>Test key</b> — it makes one real call to verify before anything is saved.</> },
+          ]}
+        />
+        </div>
       </CardContent>
       <CardFooter className="gap-2">
         <Button type="button" variant="outline" onClick={handleTest} disabled={testing}>
