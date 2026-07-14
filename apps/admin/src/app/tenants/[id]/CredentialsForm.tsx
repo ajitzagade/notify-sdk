@@ -132,7 +132,7 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
           </div>
 
           {verifyResult && (
-            <Alert variant={verifyResult.ok ? 'default' : 'destructive'}>
+            <Alert variant={verifyResult.ok ? 'success' : 'destructive'}>
               {verifyResult.ok ? <CheckCircle2 /> : <XCircle />}
               <AlertDescription>{verifyResult.message}</AlertDescription>
             </Alert>

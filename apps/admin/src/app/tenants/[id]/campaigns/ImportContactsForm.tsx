@@ -160,7 +160,7 @@ export function ImportContactsForm({
           </label>
 
           {result && (
-            <Alert variant={result.ok ? 'default' : 'destructive'}>
+            <Alert variant={result.ok ? 'success' : 'destructive'}>
               {result.ok ? <CheckCircle2 /> : <XCircle />}
               <AlertDescription>{result.text}</AlertDescription>
             </Alert>

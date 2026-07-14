@@ -173,7 +173,7 @@ export function AiAssistantPanel({ tenantId, status }: { tenantId: string; statu
           </fieldset>
 
           {testResult && (
-            <Alert variant={testResult.ok ? 'default' : 'destructive'}>
+            <Alert variant={testResult.ok ? 'success' : 'destructive'}>
               {testResult.ok ? <CheckCircle2 /> : <XCircle />}
               <AlertDescription>{testResult.text}</AlertDescription>
             </Alert>
