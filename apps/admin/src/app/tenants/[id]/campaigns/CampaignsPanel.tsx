@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ImageIcon, Megaphone } from 'lucide-react';
+import { AlertCircle, ImageIcon, Megaphone, Plus, Loader2, Play } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
 import type { TemplateRecord } from '@/lib/templates';
 import type { CampaignRecord, HeaderMediaType } from '@/lib/campaigns';
@@ -331,6 +331,7 @@ export function CampaignsPanel({
                             onClick={() => handleRun(c.id, c.name)}
                             disabled={runningId === c.id}
                           >
+                            {runningId === c.id ? <Loader2 className="animate-spin" /> : <Play />}
                             {runningId === c.id ? 'Running…' : 'Run'}
                           </Button>
                         )}
@@ -346,6 +347,7 @@ export function CampaignsPanel({
       {lists.length > 0 && templates.length > 0 && (
         <CardFooter>
           <Button type="submit" form="create-campaign-form" disabled={!canCreate}>
+            {creating ? <Loader2 className="animate-spin" /> : <Plus />}
             {creating ? 'Creating…' : 'Create campaign'}
           </Button>
         </CardFooter>

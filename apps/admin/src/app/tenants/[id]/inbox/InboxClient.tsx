@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Check, CheckCheck, XCircle, Send, Inbox as InboxIcon, RefreshCw } from 'lucide-react';
+import { Check, CheckCheck, XCircle, Send, Inbox as InboxIcon, RefreshCw, Archive, ArchiveRestore } from 'lucide-react';
 import type { ConversationRecord } from '@/lib/conversations';
 import type { ThreadMessage } from '@/lib/conversations';
 import type { AdminUserSummary } from '@/lib/adminUsers';
@@ -234,6 +234,7 @@ export function InboxClient({
                   </Select>
                 )}
                 <Button type="button" variant="outline" size="sm" onClick={handleToggleStatus}>
+                  {selected.status === 'open' ? <Archive /> : <ArchiveRestore />}
                   {selected.status === 'open' ? 'Close' : 'Reopen'}
                 </Button>
               </div>

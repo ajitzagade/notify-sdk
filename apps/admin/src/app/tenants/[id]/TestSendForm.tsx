@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Send, Loader2 } from 'lucide-react';
 import type { MediaAssetRecord } from '@/lib/media';
 import type { TemplateRecord } from '@/lib/templates';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -279,6 +279,7 @@ export function TestSendForm({
       </CardContent>
       <CardFooter className="gap-3">
         <Button type="submit" form="test-send-form" disabled={!canSend}>
+          {sending ? <Loader2 className="animate-spin" /> : <Send />}
           {sending ? 'Sending…' : 'Send test message'}
         </Button>
         {!credentialsConfigured && (

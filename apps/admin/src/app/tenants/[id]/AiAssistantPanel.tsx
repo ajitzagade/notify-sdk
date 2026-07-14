@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, Sparkles, Save, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -179,6 +179,7 @@ export function AiAssistantPanel({ tenantId, status }: { tenantId: string; statu
           <Sparkles /> {testing ? 'Testing…' : 'Test key'}
         </Button>
         <Button type="submit" form="ai-assistant-form" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" /> : <Save />}
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </CardFooter>

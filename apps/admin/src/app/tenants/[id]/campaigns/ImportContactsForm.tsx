@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Upload, Loader2 } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -128,6 +128,7 @@ export function ImportContactsForm({
       </CardContent>
       <CardFooter>
         <Button type="submit" form="import-contacts-form" disabled={importing}>
+          {importing ? <Loader2 className="animate-spin" /> : <Upload />}
           {importing ? 'Importing…' : 'Import'}
         </Button>
       </CardFooter>

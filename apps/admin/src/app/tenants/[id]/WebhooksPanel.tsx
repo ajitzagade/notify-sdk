@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check, Copy, AlertCircle, Webhook as WebhookIcon, RotateCcw } from 'lucide-react';
+import { AlertTriangle, Check, Copy, AlertCircle, Webhook as WebhookIcon, RotateCcw, Plus, Loader2, Trash2 } from 'lucide-react';
 import type { WebhookEndpointRecord, WebhookEvent } from '@/lib/webhookEndpoints';
 
 // A plain, inlined constant (not imported as a value from '@/lib/webhookEndpoints') —
@@ -146,6 +146,7 @@ export function WebhooksPanel({ tenantId, endpoints }: { tenantId: string; endpo
           </div>
           <div>
             <Button type="submit" disabled={creating || events.length === 0}>
+              {creating ? <Loader2 className="animate-spin" /> : <Plus />}
               {creating ? 'Creating…' : 'Add endpoint'}
             </Button>
           </div>
@@ -225,6 +226,7 @@ export function WebhooksPanel({ tenantId, endpoints }: { tenantId: string; endpo
                           </Button>
                         )}
                         <Button type="button" variant="outline" size="sm" onClick={() => handleDelete(ep.id)} disabled={busyId === ep.id}>
+                          {busyId === ep.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
                           {busyId === ep.id ? 'Working…' : 'Delete'}
                         </Button>
                       </div>

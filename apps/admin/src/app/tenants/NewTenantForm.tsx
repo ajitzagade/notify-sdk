@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -91,6 +91,7 @@ export function NewTenantForm() {
 
           <DialogFooter>
             <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" /> : <Plus />}
               {loading ? 'Creating…' : 'Create tenant'}
             </Button>
           </DialogFooter>

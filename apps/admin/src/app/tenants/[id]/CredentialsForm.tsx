@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, XCircle, Save, Loader2, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -148,9 +148,11 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
           onClick={handleVerify}
           disabled={verifying || !accessToken || !phoneNumberId}
         >
+          {verifying ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
           {verifying ? 'Verifying…' : 'Verify against Meta'}
         </Button>
         <Button type="submit" form="credentials-form" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" /> : <Save />}
           {saving ? 'Saving…' : 'Save credentials'}
         </Button>
       </CardFooter>

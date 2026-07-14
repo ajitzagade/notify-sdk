@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Building2 } from 'lucide-react';
+import { Building2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function TenantNotFound() {
@@ -13,7 +13,7 @@ export default function TenantNotFound() {
         <p className="mt-1 text-sm text-muted-foreground">It may have been removed, or the link is out of date.</p>
       </div>
       <Button size="sm" render={<Link href="/tenants" />}>
-        Back to tenants
+        <ArrowLeft /> Back to tenants
       </Button>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, Users, AlertCircle } from 'lucide-react';
+import { Pencil, Users, AlertCircle, Save, Loader2 } from 'lucide-react';
 import type { ContactRecord } from '@/lib/contacts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -215,6 +215,7 @@ export function ContactsPanel({
           </div>
           <DialogFooter>
             <Button type="button" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="animate-spin" /> : <Save />}
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>

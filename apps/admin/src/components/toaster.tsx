@@ -5,6 +5,7 @@ import {
   ToastClose,
   ToastContent,
   ToastDescription,
+  ToastIcon,
   ToastPortal,
   ToastProvider,
   ToastRoot,
@@ -17,6 +18,7 @@ function ToastList() {
   const { toasts } = Toast.useToastManager()
   return toasts.map((t) => (
     <ToastRoot key={t.id} toast={t}>
+      <ToastIcon type={t.type} />
       <ToastContent>
         {t.title && <ToastTitle>{t.title}</ToastTitle>}
         {t.description && <ToastDescription>{t.description}</ToastDescription>}

@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Toast as ToastPrimitive } from "@base-ui/react/toast"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
+import { AlertCircle, CheckCircle2, Info, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -58,6 +58,22 @@ function ToastRoot({
   )
 }
 
+function ToastIcon({ type, className }: { type: string | undefined; className?: string }) {
+  const Icon = type === "success" ? CheckCircle2 : type === "error" ? AlertCircle : Info
+  return (
+    <Icon
+      aria-hidden
+      className={cn(
+        "mt-0.5 size-4 shrink-0",
+        type === "success" && "text-signal",
+        type === "error" && "text-destructive",
+        (!type || type === "default") && "text-muted-foreground",
+        className
+      )}
+    />
+  )
+}
+
 function ToastContent({ className, ...props }: React.ComponentProps<typeof ToastPrimitive.Content>) {
   return (
     <ToastPrimitive.Content data-slot="toast-content" className={cn("grid flex-1 gap-1", className)} {...props} />
@@ -105,6 +121,7 @@ export {
   ToastPortal,
   ToastViewport,
   ToastRoot,
+  ToastIcon,
   ToastContent,
   ToastTitle,
   ToastDescription,

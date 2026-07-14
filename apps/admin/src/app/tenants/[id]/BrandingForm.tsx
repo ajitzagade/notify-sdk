@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Save, Loader2 } from 'lucide-react';
 import type { TenantRecord } from '@/lib/tenants';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -131,6 +131,7 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
       </CardContent>
       <CardFooter>
         <Button type="submit" form="branding-form" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" /> : <Save />}
           {saving ? 'Saving…' : 'Save branding'}
         </Button>
       </CardFooter>

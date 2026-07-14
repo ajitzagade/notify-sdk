@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, UserRound } from 'lucide-react';
+import { AlertCircle, UserRound, UserPlus, UserX, UserCheck, Loader2 } from 'lucide-react';
 import type { PortalUserRecord } from '@/lib/tenantPortalUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -100,6 +100,7 @@ export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users
             />
           </div>
           <Button type="submit" disabled={creating}>
+            {creating ? <Loader2 className="animate-spin" /> : <UserPlus />}
             {creating ? 'Creating…' : 'Create login'}
           </Button>
         </form>
@@ -148,6 +149,7 @@ export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users
                           disabled={togglingId === u.id}
                           onClick={() => handleToggleActive(u.id, !u.isActive)}
                         >
+                          {togglingId === u.id ? <Loader2 className="animate-spin" /> : u.isActive ? <UserX /> : <UserCheck />}
                           {togglingId === u.id ? 'Working…' : u.isActive ? 'Deactivate' : 'Reactivate'}
                         </Button>
                       </div>

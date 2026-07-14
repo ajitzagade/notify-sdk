@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check, Copy, AlertCircle, KeyRound } from 'lucide-react';
+import { AlertTriangle, Check, Copy, AlertCircle, KeyRound, Plus, Loader2, Ban } from 'lucide-react';
 import type { ApiKeyRecord } from '@/lib/apiKeys';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -93,6 +93,7 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
             className="flex-1"
           />
           <Button type="submit" disabled={creating}>
+            {creating ? <Loader2 className="animate-spin" /> : <Plus />}
             {creating ? 'Creating…' : 'New key'}
           </Button>
         </form>
@@ -155,6 +156,7 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
                       ) : (
                         <AlertDialog>
                           <AlertDialogTrigger render={<Button variant="outline" size="sm" disabled={revokingId === k.id} />}>
+                            {revokingId === k.id ? <Loader2 className="animate-spin" /> : <Ban />}
                             {revokingId === k.id ? 'Revoking…' : 'Revoke'}
                           </AlertDialogTrigger>
                           <AlertDialogContent>
