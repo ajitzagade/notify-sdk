@@ -109,7 +109,7 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
                 type="color"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="h-9 w-16 p-1"
+                className="h-8 w-16 cursor-pointer p-1"
               />
             </div>
           </div>
