@@ -86,17 +86,25 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
         <Tabs defaultValue="analytics">
-          <TabsList variant="steps">
+          <span className="font-mono text-[10.5px] font-medium tracking-wider text-muted-foreground uppercase">Workspace</span>
+          <TabsList variant="line" className="mt-1.5">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="ai">AI assistant</TabsTrigger>
+            <TabsTrigger value="portal-access">Portal access</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+            <TabsTrigger value="audit">Audit log</TabsTrigger>
+          </TabsList>
+
+          <div className="mt-6 mb-1.5">
+            <span className="font-mono text-[10.5px] font-medium tracking-wider text-muted-foreground uppercase">Setup</span>
+            <p className="mt-0.5 text-xs text-muted-foreground">One-time steps to get this tenant sending — revisit anytime.</p>
+          </div>
+          <TabsList variant="steps">
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="credentials">Credentials</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="test-send">Test send</TabsTrigger>
-            <TabsTrigger value="ai">AI assistant</TabsTrigger>
             <TabsTrigger value="api-keys">API keys</TabsTrigger>
-            <TabsTrigger value="portal-access">Portal access</TabsTrigger>
-            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-            <TabsTrigger value="audit">Audit log</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="mt-5">
