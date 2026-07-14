@@ -40,7 +40,7 @@ export async function createPortalUser(input: {
   const { rows } = await getPool().query(
     `INSERT INTO tenant_portal_users (tenant_id, email, password_hash, password_salt, created_by_admin_id)
      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [input.tenantId, input.email.toLowerCase(), hash, salt, input.createdByAdminId]
+    [input.tenantId, input.email.trim().toLowerCase(), hash, salt, input.createdByAdminId]
   );
   return rowToPortalUser(rows[0]);
 }
@@ -60,7 +60,7 @@ export async function findPortalUserByEmailForLogin(email: string): Promise<{
   const { rows } = await getPool().query(
     `SELECT id, tenant_id, email, password_hash, password_salt, is_active
        FROM tenant_portal_users WHERE email = $1 LIMIT 1`,
-    [email.toLowerCase()]
+    [email.trim().toLowerCase()]
   );
   const row = rows[0];
   if (!row) return null;

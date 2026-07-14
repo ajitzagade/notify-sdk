@@ -24,13 +24,14 @@ function Tabs({
 }
 
 const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none data-[variant=steps]:w-full data-[variant=steps]:justify-between data-[variant=steps]:gap-0 data-[variant=steps]:rounded-none data-[variant=steps]:bg-transparent data-[variant=steps]:p-0 group-data-horizontal/tabs:data-[variant=steps]:h-auto",
+  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none data-[variant=steps]:w-full data-[variant=steps]:justify-between data-[variant=steps]:gap-0 data-[variant=steps]:rounded-none data-[variant=steps]:bg-transparent data-[variant=steps]:p-0 group-data-horizontal/tabs:data-[variant=steps]:h-auto data-[variant=pills]:h-auto data-[variant=pills]:flex-wrap data-[variant=pills]:justify-start data-[variant=pills]:gap-1.5 data-[variant=pills]:rounded-xl data-[variant=pills]:bg-muted/60 data-[variant=pills]:p-1.5",
   {
     variants: {
       variant: {
         default: "bg-muted",
         line: "gap-1 bg-transparent",
         steps: "",
+        pills: "",
       },
     },
     defaultVariants: {
@@ -64,6 +65,7 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
         "data-active:bg-background data-active:text-foreground dark:data-active:border-input dark:data-active:bg-input/30 dark:data-active:text-foreground",
         "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
         "group-data-[variant=steps]/tabs-list:h-auto group-data-[variant=steps]/tabs-list:flex-1 group-data-[variant=steps]/tabs-list:flex-col group-data-[variant=steps]/tabs-list:justify-start group-data-[variant=steps]/tabs-list:gap-2 group-data-[variant=steps]/tabs-list:border-none group-data-[variant=steps]/tabs-list:bg-transparent group-data-[variant=steps]/tabs-list:p-0 group-data-[variant=steps]/tabs-list:text-xs group-data-[variant=steps]/tabs-list:font-medium group-data-[variant=steps]/tabs-list:shadow-none group-data-[variant=steps]/tabs-list:data-active:bg-transparent group-data-[variant=steps]/tabs-list:data-active:shadow-none",
+        "group-data-[variant=pills]/tabs-list:h-9 group-data-[variant=pills]/tabs-list:flex-none group-data-[variant=pills]/tabs-list:rounded-lg group-data-[variant=pills]/tabs-list:px-3.5 group-data-[variant=pills]/tabs-list:text-sm group-data-[variant=pills]/tabs-list:font-medium group-data-[variant=pills]/tabs-list:text-muted-foreground group-data-[variant=pills]/tabs-list:hover:bg-background/80 group-data-[variant=pills]/tabs-list:hover:text-foreground group-data-[variant=pills]/tabs-list:data-active:border-transparent group-data-[variant=pills]/tabs-list:data-active:bg-primary group-data-[variant=pills]/tabs-list:data-active:text-primary-foreground group-data-[variant=pills]/tabs-list:data-active:shadow-sm group-data-[variant=pills]/tabs-list:data-active:hover:bg-primary",
         className
       )}
       {...props}

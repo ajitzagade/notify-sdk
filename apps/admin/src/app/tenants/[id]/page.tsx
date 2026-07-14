@@ -12,7 +12,6 @@ import { getAiConfigStatus } from '@/lib/aiConfig';
 import { listWebhookEndpoints } from '@/lib/webhookEndpoints';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { BrandingForm } from './BrandingForm';
@@ -25,6 +24,7 @@ import { AuditLogPanel } from './AuditLogPanel';
 import { AnalyticsPanel } from './AnalyticsPanel';
 import { AiAssistantPanel } from './AiAssistantPanel';
 import { WebhooksPanel } from './WebhooksPanel';
+import { TenantWorkspaceTabs } from './TenantWorkspaceTabs';
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
   active:    'default',
@@ -85,41 +85,16 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-8 py-8">
-        <Tabs defaultValue="analytics">
-          <span className="font-mono text-[10.5px] font-medium tracking-wider text-muted-foreground uppercase">Workspace</span>
-          <TabsList variant="line" className="mt-1.5">
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="ai">AI assistant</TabsTrigger>
-            <TabsTrigger value="portal-access">Portal access</TabsTrigger>
-            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-            <TabsTrigger value="audit">Audit log</TabsTrigger>
-          </TabsList>
-
-          <div className="mt-6 mb-1.5">
-            <span className="font-mono text-[10.5px] font-medium tracking-wider text-muted-foreground uppercase">Setup</span>
-            <p className="mt-0.5 text-xs text-muted-foreground">One-time steps to get this tenant sending — revisit anytime.</p>
-          </div>
-          <TabsList variant="steps">
-            <TabsTrigger value="branding">Branding</TabsTrigger>
-            <TabsTrigger value="credentials">Credentials</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="test-send">Test send</TabsTrigger>
-            <TabsTrigger value="api-keys">API keys</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="analytics" className="mt-5">
-            <AnalyticsPanel tenantId={tenant.id} />
-          </TabsContent>
-          <TabsContent value="branding" className="mt-5">
-            <BrandingForm tenant={tenant} />
-          </TabsContent>
-          <TabsContent value="credentials" className="mt-5">
-            <CredentialsForm tenantId={tenant.id} status={credentials} />
-          </TabsContent>
-          <TabsContent value="templates" className="mt-5">
-            <TemplatesPanel tenantId={tenant.id} templates={templates} />
-          </TabsContent>
-          <TabsContent value="test-send" className="mt-5">
+        <TenantWorkspaceTabs
+          analytics={<AnalyticsPanel tenantId={tenant.id} />}
+          ai={<AiAssistantPanel tenantId={tenant.id} status={aiStatus} />}
+          portalAccess={<PortalAccessPanel tenantId={tenant.id} users={portalUsers} />}
+          webhooks={<WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />}
+          audit={<AuditLogPanel entries={auditEntries} />}
+          branding={<BrandingForm tenant={tenant} />}
+          credentials={<CredentialsForm tenantId={tenant.id} status={credentials} />}
+          templates={<TemplatesPanel tenantId={tenant.id} templates={templates} />}
+          testSend={
             <TestSendForm
               tenantId={tenant.id}
               tenantName={tenant.name}
@@ -127,23 +102,9 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
               mediaAssets={mediaAssets}
               templates={templates}
             />
-          </TabsContent>
-          <TabsContent value="ai" className="mt-5">
-            <AiAssistantPanel tenantId={tenant.id} status={aiStatus} />
-          </TabsContent>
-          <TabsContent value="api-keys" className="mt-5">
-            <ApiKeysPanel tenantId={tenant.id} apiKeys={apiKeys} />
-          </TabsContent>
-          <TabsContent value="portal-access" className="mt-5">
-            <PortalAccessPanel tenantId={tenant.id} users={portalUsers} />
-          </TabsContent>
-          <TabsContent value="webhooks" className="mt-5">
-            <WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />
-          </TabsContent>
-          <TabsContent value="audit" className="mt-5">
-            <AuditLogPanel entries={auditEntries} />
-          </TabsContent>
-        </Tabs>
+          }
+          apiKeys={<ApiKeysPanel tenantId={tenant.id} apiKeys={apiKeys} />}
+        />
       </div>
     </>
   );

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
   }
 
-  const rateLimitKey = `portal:${email.toLowerCase()}`;
+  const rateLimitKey = `portal:${email.trim().toLowerCase()}`;
   if (isRateLimited(rateLimitKey)) {
     return NextResponse.json(
       { error: 'Too many failed attempts. Try again in a few minutes.' },
