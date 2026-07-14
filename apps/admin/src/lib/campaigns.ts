@@ -80,6 +80,107 @@ export async function createCampaign(input: {
   return rowToCampaign(rows[0]);
 }
 
+export interface CampaignRecipientRow {
+  phone: string;
+  name: string | null;
+  status: string;
+  errorMessage: string | null;
+  sentAt: string | null;
+  deliveredAt: string | null;
+  readAt: string | null;
+}
+
+export interface CampaignReplyRow {
+  phone: string;
+  name: string | null;
+  type: string;
+  body: string | null;
+  buttonTitle: string | null;
+  receivedAt: string;
+}
+
+export interface CampaignDetail {
+  campaign: CampaignRecord;
+  listName: string | null;
+  createdBy: string | null;
+  /** The rendered message text, as captured from the actual send (notify_log.body_preview). */
+  messagePreview: string | null;
+  recipients: CampaignRecipientRow[];
+  replies: CampaignReplyRow[];
+}
+
+/**
+ * Full history of one campaign run: what was sent, to whom, and what came
+ * back. Per-recipient rows come live from notify_log via the same
+ * meta->>'broadcastId' correlation analytics uses — never campaigns.stats.
+ */
+export async function getCampaignDetail(tenantId: string, campaignId: string): Promise<CampaignDetail | null> {
+  const campaign = await getCampaign(tenantId, campaignId);
+  if (!campaign) return null;
+
+  const pool = getPool();
+  const [metaRes, recipientsRes, repliesRes] = await Promise.all([
+    pool.query(
+      `SELECT l.name AS list_name, au.email AS admin_email, tpu.email AS portal_email
+         FROM campaigns c
+         LEFT JOIN broadcast_lists l      ON l.id = c.broadcast_list_id
+         LEFT JOIN admin_users au         ON au.id = c.created_by_admin_id
+         LEFT JOIN tenant_portal_users tpu ON tpu.id = c.created_by_tenant_user_id
+        WHERE c.id = $1`,
+      [campaign.id]
+    ),
+    campaign.broadcastId
+      ? pool.query(
+          `SELECT nl.to_phone, ct.name, nl.status, nl.error_message, nl.sent_at, nl.delivered_at, nl.read_at, nl.body_preview
+             FROM notify_log nl
+             LEFT JOIN contacts ct ON ct.tenant_id = nl.tenant_id AND ct.phone = nl.to_phone
+            WHERE nl.tenant_id = $1 AND nl.meta->>'broadcastId' = $2
+            ORDER BY nl.to_phone`,
+          [tenantId, campaign.broadcastId]
+        )
+      : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
+    campaign.broadcastId
+      ? pool.query(
+          `SELECT mr.from_phone, ct.name, mr.type, mr.body, mr.button_title, mr.received_at
+             FROM message_replies mr
+             LEFT JOIN contacts ct ON ct.tenant_id = mr.tenant_id AND ct.phone = mr.from_phone
+            WHERE mr.tenant_id = $1
+              AND mr.in_reply_to_wa_message_id IN (
+                SELECT wa_message_id FROM notify_log
+                 WHERE tenant_id = $1 AND meta->>'broadcastId' = $2 AND wa_message_id IS NOT NULL
+              )
+            ORDER BY mr.received_at`,
+          [tenantId, campaign.broadcastId]
+        )
+      : Promise.resolve({ rows: [] as Record<string, unknown>[] }),
+  ]);
+
+  const meta = metaRes.rows[0] ?? {};
+  return {
+    campaign,
+    listName:       (meta.list_name as string) ?? null,
+    createdBy:      (meta.admin_email as string) ?? (meta.portal_email as string) ?? null,
+    messagePreview: (recipientsRes.rows.find((r) => r.body_preview)?.body_preview as string) ?? null,
+    recipients: recipientsRes.rows.map((r) => ({
+      phone:        r.to_phone as string,
+      name:         r.name as string | null,
+      status:       r.status as string,
+      errorMessage: r.error_message as string | null,
+      sentAt:       r.sent_at as string | null,
+      deliveredAt:  r.delivered_at as string | null,
+      readAt:       r.read_at as string | null,
+    })),
+    replies: repliesRes.rows.map((r) => ({
+      phone:       r.from_phone as string,
+      name:        r.name as string | null,
+      type:        r.type as string,
+      body:        r.body as string | null,
+      buttonTitle: r.button_title as string | null,
+      receivedAt:  r.received_at as string,
+    })),
+  };
+}
+
 export async function markCampaignRunning(campaignId: string): Promise<void> {
   await getPool().query(`UPDATE campaigns SET status = 'running' WHERE id = $1`, [campaignId]);
 }

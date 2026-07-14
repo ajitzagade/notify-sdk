@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ImageIcon, Megaphone, Plus, Loader2, Play } from 'lucide-react';
+import { AlertCircle, ImageIcon, Megaphone, Plus, Loader2, Play, History } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
 import type { TemplateRecord } from '@/lib/templates';
 import type { CampaignRecord, HeaderMediaType } from '@/lib/campaigns';
@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { WhatsAppPreview } from '@/components/whatsapp-preview';
+import { CampaignDetailSheet } from './CampaignDetailSheet';
 import { toast } from '@/lib/toast';
 
 function bodyText(template: TemplateRecord): string {
@@ -72,6 +73,7 @@ export function CampaignsPanel({
   const [headerAssetId, setHeaderAssetId] = useState('');
   const [creating, setCreating]         = useState(false);
   const [runningId, setRunningId]       = useState<string | null>(null);
+  const [detailId, setDetailId]         = useState<string | null>(null);
   const [error, setError]               = useState<string | null>(null);
 
   const selectedTemplate = templates.find((t) => t.id === templateId) ?? null;
@@ -332,6 +334,9 @@ export function CampaignsPanel({
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Badge variant={STATUS_VARIANT[c.status]}>{c.status}</Badge>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setDetailId(c.id)}>
+                          <History /> History
+                        </Button>
                         {c.status === 'draft' && (
                           <Button
                             type="button"
@@ -361,6 +366,12 @@ export function CampaignsPanel({
           </Button>
         </CardFooter>
       )}
+      <CampaignDetailSheet
+        apiBase={apiBase}
+        tenantName={tenantName}
+        campaignId={detailId}
+        onClose={() => setDetailId(null)}
+      />
     </Card>
   );
 }
