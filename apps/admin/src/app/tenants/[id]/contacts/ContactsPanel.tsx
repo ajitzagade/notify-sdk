@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Pencil, Users, AlertCircle, Save, Loader2 } from 'lucide-react';
 import type { ContactRecord } from '@/lib/contacts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -113,8 +114,7 @@ export function ContactsPanel({
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
           <div>
-            <CardTitle>Contacts</CardTitle>
-            <CardDescription>Everyone imported for this tenant, with tags and custom fields.</CardDescription>
+            <CardTitleGroup icon={Users} title="Contacts" description="Everyone imported for this tenant, with tags and custom fields." />
           </div>
           <Select
             value={tagFilter}

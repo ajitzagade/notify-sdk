@@ -8,6 +8,7 @@ import type { TemplateRecord } from '@/lib/templates';
 import type { CampaignRecord, HeaderMediaType } from '@/lib/campaigns';
 import type { MediaAssetRecord } from '@/lib/media';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -163,11 +164,11 @@ export function CampaignsPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Campaigns</CardTitle>
-        <CardDescription>
-          Broadcast a Meta-approved template to an entire list. Only members who&apos;ve opted in will actually receive it —
-          everyone else is counted as skipped.
-        </CardDescription>
+        <CardTitleGroup
+          icon={Megaphone}
+          title="Campaigns"
+          description="Broadcast a Meta-approved template to a list — only opted-in members receive it, everyone else counts as skipped."
+        />
       </CardHeader>
       <CardContent className="grid gap-4">
         {lists.length === 0 || templates.length === 0 ? (
@@ -185,7 +186,7 @@ export function CampaignsPanel({
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-          <form id="create-campaign-form" onSubmit={handleCreate} className="grid gap-4 rounded-lg border bg-muted/30 p-4">
+          <form id="create-campaign-form" onSubmit={handleCreate} className="grid max-w-2xl gap-4 rounded-lg border bg-muted/30 p-4">
             <div className="grid gap-2">
               <Label htmlFor="campaign-name">Campaign name</Label>
               <Input id="campaign-name" required value={name} onChange={(e) => setName(e.target.value)} />

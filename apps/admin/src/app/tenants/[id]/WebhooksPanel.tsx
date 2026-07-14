@@ -10,6 +10,7 @@ import type { WebhookEndpointRecord, WebhookEvent } from '@/lib/webhookEndpoints
 // (non-type) binding from it here would pull the whole thing into the client bundle.
 const ALL_WEBHOOK_EVENTS: WebhookEvent[] = ['sent', 'delivered', 'read', 'failed', 'reply'];
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -113,15 +114,14 @@ export function WebhooksPanel({ tenantId, endpoints }: { tenantId: string; endpo
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Outbound webhooks</CardTitle>
-        <CardDescription>
-          Get notified the moment something happens — message sent, delivered, read, failed, or a customer replies —
-          instead of polling <code>GET /v1/logs</code>. Every delivery is HMAC-signed so you can verify it really came
-          from us.
-        </CardDescription>
+        <CardTitleGroup
+          icon={WebhookIcon}
+          title="Outbound webhooks"
+          description={<>Push sent/delivered/read/failed/reply events to your own systems the moment they happen — HMAC-signed, no polling.</>}
+        />
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={handleCreate} className="grid gap-3 rounded-lg border bg-muted/30 p-4">
+        <form onSubmit={handleCreate} className="grid max-w-2xl gap-3 rounded-lg border bg-muted/30 p-4">
           <div className="grid gap-2">
             <Label htmlFor="webhook-url">Endpoint URL</Label>
             <Input

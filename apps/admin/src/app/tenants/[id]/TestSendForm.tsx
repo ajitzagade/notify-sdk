@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle, Send, Loader2 } from 'lucide-react';
 import type { MediaAssetRecord } from '@/lib/media';
 import type { TemplateRecord } from '@/lib/templates';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -159,11 +160,11 @@ export function TestSendForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Test send</CardTitle>
-        <CardDescription>
-          Opts in a phone number and sends it a real message through this tenant&apos;s WhatsApp number —
-          confirms credentials, sending, and logging all work end to end.
-        </CardDescription>
+        <CardTitleGroup
+          icon={Send}
+          title="Test send"
+          description="Send one real message through this tenant's number — proves credentials, sending, and logging end to end."
+        />
       </CardHeader>
       <CardContent>
         <div className="grid gap-6 lg:grid-cols-[1fr_300px]">

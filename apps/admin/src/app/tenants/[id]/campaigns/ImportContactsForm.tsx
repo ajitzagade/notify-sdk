@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2, XCircle, Upload, Loader2, FileSpreadsheet, Download } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -84,13 +85,14 @@ export function ImportContactsForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Import contacts</CardTitle>
-        <CardDescription>
-          One contact per line: <code>phone,name</code> (name optional). Adds them all to a broadcast list.
-        </CardDescription>
+        <CardTitleGroup
+          icon={Upload}
+          title="Import contacts"
+          description="Upload a CSV or paste rows — every contact lands in the broadcast list you pick."
+        />
       </CardHeader>
       <CardContent>
-        <form id="import-contacts-form" onSubmit={handleImport} className="grid gap-4">
+        <form id="import-contacts-form" onSubmit={handleImport} className="grid max-w-2xl gap-4">
           <div className="grid gap-2">
             <Label htmlFor="contacts-file">Bulk upload a CSV file</Label>
             <div className="flex flex-wrap items-center gap-2">

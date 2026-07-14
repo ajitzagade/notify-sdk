@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, UserRound, UserPlus, UserX, UserCheck, Loader2 } from 'lucide-react';
 import type { PortalUserRecord } from '@/lib/tenantPortalUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -71,15 +72,14 @@ export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Portal access</CardTitle>
-        <CardDescription>
-          Logins for this tenant&apos;s own team — they can see Analytics, Campaigns, Contacts, Templates, and the
-          Inbox at <code>/portal</code>, scoped to this tenant only. They never see Credentials, API Keys, or any
-          other tenant.
-        </CardDescription>
+        <CardTitleGroup
+          icon={UserRound}
+          title="Portal access"
+          description={<>Team logins for <code>/portal</code> — this tenant&apos;s campaigns, inbox, and analytics only. Never credentials, API keys, or other tenants.</>}
+        />
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={handleCreate} className="flex flex-wrap gap-2">
+        <form onSubmit={handleCreate} className="flex max-w-2xl flex-wrap gap-2">
           <Input
             type="email"
             placeholder="Email"

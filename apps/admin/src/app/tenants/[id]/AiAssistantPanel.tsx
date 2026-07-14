@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, XCircle, Sparkles, Save, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -94,75 +95,82 @@ export function AiAssistantPanel({ tenantId, status }: { tenantId: string; statu
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <CardTitle>AI reply assistant</CardTitle>
-          <Badge variant={status.configured ? 'default' : 'outline'}>
-            {status.configured ? 'Configured' : 'Not configured'}
-          </Badge>
-        </div>
-        <CardDescription>
-          Bring your own OpenAI or Anthropic key — replies inbound WhatsApp messages automatically, within a
-          per-conversation cap, and hands off to a human when it can&apos;t confidently help. Your key is
-          encrypted at rest and never sent anywhere except that provider.
-        </CardDescription>
+        <CardTitleGroup
+          icon={Sparkles}
+          title="AI reply assistant"
+          titleExtra={
+            <Badge variant={status.configured ? 'default' : 'outline'}>
+              {status.configured ? 'Configured' : 'Not configured'}
+            </Badge>
+          }
+          description="Answers inbound messages automatically with your own OpenAI or Anthropic key, then hands off to a human when it can't help."
+        />
       </CardHeader>
       <CardContent>
-        <form id="ai-assistant-form" onSubmit={handleSave} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label>Provider</Label>
-            <Select
-              value={provider}
-              onValueChange={(v) => v && setProvider(v as AiProvider)}
-              items={{ openai: 'OpenAI', anthropic: 'Anthropic' }}
-            >
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="anthropic">Anthropic</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <form id="ai-assistant-form" onSubmit={handleSave} className="grid max-w-2xl gap-5">
+          <fieldset className="grid gap-4">
+            <legend className="mb-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Connection</legend>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label>Provider</Label>
+                <Select
+                  value={provider}
+                  onValueChange={(v) => v && setProvider(v as AiProvider)}
+                  items={{ openai: 'OpenAI', anthropic: 'Anthropic' }}
+                >
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="openai">OpenAI</SelectItem>
+                    <SelectItem value="anthropic">Anthropic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="ai-model">Model</Label>
+                <Input id="ai-model" placeholder={MODEL_PLACEHOLDER[provider]} value={model} onChange={(e) => setModel(e.target.value)} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ai-key">
+                API key {status.configured && <span className="font-normal text-muted-foreground">(leave blank to keep current)</span>}
+              </Label>
+              <Input id="ai-key" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+              <p className="text-xs text-muted-foreground">Encrypted at rest — only ever sent to {provider === 'openai' ? 'OpenAI' : 'Anthropic'}.</p>
+            </div>
+          </fieldset>
 
-          <div className="grid gap-2">
-            <Label htmlFor="ai-model">Model</Label>
-            <Input id="ai-model" placeholder={MODEL_PLACEHOLDER[provider]} value={model} onChange={(e) => setModel(e.target.value)} />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="ai-key">
-              API key {status.configured && <span className="font-normal text-muted-foreground">(leave blank to keep current)</span>}
-            </Label>
-            <Input id="ai-key" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="ai-prompt">System prompt / business context</Label>
-            <Textarea
-              id="ai-prompt"
-              rows={4}
-              placeholder="You are the support assistant for Acme Corp. Be concise and friendly. Hand off billing questions to a human."
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Checkbox checked={autoReplyEnabled} onCheckedChange={(c) => setAutoReplyEnabled(c === true)} />
-            <span className="text-sm">Auto-reply to inbound messages</span>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="ai-max-replies">Max auto-replies per conversation</Label>
-            <Input
-              id="ai-max-replies"
-              type="number"
-              min={0}
-              max={20}
-              className="w-24"
-              value={maxReplies}
-              onChange={(e) => setMaxReplies(e.target.value)}
-            />
-          </div>
+          <fieldset className="grid gap-4 border-t border-border/60 pt-4">
+            <legend className="sr-only">Behaviour</legend>
+            <div className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Behaviour</div>
+            <div className="grid gap-2">
+              <Label htmlFor="ai-prompt">System prompt / business context</Label>
+              <Textarea
+                id="ai-prompt"
+                rows={4}
+                placeholder="You are the support assistant for Acme Corp. Be concise and friendly. Hand off billing questions to a human."
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={autoReplyEnabled} onCheckedChange={(c) => setAutoReplyEnabled(c === true)} />
+                Auto-reply to inbound messages
+              </label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="ai-max-replies" className="text-sm font-normal">Cap per conversation</Label>
+                <Input
+                  id="ai-max-replies"
+                  type="number"
+                  min={0}
+                  max={20}
+                  className="w-20"
+                  value={maxReplies}
+                  onChange={(e) => setMaxReplies(e.target.value)}
+                />
+              </div>
+            </div>
+          </fieldset>
 
           {testResult && (
             <Alert variant={testResult.ok ? 'default' : 'destructive'}>

@@ -1,6 +1,7 @@
 import { History } from 'lucide-react';
 import type { AuditLogEntry } from '@/lib/auditLog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const ACTION_LABEL: Record<string, string> = {
@@ -19,8 +20,7 @@ export function AuditLogPanel({ entries }: { entries: AuditLogEntry[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Audit log</CardTitle>
-        <CardDescription>Who changed what for this tenant, and when.</CardDescription>
+        <CardTitleGroup icon={History} title="Audit log" description="Who changed what for this tenant, and when." />
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (

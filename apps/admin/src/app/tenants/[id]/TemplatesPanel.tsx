@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { RefreshCw, AlertCircle, LayoutTemplate } from 'lucide-react';
 import type { TemplateRecord } from '@/lib/templates';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -46,11 +47,11 @@ export function TemplatesPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>WhatsApp templates</CardTitle>
-        <CardDescription>
-          Meta-approved templates — required to message a user outside the 24h session window.
-          Syncing requires a WhatsApp Business Account ID on Credentials.
-        </CardDescription>
+        <CardTitleGroup
+          icon={LayoutTemplate}
+          title="WhatsApp templates"
+          description="Meta-approved templates — required to message anyone outside the 24-hour session window."
+        />
         <CardAction>
           <Button type="button" variant="outline" size="sm" onClick={handleSync} disabled={syncing}>
             <RefreshCw className={syncing ? 'animate-spin' : ''} />

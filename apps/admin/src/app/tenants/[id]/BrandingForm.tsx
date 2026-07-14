@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Save, Loader2 } from 'lucide-react';
+import { AlertCircle, Save, Loader2, Palette } from 'lucide-react';
 import type { TenantRecord } from '@/lib/tenants';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -74,11 +75,10 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Branding</CardTitle>
-        <CardDescription>How this tenant appears across the platform.</CardDescription>
+        <CardTitleGroup icon={Palette} title="Branding" description="How this tenant appears across the platform." />
       </CardHeader>
       <CardContent>
-        <form id="branding-form" onSubmit={handleSave} className="grid gap-4">
+        <form id="branding-form" onSubmit={handleSave} className="grid max-w-2xl gap-4">
           <div className="flex items-center gap-4">
             <Avatar className="size-14 rounded-lg">
               {tenant.logoBlobUrl && <AvatarImage src={tenant.logoBlobUrl} alt="" />}
@@ -97,19 +97,21 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="branding-name">Business name</Label>
-            <Input id="branding-name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="branding-color">Primary color</Label>
-            <Input
-              id="branding-color"
-              type="color"
-              value={primaryColor}
-              onChange={(e) => setPrimaryColor(e.target.value)}
-              className="h-9 w-16 p-1"
-            />
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+            <div className="grid gap-2">
+              <Label htmlFor="branding-name">Business name</Label>
+              <Input id="branding-name" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="branding-color">Primary color</Label>
+              <Input
+                id="branding-color"
+                type="color"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                className="h-9 w-16 p-1"
+              />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="branding-description">Business description</Label>

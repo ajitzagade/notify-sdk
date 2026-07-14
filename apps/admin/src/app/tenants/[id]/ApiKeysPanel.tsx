@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, Check, Copy, AlertCircle, KeyRound, Plus, Loader2, Ban } from 'lucide-react';
 import type { ApiKeyRecord } from '@/lib/apiKeys';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -79,13 +80,14 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
   return (
     <Card>
       <CardHeader>
-        <CardTitle>API keys</CardTitle>
-        <CardDescription>
-          For this tenant&apos;s own backend to send messages programmatically via <code>POST /v1/send</code>.
-        </CardDescription>
+        <CardTitleGroup
+          icon={KeyRound}
+          title="API keys"
+          description={<>For this tenant&apos;s own backend to send messages programmatically via <code>POST /v1/send</code>.</>}
+        />
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={handleCreate} className="flex gap-2">
+        <form onSubmit={handleCreate} className="flex max-w-xl gap-2">
           <Input
             placeholder="Label (optional, e.g. production backend)"
             value={label}

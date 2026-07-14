@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, XCircle, Save, Loader2, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -88,27 +89,30 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <CardTitle>WhatsApp credentials</CardTitle>
-          <Badge variant={status.configured ? 'default' : 'outline'}>
-            {status.configured ? 'Configured' : 'Not configured'}
-          </Badge>
-        </div>
-        <CardDescription>
-          {status.configured
+        <CardTitleGroup
+          icon={ShieldCheck}
+          title="WhatsApp credentials"
+          titleExtra={
+            <Badge variant={status.configured ? 'default' : 'outline'}>
+              {status.configured ? 'Configured' : 'Not configured'}
+            </Badge>
+          }
+          description={status.configured
             ? `Last verified ${status.lastVerifiedAt ? new Date(status.lastVerifiedAt).toLocaleString() : 'never'} (${status.lastVerifiedStatus ?? 'unknown'})`
             : 'Enter and verify this tenant’s Meta credentials before sending anything.'}
-        </CardDescription>
+        />
       </CardHeader>
       <CardContent>
-        <form id="credentials-form" onSubmit={handleSave} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="phone-number-id">Phone Number ID</Label>
-            <Input id="phone-number-id" required value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="waba-id">WhatsApp Business Account ID (optional)</Label>
-            <Input id="waba-id" value={wabaId} onChange={(e) => setWabaId(e.target.value)} />
+        <form id="credentials-form" onSubmit={handleSave} className="grid max-w-2xl gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="phone-number-id">Phone Number ID</Label>
+              <Input id="phone-number-id" required value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="waba-id">Business Account ID <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input id="waba-id" value={wabaId} onChange={(e) => setWabaId(e.target.value)} />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="access-token">
