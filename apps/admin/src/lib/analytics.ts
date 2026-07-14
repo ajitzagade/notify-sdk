@@ -44,6 +44,84 @@ export async function getTenantRollup(tenantId: string): Promise<TenantRollup> {
   };
 }
 
+export interface DailyActivity {
+  /** ISO date (YYYY-MM-DD), local to the DB server's timezone. */
+  day: string;
+  sent: number;
+  read: number;
+  failed: number;
+  replies: number;
+}
+
+/**
+ * Per-day outbound/read/failed/reply counts for the last `days` days,
+ * zero-filled via generate_series so charts get a continuous axis.
+ */
+export async function getDailyActivity(tenantId: string, days = 14): Promise<DailyActivity[]> {
+  const { rows } = await getPool().query(
+    `WITH series AS (
+       SELECT generate_series(CURRENT_DATE - ($2::int - 1), CURRENT_DATE, '1 day')::date AS day
+     ),
+     sends AS (
+       SELECT created_at::date AS day,
+              COUNT(*) FILTER (WHERE status IN ('sent','delivered','read')) AS sent,
+              COUNT(*) FILTER (WHERE status = 'read')                       AS read,
+              COUNT(*) FILTER (WHERE status = 'failed')                     AS failed
+         FROM notify_log
+        WHERE tenant_id = $1 AND created_at >= CURRENT_DATE - ($2::int - 1)
+        GROUP BY 1
+     ),
+     inbound AS (
+       SELECT received_at::date AS day, COUNT(*) AS replies
+         FROM message_replies
+        WHERE tenant_id = $1 AND received_at >= CURRENT_DATE - ($2::int - 1)
+        GROUP BY 1
+     )
+     SELECT to_char(s.day, 'YYYY-MM-DD') AS day,
+            COALESCE(sd.sent, 0)    AS sent,
+            COALESCE(sd.read, 0)    AS read,
+            COALESCE(sd.failed, 0)  AS failed,
+            COALESCE(ib.replies, 0) AS replies
+       FROM series s
+       LEFT JOIN sends sd  ON sd.day = s.day
+       LEFT JOIN inbound ib ON ib.day = s.day
+      ORDER BY s.day`,
+    [tenantId, days]
+  );
+  return rows.map((r) => ({
+    day:     r.day as string,
+    sent:    Number(r.sent),
+    read:    Number(r.read),
+    failed:  Number(r.failed),
+    replies: Number(r.replies),
+  }));
+}
+
+export interface PlatformStats {
+  tenants: number;
+  activeTenants: number;
+  sent7d: number;
+  replies7d: number;
+}
+
+/** Cross-tenant totals for the ops overview page. */
+export async function getPlatformStats(): Promise<PlatformStats> {
+  const [tenantsRes, sentRes, repliesRes] = await Promise.all([
+    getPool().query(`SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'active') AS active FROM tenants`),
+    getPool().query(
+      `SELECT COUNT(*) AS count FROM notify_log
+        WHERE status IN ('sent','delivered','read') AND created_at >= NOW() - INTERVAL '7 days'`
+    ),
+    getPool().query(`SELECT COUNT(*) AS count FROM message_replies WHERE received_at >= NOW() - INTERVAL '7 days'`),
+  ]);
+  return {
+    tenants:       Number(tenantsRes.rows[0].total),
+    activeTenants: Number(tenantsRes.rows[0].active),
+    sent7d:        Number(sentRes.rows[0].count),
+    replies7d:     Number(repliesRes.rows[0].count),
+  };
+}
+
 export interface CampaignLiveStats {
   campaignId: string;
   sent: number;

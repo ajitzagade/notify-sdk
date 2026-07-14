@@ -156,3 +156,12 @@ export async function sendReplyInThread(tenantId: string, phone: string, text: s
       .catch((err) => console.error(`[conversations] failed to touch conversation for tenant ${tenantId}:`, err));
   }
 }
+
+/** Just the open-conversation count — cheap enough to run in the portal layout on every render. */
+export async function countOpenConversations(tenantId: string): Promise<number> {
+  const { rows } = await getPool().query(
+    `SELECT COUNT(*) AS count FROM conversations WHERE tenant_id = $1 AND status = 'open'`,
+    [tenantId]
+  );
+  return Number(rows[0].count);
+}

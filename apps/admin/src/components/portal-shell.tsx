@@ -9,12 +9,14 @@ export function PortalShell({
   logoBlobUrl,
   primaryColor,
   email,
+  openChatsCount = 0,
 }: {
   children: React.ReactNode;
   tenantName: string;
   logoBlobUrl: string | null;
   primaryColor: string | null;
   email: string;
+  openChatsCount?: number;
 }) {
   return (
     <div className="flex min-h-screen">
@@ -32,7 +34,7 @@ export function PortalShell({
           </div>
         </div>
 
-        <PortalNavLinks />
+        <PortalNavLinks openChatsCount={openChatsCount} />
 
         <div className="border-t border-sidebar-border px-3 py-3">
           <div className="mb-1.5 flex items-center justify-between gap-2 px-3">

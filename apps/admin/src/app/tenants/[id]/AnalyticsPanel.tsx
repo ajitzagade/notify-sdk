@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { TenantRollup, CampaignLiveStats } from '@/lib/analytics';
+import { ActivityChart } from '@/components/activity-chart';
+import type { TenantRollup, CampaignLiveStats, DailyActivity } from '@/lib/analytics';
 import type { CampaignRecord } from '@/lib/campaigns';
 
 type CampaignWithLiveStats = CampaignRecord & { live: CampaignLiveStats | null };
@@ -17,6 +18,7 @@ type CampaignWithLiveStats = CampaignRecord & { live: CampaignLiveStats | null }
 interface AnalyticsResponse {
   rollup: TenantRollup;
   campaigns: CampaignWithLiveStats[];
+  daily: DailyActivity[];
 }
 
 const STATUS_VARIANT: Record<string, 'outline' | 'secondary' | 'default' | 'destructive'> = {
@@ -110,7 +112,7 @@ export function AnalyticsPanel({ tenantId, baseApiPath }: { tenantId: string; ba
 
   useEffect(() => { load(); }, [load]);
 
-  const { rollup, campaigns } = data ?? { rollup: null, campaigns: [] };
+  const { rollup, campaigns, daily } = data ?? { rollup: null, campaigns: [], daily: [] };
 
   return (
     <Card>
@@ -159,6 +161,18 @@ export function AnalyticsPanel({ tenantId, baseApiPath }: { tenantId: string; ba
                   <RateBar label="Reply rate" fraction={rollup.replyRate} color="var(--chart-3)" />
                 </motion.div>
               </>
+            )}
+
+            {daily.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                className="rounded-lg border bg-card p-4"
+              >
+                <div className="mb-3 text-sm font-medium">Activity — last 14 days</div>
+                <ActivityChart data={daily} />
+              </motion.div>
             )}
 
             <div>

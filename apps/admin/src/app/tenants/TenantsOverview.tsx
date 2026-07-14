@@ -32,37 +32,9 @@ const itemVariants: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] } },
 };
 
-function StatCard({
-  label, value, accent, delay,
-}: { label: string; value: number; accent: string; delay: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, delay, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <Card className="border-l-2" style={{ borderLeftColor: accent }}>
-        <CardContent className="py-4">
-          <div className="font-mono text-[11px] font-medium tracking-wider text-muted-foreground uppercase">{label}</div>
-          <div className="mt-1 text-2xl font-semibold tabular-nums leading-tight">{value.toLocaleString()}</div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
 export function TenantsOverview({ tenants }: { tenants: TenantListItem[] }) {
-  const active = tenants.filter((t) => t.status === 'active').length;
-  const suspended = tenants.filter((t) => t.status === 'suspended').length;
-
   return (
     <>
-      <div className="mb-8 grid grid-cols-3 gap-4">
-        <StatCard label="Total tenants" value={tenants.length} accent="var(--primary)" delay={0} />
-        <StatCard label="Active" value={active} accent="var(--signal)" delay={0.04} />
-        <StatCard label="Suspended" value={suspended} accent="var(--chart-3)" delay={0.08} />
-      </div>
-
       {tenants.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
