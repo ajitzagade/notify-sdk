@@ -151,29 +151,43 @@ export class NotifyClient {
 
   async optIn(phone: string): Promise<void> {
     await this.storage.setPreference(phone, { optedIn: true, phone });
-    // Send confirmation — use high priority to bypass guard (user just opted in)
-    await this.http.post('/messages', {
-      messaging_product: 'whatsapp',
-      to:                phone,
-      type:              'text',
-      text: {
-        body:
-          'You are now subscribed to notifications from us.\n\n' +
-          'Reply "STOP" at any time to unsubscribe.',
-      },
-    });
-    this.log('info', `[Notify] Opt-in confirmed for ${phone}`);
+    // Confirmation send is best-effort: it's a session message, so Meta
+    // rejects it for any number outside the 24h customer-service window
+    // (error 131047) — and a failure here must not undo the consent change
+    // above or, on the STOP/START webhook path, make the webhook respond
+    // non-2xx and trigger Meta's retry loop.
+    try {
+      await this.http.post('/messages', {
+        messaging_product: 'whatsapp',
+        to:                phone,
+        type:              'text',
+        text: {
+          body:
+            'You are now subscribed to notifications from us.\n\n' +
+            'Reply "STOP" at any time to unsubscribe.',
+        },
+      });
+      this.log('info', `[Notify] Opt-in confirmed for ${phone}`);
+    } catch (err) {
+      const logger = this.config.logger ?? console;
+      logger.warn(`[Notify] Opt-in saved for ${phone} but confirmation send failed (non-fatal)`, err);
+    }
   }
 
   async optOut(phone: string): Promise<void> {
     await this.storage.setPreference(phone, { optedIn: false, phone });
-    await this.http.post('/messages', {
-      messaging_product: 'whatsapp',
-      to:                phone,
-      type:              'text',
-      text: { body: 'You have been unsubscribed. Reply "START" to re-subscribe.' },
-    });
-    this.log('info', `[Notify] Opt-out confirmed for ${phone}`);
+    try {
+      await this.http.post('/messages', {
+        messaging_product: 'whatsapp',
+        to:                phone,
+        type:              'text',
+        text: { body: 'You have been unsubscribed. Reply "START" to re-subscribe.' },
+      });
+      this.log('info', `[Notify] Opt-out confirmed for ${phone}`);
+    } catch (err) {
+      const logger = this.config.logger ?? console;
+      logger.warn(`[Notify] Opt-out saved for ${phone} but confirmation send failed (non-fatal)`, err);
+    }
   }
 
   async mute(phone: string, durationMs: number): Promise<void> {

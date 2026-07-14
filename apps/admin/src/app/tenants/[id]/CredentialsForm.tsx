@@ -129,8 +129,13 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="app-secret">App Secret (optional, enables webhook signature verification)</Label>
+            <Label htmlFor="app-secret">
+              App Secret <span className="font-normal text-muted-foreground">(required to receive replies)</span>
+            </Label>
             <Input id="app-secret" type="password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} />
+            <p className="text-xs text-muted-foreground">
+              Inbound webhooks are signature-verified and rejected without it — skip it and sends still work, but replies, STOP/START, and the inbox won&apos;t.
+            </p>
           </div>
 
           {verifyResult && (
