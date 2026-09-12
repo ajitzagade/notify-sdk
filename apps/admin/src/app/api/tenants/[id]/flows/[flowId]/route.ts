@@ -15,6 +15,18 @@ export const PATCH = withAdminSession(
       const keywordError = validateTriggerKeyword(body.triggerKeyword);
       if (keywordError) return NextResponse.json({ error: keywordError }, { status: 400 });
     }
+    if (body.steps !== undefined) {
+      if (!body.steps.length) {
+        return NextResponse.json({ error: 'At least one step is required' }, { status: 400 });
+      }
+      for (const step of body.steps) {
+        if (!step.question?.trim()) return NextResponse.json({ error: 'Every step needs a question' }, { status: 400 });
+        if (step.options && step.options.length > 3) return NextResponse.json({ error: 'WhatsApp allows at most 3 quick-reply options per step' }, { status: 400 });
+      }
+    }
+    if (body.completionMessage !== undefined && !body.completionMessage.trim()) {
+      return NextResponse.json({ error: 'completionMessage cannot be empty' }, { status: 400 });
+    }
 
     try {
       const flow = await updateFlowDefinition(tenant.id, ctx.params.flowId, body);
