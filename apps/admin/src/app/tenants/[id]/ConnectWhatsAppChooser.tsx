@@ -5,6 +5,13 @@ import { ArrowLeft, KeyRound } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EmbeddedSignupButton } from './EmbeddedSignupButton';
+
+// Inlined at build time; when both are set (post-App-Review), the Facebook
+// door goes live with no code change — see docs/phase2-launch-checklist.md.
+const EMBEDDED_SIGNUP_ENABLED = Boolean(
+  process.env.NEXT_PUBLIC_META_APP_ID && process.env.NEXT_PUBLIC_META_ES_CONFIG_ID
+);
 
 /**
  * The two-door entry to the Credentials setup step (Phase 1 of
@@ -15,8 +22,8 @@ import { Button } from '@/components/ui/button';
  * so nothing here is a migration state.
  */
 export function ConnectWhatsAppChooser({
-  configured, children,
-}: { configured: boolean; children: ReactNode }) {
+  tenantId, configured, children,
+}: { tenantId: string; configured: boolean; children: ReactNode }) {
   const [showManual, setShowManual] = useState(configured);
 
   if (showManual) {
@@ -40,7 +47,9 @@ export function ConnectWhatsAppChooser({
     <div className="grid gap-4 lg:grid-cols-2">
       <Card className="relative border-primary-2/40">
         <CardContent className="flex h-full flex-col gap-3 pt-6">
-          <Badge variant="secondary" className="absolute right-4 top-4">Coming soon</Badge>
+          {!EMBEDDED_SIGNUP_ENABLED && (
+            <Badge variant="secondary" className="absolute right-4 top-4">Coming soon</Badge>
+          )}
           <div className="flex size-10 items-center justify-center rounded-lg bg-[oklch(0.51_0.19_262)]/12">
             {/* lucide no longer ships brand icons — Meta's "f" mark, minimal path */}
             <svg viewBox="0 0 24 24" className="size-5 fill-[oklch(0.51_0.19_262)]" aria-hidden>
@@ -55,7 +64,11 @@ export function ConnectWhatsAppChooser({
             </p>
           </div>
           <div className="mt-auto">
-            <Button type="button" disabled>Continue with Facebook</Button>
+            {EMBEDDED_SIGNUP_ENABLED ? (
+              <EmbeddedSignupButton tenantId={tenantId} />
+            ) : (
+              <Button type="button" disabled>Continue with Facebook</Button>
+            )}
           </div>
         </CardContent>
       </Card>

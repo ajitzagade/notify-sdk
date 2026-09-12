@@ -45,8 +45,8 @@ export const PUT = withAdminSession(async (session, req: NextRequest, ctx: { par
          (tenant_id, phone_number_id, waba_id,
           access_token_ciphertext, access_token_iv, access_token_tag,
           app_secret_ciphertext, app_secret_iv, app_secret_tag,
-          verify_token, key_version, last_verified_at, last_verified_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'ok')
+          verify_token, key_version, last_verified_at, last_verified_status, onboarding_method)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'ok', 'manual')
        ON CONFLICT (tenant_id) DO UPDATE SET
          phone_number_id         = EXCLUDED.phone_number_id,
          waba_id                 = EXCLUDED.waba_id,
@@ -60,6 +60,7 @@ export const PUT = withAdminSession(async (session, req: NextRequest, ctx: { par
          key_version              = EXCLUDED.key_version,
          last_verified_at        = NOW(),
          last_verified_status    = 'ok',
+         onboarding_method        = 'manual',
          updated_at               = NOW()`,
       [
         tenant.id,

@@ -94,7 +94,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
           audit={<AuditLogPanel entries={auditEntries} />}
           branding={<BrandingForm tenant={tenant} />}
           credentials={
-            <ConnectWhatsAppChooser configured={credentials.configured}>
+            <ConnectWhatsAppChooser tenantId={tenant.id} configured={credentials.configured}>
               <CredentialsForm tenantId={tenant.id} status={credentials} />
             </ConnectWhatsAppChooser>
           }
