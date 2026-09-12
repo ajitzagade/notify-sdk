@@ -1,0 +1,273 @@
+<title>Infrastructure Cost Scenarios — AZentis Notify</title>
+<style>
+  :root {
+    --page: #f9f9f7; --surface: #fcfcfb; --card: #ffffff;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781; --line: #e1e0d9; --hairline: rgba(11,11,11,0.10);
+    --brand: #5a49e8; --brand-soft: #efedfd;
+    --series-best: #2a78d6; --series-worst: #1baf7a;
+    --warn: #fab219; --warn-ink: #7a5200; --warn-soft: #fdf3d9;
+    --crit: #d03b3b; --crit-soft: #fbe6e6;
+    --shadow: 0 1px 3px rgba(11,11,11,0.06), 0 8px 24px -12px rgba(11,11,11,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0d0d0d; --surface: #1a1a19; --card: #201f1e;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781; --line: #2c2c2a; --hairline: rgba(255,255,255,0.10);
+      --brand: #8577f2; --brand-soft: #241f4a;
+      --series-best: #3987e5; --series-worst: #199e70;
+      --warn: #c98500; --warn-ink: #ffd98a; --warn-soft: #332a12;
+      --crit: #e66767; --crit-soft: #3a1a1a;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0d0d0d; --surface: #1a1a19; --card: #201f1e;
+    --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781; --line: #2c2c2a; --hairline: rgba(255,255,255,0.10);
+    --brand: #8577f2; --brand-soft: #241f4a;
+    --series-best: #3987e5; --series-worst: #199e70;
+    --warn: #c98500; --warn-ink: #ffd98a; --warn-soft: #332a12;
+    --crit: #e66767; --crit-soft: #3a1a1a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  :root[data-theme="light"] {
+    --page: #f9f9f7; --surface: #fcfcfb; --card: #ffffff;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781; --line: #e1e0d9; --hairline: rgba(11,11,11,0.10);
+    --brand: #5a49e8; --brand-soft: #efedfd;
+    --series-best: #2a78d6; --series-worst: #1baf7a;
+    --warn: #fab219; --warn-ink: #7a5200; --warn-soft: #fdf3d9;
+    --crit: #d03b3b; --crit-soft: #fbe6e6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 880px; margin: 0 auto; padding: 44px 24px 80px; }
+
+  .doc-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); background: var(--brand-soft); border-radius: 4px; padding: 3px 8px; }
+  h1 { font-size: 26px; letter-spacing: -.02em; margin: 12px 0 6px; }
+  .sub { color: var(--ink-2); margin: 0 0 20px; max-width: 62ch; }
+  .meta-row { font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 18px; margin-bottom: 30px; }
+
+  h2 { font-size: 17px; letter-spacing: -.01em; margin: 38px 0 12px; }
+  p { margin: 8px 0; } b { font-weight: 600; }
+  code { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; font-size: 13px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* stat tiles */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 8px; }
+  @media (max-width: 560px) { .stats { grid-template-columns: 1fr; } }
+  .stat {
+    background: var(--card); border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+    border-left: 3px solid var(--stat-color, var(--brand));
+  }
+  .stat .s-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .stat .s-value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat .s-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+
+  /* chart */
+  .chart-card {
+    background: var(--card); border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 22px 22px 16px; box-shadow: var(--shadow); margin-top: 22px;
+  }
+  .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .chart-note { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
+  .legend { display: flex; gap: 18px; margin-bottom: 18px; font-size: 12.5px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .barrow { display: grid; grid-template-columns: 132px 1fr; align-items: center; gap: 12px; margin: 14px 0; }
+  .barrow .rowlabel { font-size: 13px; color: var(--ink-2); text-align: right; }
+  .bargroup { display: grid; gap: 5px; }
+  .bar-track { position: relative; height: 16px; background: var(--surface); border-radius: 4px; }
+  .bar-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px; display: flex; align-items: center; }
+  .bar-fill.best { background: var(--series-best); }
+  .bar-fill.worst { background: var(--series-worst); }
+  .bar-val { font-size: 11.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; margin-left: 8px; white-space: nowrap; }
+  .axis-line { grid-column: 2; border-top: 1px dashed var(--line); margin-top: 4px; padding-top: 6px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .excluded-note { margin-top: 14px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+
+  /* data table */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0 0; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 2px solid var(--line); padding: 8px 12px 8px 0; }
+  td { border-bottom: 1px solid var(--line); padding: 11px 12px 11px 0; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .comp { font-weight: 600; }
+  .flag-crit { display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--crit); background: var(--crit-soft); border-radius: 4px; padding: 2px 6px; margin-top: 4px; }
+  .flag-warn { display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--warn-ink); background: var(--warn-soft); border-radius: 4px; padding: 2px 6px; margin-top: 4px; }
+  .table-wrap { overflow-x: auto; }
+
+  .callouts { display: grid; gap: 12px; margin-top: 22px; }
+  .callout { border-radius: 10px; padding: 13px 16px; font-size: 13.5px; border-left: 3px solid; }
+  .callout.c1 { background: var(--crit-soft); border-color: var(--crit); }
+  .callout.c2 { background: var(--warn-soft); border-color: var(--warn); }
+  .callout.c3 { background: var(--brand-soft); border-color: var(--brand); }
+  .callout b { display: block; margin-bottom: 2px; }
+  .callout.c1 b { color: var(--crit); } .callout.c2 b { color: var(--warn-ink); } .callout.c3 b { color: var(--brand); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+<div class="page">
+  <span class="doc-tag">Internal · Cost planning</span>
+  <h1>Infrastructure cost: best case vs. worst case</h1>
+  <p class="sub">What it costs to run AZentis Notify at production-grade quality — no free tiers that throttle, sleep, or breach commercial terms — from a lean start to a scaled, multi-tenant deployment.</p>
+  <div class="meta-row">September 2026 · figures are monthly, USD · see <code>docs/production-db-analysis.md</code> for the database-specific research behind these numbers</div>
+
+  <div class="stats">
+    <div class="stat" style="--stat-color: var(--series-best)">
+      <div class="s-label">Best case total</div>
+      <div class="s-value">~$55–70 / mo</div>
+      <div class="s-sub">Production-grade, low traffic — not a compromise, just early scale</div>
+    </div>
+    <div class="stat" style="--stat-color: var(--series-worst)">
+      <div class="s-label">Worst case total (infrastructure only)</div>
+      <div class="s-value">~$1,076+ / mo</div>
+      <div class="s-sub">Meta conversation charges are separate and can exceed this — see below</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Cost per component, best case vs. worst case</div>
+    <div class="chart-note">Monthly USD. Meta conversation costs are excluded from this chart — they're usage-based, not infrastructure, and can dwarf every bar here (see the table and callouts below).</div>
+    <div class="legend">
+      <span><i style="background:var(--series-best)"></i>Best case</span>
+      <span><i style="background:var(--series-worst)"></i>Worst case</span>
+    </div>
+
+    <div class="bargroup" id="chart"></div>
+    <div class="barrow" style="margin-top:2px">
+      <div></div>
+      <div class="axis-line"><span>$0</span><span>$150</span><span>$300</span><span>$450</span><span>$600+</span></div>
+    </div>
+  </div>
+
+  <h2>Full breakdown</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Best case</th><th>Worst case</th><th>What drives the increase</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="comp">Vercel hosting<br><span style="font-weight:400;color:var(--ink-2);font-size:12px">apps/admin</span></td>
+        <td class="num">$20/mo</td>
+        <td class="num">$100–300+/mo</td>
+        <td>Function invocations, execution time, and bandwidth scale with tenant count and traffic. Hobby (free) tier is off the table — its terms forbid commercial use.</td>
+      </tr>
+      <tr>
+        <td class="comp">Database<br><span style="font-weight:400;color:var(--ink-2);font-size:12px">Postgres</span></td>
+        <td class="num">$25/mo</td>
+        <td class="num">$100–600+/mo</td>
+        <td>More tenants → more concurrent connections and query volume → a bigger compute tier, not just more storage.</td>
+      </tr>
+      <tr>
+        <td class="comp">apps/api hosting<br><span style="font-weight:400;color:var(--ink-2);font-size:12px">Meta webhook receiver</span></td>
+        <td class="num">$6–7/mo</td>
+        <td class="num">$50–150+/mo</td>
+        <td>Webhook volume scales directly with message volume.<span class="flag-crit">Must never sleep</span></td>
+      </tr>
+      <tr>
+        <td class="comp">Redis<br><span style="font-weight:400;color:var(--ink-2);font-size:12px">async send queue</span></td>
+        <td class="num">$0</td>
+        <td class="num">$10–50/mo</td>
+        <td>Needed once send volume is high enough that synchronous sending would slow the request path.</td>
+      </tr>
+      <tr>
+        <td class="comp">File storage<br><span style="font-weight:400;color:var(--ink-2);font-size:12px">logos, media</span></td>
+        <td class="num">$0</td>
+        <td class="num">$10–50/mo</td>
+        <td>Grows with tenant count and message-attachment volume.</td>
+      </tr>
+      <tr>
+        <td class="comp">Error monitoring</td>
+        <td class="num">$0</td>
+        <td class="num">~$26/mo</td>
+        <td>Worth adding before scale, not after an incident.</td>
+      </tr>
+      <tr>
+        <td class="comp">Domain / DNS</td>
+        <td class="num">already owned</td>
+        <td class="num">already owned</td>
+        <td>Fixed — not a variable.</td>
+      </tr>
+      <tr>
+        <td class="comp">WhatsApp conversations<br><span style="font-weight:400;color:var(--ink-2);font-size:12px">Meta billing, not infra</span></td>
+        <td class="num">~$0–20/mo</td>
+        <td class="num">hundreds to several thousand/mo</td>
+        <td>Priced per-conversation by Meta, by country and category. Scales directly with tenant count and message volume — this is the real variable.<span class="flag-warn">Not infrastructure</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callouts">
+    <div class="callout c1">
+      <b>The line item that can eclipse everything else</b>
+      Meta's WhatsApp conversation charges. A platform serving even a modest number of active businesses sending daily reminders can rack up more in conversation fees than in all hosting combined — and it's billed per tenant's WABA, not a hosting choice you control.
+    </div>
+    <div class="callout c2">
+      <b>Watch this before it becomes a performance problem</b>
+      Database connection pooling. The moment concurrent tenants hit serverless functions at once, pooling becomes non-negotiable — without it, performance degrades exactly when you can least afford it.
+    </div>
+    <div class="callout c3">
+      <b>The least negotiable line in the best-case column</b>
+      apps/api uptime. A "cheap" choice here (a free tier that sleeps) doesn't just slow a page — it silently drops delivery receipts and customer replies.
+    </div>
+  </div>
+
+  <footer>AZentis Notify · Infrastructure cost scenarios · full detail in <code>docs/infrastructure-cost-scenarios.md</code></footer>
+</div>
+
+<script>
+  const rows = [
+    { label: 'Vercel hosting', best: 20, worst: 300 },
+    { label: 'Database', best: 25, worst: 600 },
+    { label: 'apps/api hosting', best: 7, worst: 150 },
+    { label: 'Redis', best: 0, worst: 50 },
+    { label: 'File storage', best: 0, worst: 50 },
+    { label: 'Monitoring', best: 0, worst: 26 },
+  ];
+  const max = 600;
+  const chart = document.getElementById('chart');
+
+  // Bar track is a fixed-width lane; the colored fill's width (as a % of max)
+  // encodes magnitude, with the dollar value as a direct label outside the
+  // fill — required relief for the aqua/worst-series contrast WARN (see
+  // dataviz skill's color-formula.md).
+  function track(pct, value, seriesClass, suffix) {
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.innerHTML = `
+      <div class="bar-track" style="flex: 1 1 auto">
+        <div class="bar-fill ${seriesClass}" style="width:${pct}%"></div>
+      </div>
+      <span class="bar-val">$${value}${suffix ?? ''}</span>`;
+    return wrap;
+  }
+
+  for (const r of rows) {
+    const row = document.createElement('div');
+    row.className = 'barrow';
+
+    const label = document.createElement('div');
+    label.className = 'rowlabel';
+    label.textContent = r.label;
+
+    const group = document.createElement('div');
+    group.className = 'bargroup';
+    const bestPct = Math.max((r.best / max) * 100, r.best > 0 ? 2 : 0);
+    const worstPct = Math.max((r.worst / max) * 100, r.worst > 0 ? 2 : 0);
+    group.appendChild(track(bestPct, r.best, 'best'));
+    group.appendChild(track(worstPct, r.worst, 'worst', r.worst >= max ? '+' : ''));
+
+    row.appendChild(label);
+    row.appendChild(group);
+    chart.appendChild(row);
+  }
+</script>
