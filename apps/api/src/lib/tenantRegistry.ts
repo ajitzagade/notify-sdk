@@ -11,6 +11,7 @@ import {
 import { getPool } from './db';
 import { getMasterKeyRing } from './security';
 import { dispatchAiAutoReply } from './aiAutoReply';
+import { dispatchAutomationFlow } from './automation/dispatchAutomationFlow';
 import { dispatchOutboundWebhooks } from './webhookDispatch';
 import { upsertConversationOnReply } from './conversations';
 
@@ -79,7 +80,12 @@ function onClientReady(client: NotifyClient, tenantId: string): void {
 
   client.eventBus.on('reply', (reply) => {
     const r = reply as InboundReply;
-    dispatchAiAutoReply(tenantId, r, client).catch(onFailFast('AI auto-reply dispatch'));
+    // The fixed Q&A automation gets first look at a reply; only if it isn't
+    // running (or doesn't recognize the trigger) does the free-form AI
+    // responder get a turn — a customer never gets answered by both.
+    dispatchAutomationFlow(tenantId, r, client)
+      .then((handled) => { if (!handled) return dispatchAiAutoReply(tenantId, r, client); })
+      .catch(onFailFast('automation/AI dispatch'));
     dispatchOutboundWebhooks(tenantId, 'reply', { ...r }).catch(onFailFast('webhook dispatch'));
     upsertConversationOnReply(tenantId, r.from).catch(onFailFast('conversation upsert'));
   });
