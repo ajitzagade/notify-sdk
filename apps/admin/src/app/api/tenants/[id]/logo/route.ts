@@ -30,10 +30,16 @@ export const POST = withAdminSession(async (_session, req: NextRequest, ctx: { p
   }
 
   const extension = file.type.split('/')[1] === 'svg+xml' ? 'svg' : file.type.split('/')[1];
-  const blob = await put(`tenants/${tenant.id}/logo-${Date.now()}.${extension}`, file, {
-    access: 'public',
-  });
 
-  await setTenantLogoUrl(tenant.id, blob.url);
-  return NextResponse.json({ logoBlobUrl: blob.url });
+  try {
+    const blob = await put(`tenants/${tenant.id}/logo-${Date.now()}.${extension}`, file, {
+      access: 'public',
+    });
+    await setTenantLogoUrl(tenant.id, blob.url);
+    return NextResponse.json({ logoBlobUrl: blob.url });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[tenant logo upload] failed:', message);
+    return NextResponse.json({ error: `Logo upload failed: ${message}` }, { status: 502 });
+  }
 });
