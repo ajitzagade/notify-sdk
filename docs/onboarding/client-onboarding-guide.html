@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting your business onto WhatsApp — AZentis Notify</title>
+<style>
+  :root {
+    --ink: #1d2130; --muted: #5d6478; --faint: #eceef4; --line: #dfe2ec;
+    --brand: #5a49e8; --brand-soft: #efedfd; --ok: #1e8e5a; --ok-soft: #e7f5ee;
+    --warn: #a36a00; --warn-soft: #fdf3e0; --paper: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #f6f7fa; color: var(--ink);
+    font: 15px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 800px; margin: 0 auto; padding: 48px 28px 80px; background: var(--paper); min-height: 100vh; }
+  @media (min-width: 900px) { .page { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+
+  .doc-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ok); background: var(--ok-soft); border-radius: 4px; padding: 3px 8px; }
+  h1 { font-size: 27px; letter-spacing: -.02em; margin: 12px 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 8px; max-width: 62ch; }
+  .meta-row { font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+
+  h2 { font-size: 19px; letter-spacing: -.01em; margin: 40px 0 6px; display: flex; align-items: center; gap: 10px; }
+  h2 .num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13.5px; font-weight: 700; flex-shrink: 0;
+  }
+  h3 { font-size: 15px; margin: 22px 0 6px; }
+  .stepletter { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: var(--brand-soft); color: var(--brand); font-size: 12px; font-weight: 700; align-items: center; justify-content: center; margin-right: 8px; }
+  p { margin: 8px 0; } b { font-weight: 600; }
+  code { background: var(--faint); border-radius: 4px; padding: 1px 6px; font-size: 13px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .ic { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+
+  .why { border-left: 3px solid var(--brand); background: var(--brand-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 14px 0; font-size: 13.5px; }
+  .why b { color: var(--brand); }
+  .warn { border-left: 3px solid var(--warn); background: var(--warn-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 14px 0; font-size: 13.5px; }
+  .warn b { color: var(--warn); }
+  .good { border-left: 3px solid var(--ok); background: var(--ok-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 14px 0; font-size: 13.5px; }
+  .good b { color: var(--ok); }
+
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+  li::marker { color: var(--brand); font-weight: 600; }
+  .check { list-style: none; padding-left: 0; }
+  .check li { padding-left: 28px; position: relative; }
+  .check li::before { content: ""; position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border: 2px solid var(--brand); border-radius: 4px; }
+
+  .grab { background: #f3f4f8; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+  .grab .g-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--brand); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .path { color: var(--muted); font-size: 13.5px; }
+  .path b { color: var(--ink); }
+  .arrow { color: var(--brand); font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 12px 0; }
+  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 2px solid var(--line); padding: 6px 10px 6px 0; }
+  td { border-bottom: 1px solid var(--faint); padding: 8px 10px 8px 0; vertical-align: top; }
+
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  @media print {
+    body { background: #fff; } .page { padding: 0; max-width: none; border: 0; }
+    h2 { break-after: avoid; } .why, .warn, .good, .grab, table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m4 6 1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-4 4 3 3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/></symbol>
+  <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.7"/><path d="M17.5 14.6c2.4.4 4 2 4 4.4"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M4 19h16M7 19v-6m5 6V9m5 10V5"/></symbol>
+  <symbol id="i-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7"/><circle cx="12" cy="17" r=".5"/></symbol>
+</svg>
+
+<div class="page">
+  <span class="doc-tag">Client guide</span>
+  <h1>Getting your business onto WhatsApp</h1>
+  <p class="sub">This guide takes you from nothing to sending automated WhatsApp messages — appointment reminders, order updates, offers — to your customers. You do the Meta setup once (about 45 minutes); we handle everything after that.</p>
+  <div class="meta-row">AZentis Notify · Version 1.0 · September 2026 · If you get stuck at any step, stop and message us — a two-minute call beats an hour of guessing.</div>
+
+  <h2><span class="num">1</span><svg class="ic"><use href="#i-list"/></svg>What you'll need before starting</h2>
+  <ul class="check">
+    <li><b>A Facebook account</b> that belongs to you or someone senior in the business — it will own your business's WhatsApp assets.</li>
+    <li><b>A phone number for your business's WhatsApp</b> that can receive an SMS or call right now, and — important — is <b>not currently used with the WhatsApp app</b> on anyone's phone. A number can only live in one WhatsApp system at a time.</li>
+    <li><b>Your business details</b>: name, address, website or social page.</li>
+    <li><b>About 45 minutes</b>, ideally on a laptop rather than a phone.</li>
+  </ul>
+  <div class="warn"><b>About that phone number:</b> if you want to use the number your customers already know, and it's currently on the WhatsApp app, talk to us first. Moving it is possible but it deletes the app account in the process — that deserves a planned decision, not a surprise.</div>
+  <div class="why"><b>Why this setup exists at all:</b> WhatsApp requires every business to have its own official WhatsApp Business Account with Meta. It's what makes your messages arrive with your business name instead of an anonymous number — and it's why this is a one-time setup, not something you'll ever repeat.</div>
+
+  <h2><span class="num">2</span><svg class="ic"><use href="#i-key"/></svg>The Meta setup — four values we need from you</h2>
+  <p>You'll create your business's WhatsApp account on Meta's side, then hand us four values so our platform can send on your behalf. Follow the letters in order.</p>
+
+  <h3><span class="stepletter">A</span>Create your Meta business portfolio</h3>
+  <p class="path">Go to <b>business.facebook.com</b> <span class="arrow">→</span> log in with your Facebook account <span class="arrow">→</span> Create a business portfolio (if you don't already have one)</p>
+  <p>Enter your business name, your name, and a business email. This "portfolio" is Meta's container for everything your business owns — pages, ad accounts, and soon your WhatsApp account.</p>
+
+  <h3><span class="stepletter">B</span>Create an app on Meta's developer site</h3>
+  <p class="path">Go to <b>developers.facebook.com</b> <span class="arrow">→</span> My Apps <span class="arrow">→</span> Create App <span class="arrow">→</span> choose the <b>Business</b> type <span class="arrow">→</span> name it after your business <span class="arrow">→</span> connect it to the portfolio from step A</p>
+  <p>Don't worry about the word "app" — you're not building software. This is just Meta's way of packaging API access.</p>
+
+  <h3><span class="stepletter">C</span>Add WhatsApp and your phone number</h3>
+  <p class="path">Inside your new app <span class="arrow">→</span> find <b>WhatsApp</b> in the product list <span class="arrow">→</span> Set up <span class="arrow">→</span> open <b>API Setup</b></p>
+  <ul>
+    <li>Click <b>Add phone number</b>: enter your business name (this is the <b>display name</b> customers will see — Meta reviews it, so make it your real business name), your business number, and confirm the code Meta sends by SMS or call.</li>
+    <li>Once added, the API Setup screen shows two long numbers. Copy both:</li>
+  </ul>
+  <div class="grab">
+    <div class="g-title"><svg class="ic"><use href="#i-key"/></svg>Values 1 &amp; 2 of 4</div>
+    <b>Phone Number ID</b> — the long ID shown under your phone number (this is <i>not</i> the phone number itself)<br>
+    <b>WhatsApp Business Account ID</b> — shown right next to it
+  </div>
+
+  <h3><span class="stepletter">D</span>Create a permanent access token</h3>
+  <p class="path"><b>business.facebook.com</b> <span class="arrow">→</span> Settings <span class="arrow">→</span> Business Settings <span class="arrow">→</span> Users <span class="arrow">→</span> <b>System Users</b> <span class="arrow">→</span> Add</p>
+  <ol>
+    <li>Create a system user (name it e.g. <code>whatsapp-platform</code>, role <b>Admin</b>). A "system user" is a robot identity — it keeps working even if staff change or someone's Facebook password resets.</li>
+    <li>Click <b>Add Assets</b> → Apps → select the app from step B → enable <b>Manage app</b>.</li>
+    <li>Click <b>Generate New Token</b> → pick the app → set expiry to <b>Never</b> → tick the permissions <code>whatsapp_business_messaging</code> and <code>whatsapp_business_management</code> → Generate.</li>
+  </ol>
+  <div class="grab">
+    <div class="g-title"><svg class="ic"><use href="#i-key"/></svg>Value 3 of 4</div>
+    <b>Permanent access token</b> — a very long string of letters and numbers. Copy it immediately; Meta shows it only once.
+  </div>
+  <div class="why"><b>Why "never expires" matters:</b> the temporary token Meta shows on the API Setup screen dies after 24 hours — if we used that, your reminders would silently stop tomorrow. The system-user token is the one built for exactly this purpose.</div>
+
+  <h3><span class="stepletter">E</span>Copy the App Secret</h3>
+  <p class="path">Back at <b>developers.facebook.com</b> <span class="arrow">→</span> your app <span class="arrow">→</span> App settings <span class="arrow">→</span> Basic <span class="arrow">→</span> App secret <span class="arrow">→</span> <b>Show</b></p>
+  <div class="grab">
+    <div class="g-title"><svg class="ic"><use href="#i-key"/></svg>Value 4 of 4</div>
+    <b>App Secret</b> — this lets our platform prove that incoming customer replies genuinely came from WhatsApp and not an impostor.
+  </div>
+
+  <h3><span class="stepletter">F</span><svg class="ic"><use href="#i-lock"/></svg>Send us the four values — securely</h3>
+  <ul>
+    <li>Use a password manager's share feature or a one-time secret link (we'll suggest one if you don't have a preference). <b>Please don't paste them into a normal email or WhatsApp chat</b> — the token and secret are literally the keys to your WhatsApp account, and email lingers forever.</li>
+    <li>We'll confirm receipt, connect your number the same day, and delete your message once the values are stored (they're encrypted on our side and never displayed again).</li>
+  </ul>
+
+  <h2><span class="num">3</span><svg class="ic"><use href="#i-chat"/></svg>What happens next — our side</h2>
+  <ol>
+    <li><b>We verify the connection live</b> against Meta before saving anything — you'll get a confirmation that your business name came back correctly.</li>
+    <li><b>We set up your message templates.</b> WhatsApp requires pre-approved templates for any message you send proactively (more on why below). We submit ready-made ones for your kind of business — appointment reminders, order updates, offers — and Meta usually approves them within a few hours.</li>
+    <li><b>We send a test message</b> to your phone, and ask you to reply to it. Your reply appearing in your inbox on our platform confirms the full two-way loop works.</li>
+    <li><b>You get your portal login</b> — see section 5.</li>
+  </ol>
+  <div class="why"><b>Why templates are a thing:</b> WhatsApp lets a business message anyone freely only within 24 hours of that person's last message to you. Outside that window — which is exactly when a reminder or delivery update happens — WhatsApp requires a pre-approved template. It's their spam defense, and it's also why messages from businesses on WhatsApp feel trustworthy rather than junky.</div>
+
+  <h2><span class="num">4</span><svg class="ic"><use href="#i-people"/></svg>Your customers must say yes first — consent</h2>
+  <p>This is the one rule that protects everything else:</p>
+  <ul>
+    <li><b>Only message customers who agreed to receive WhatsApp messages from you</b> — a checkbox on your booking form, a signup sheet, a verbal yes you record. When you import contacts, you're confirming they opted in.</li>
+    <li><b>STOP always works, automatically.</b> If a customer replies STOP, our platform opts them out instantly and blocks future sends to them — you don't have to do anything, and you can't accidentally override it. START opts them back in.</li>
+    <li>The platform enforces this at send time: a contact without consent simply won't receive messages, even if they're on a campaign list.</li>
+  </ul>
+  <div class="good"><b>Why this is in your interest, not just a rule:</b> Meta scores your number by how often recipients block or report you. A good score raises your daily sending allowance automatically; a bad one shrinks it and can pause your number entirely. Consent isn't paperwork — it's what keeps your channel alive and your messages welcome.</div>
+
+  <h2><span class="num">5</span><svg class="ic"><use href="#i-chat"/></svg>Your portal — where your team works day to day</h2>
+  <p>We'll create logins for your team (there's no public signup — accounts exist only for people you name). Inside:</p>
+  <table>
+    <tr><th>Page</th><th>What it's for</th></tr>
+    <tr><td><b>Dashboard</b></td><td>Messages sent, delivered, read; activity over the last 14 days; a heads-up banner if you're nearing your daily sending limit</td></tr>
+    <tr><td><b>Campaigns</b></td><td>Send a template to a whole contact list — today's reminders, this week's offer — and watch delivery live</td></tr>
+    <tr><td><b>Inbox</b></td><td>Every customer reply, as a conversation. Reply directly from here</td></tr>
+    <tr><td><b>Contacts</b></td><td>Import customers (CSV), tag them ("VIP", "Tuesday patients"), manage consent</td></tr>
+    <tr><td><b>Templates</b></td><td>See your approved templates and their status; pick new starters to submit</td></tr>
+    <tr><td><b>Analytics</b></td><td>Delivery, read and reply rates per campaign — live numbers, never yesterday's snapshot</td></tr>
+  </table>
+
+  <h2><span class="num">6</span><svg class="ic"><use href="#i-up"/></svg>Your sending limit, and when to think about verification</h2>
+  <ul>
+    <li>Every new business starts with a WhatsApp allowance of <b>250 unique customers per 24 hours</b>. For most businesses that's plenty to start — it's 250 <i>different people</i> a day, not 250 messages.</li>
+    <li>The limit <b>grows automatically</b> as you send consistently with a good quality score.</li>
+    <li>If you expect to contact more than ~200 different customers a day soon, complete <b>Meta business verification</b> (uploading registration documents at business.facebook.com → Security Centre). It typically takes a few days and raises the ceiling to 1,000+/day. We'll flag it in your dashboard when you're approaching the limit — and we can walk you through it.</li>
+  </ul>
+
+  <h2><span class="num">7</span><svg class="ic"><use href="#i-q"/></svg>Common questions</h2>
+  <table>
+    <tr><th>Question</th><th>Answer</th></tr>
+    <tr><td>Can customers tell it's really us?</td><td>Yes — messages show your business display name (from step 2C, reviewed by Meta). Once your business is verified, you can also apply for the verified checkmark.</td></tr>
+    <tr><td>What does it cost?</td><td>Meta charges per conversation (rates vary by country and message type — utility messages like reminders are cheapest). Meta bills your business account directly; our platform fee is separate per your agreement with us.</td></tr>
+    <tr><td>How fast are template approvals?</td><td>Usually minutes to a few hours; occasionally up to a day. Rejections happen (usually wording issues) — we adjust and resubmit for you.</td></tr>
+    <tr><td>Can we send photos, PDFs, voice notes?</td><td>Yes — invoices, receipts, product photos and more, from the portal or the API.</td></tr>
+    <tr><td>Can our own software send messages?</td><td>Yes — we issue an API key and your developers call one simple endpoint. Ask us for the integration sheet.</td></tr>
+    <tr><td>What if we already have approved templates?</td><td>We sync them in — nothing is lost or resubmitted.</td></tr>
+  </table>
+
+  <footer>
+    AZentis Notify · Questions at any step: <b>azentisit@gmail.com</b> · Privacy policy and data deletion instructions are available at <code>/privacy</code> and <code>/data-deletion</code> on your portal domain.
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Client Onboarding Runbook — AZentis Notify (Internal)</title>
+<style>
+  :root {
+    --ink: #1d2130; --muted: #5d6478; --faint: #eceef4; --line: #dfe2ec;
+    --brand: #5a49e8; --brand-soft: #efedfd; --ok: #1e8e5a; --ok-soft: #e7f5ee;
+    --warn: #a36a00; --warn-soft: #fdf3e0; --danger: #c0392b; --paper: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #f6f7fa; color: var(--ink);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 800px; margin: 0 auto; padding: 48px 28px 80px; background: var(--paper); min-height: 100vh; }
+  @media (min-width: 900px) { .page { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+
+  .doc-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); background: var(--brand-soft); border-radius: 4px; padding: 3px 8px; }
+  h1 { font-size: 27px; letter-spacing: -.02em; margin: 12px 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 8px; max-width: 60ch; }
+  .meta-row { font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+
+  h2 { font-size: 19px; letter-spacing: -.01em; margin: 40px 0 6px; display: flex; align-items: center; gap: 10px; }
+  h2 .num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13.5px; font-weight: 700; flex-shrink: 0;
+  }
+  h3 { font-size: 15px; margin: 22px 0 6px; }
+  p { margin: 8px 0; } b { font-weight: 600; }
+  code { background: var(--faint); border-radius: 4px; padding: 1px 6px; font-size: 13px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .ic { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.9; fill: none; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+
+  .why { border-left: 3px solid var(--brand); background: var(--brand-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 14px 0; font-size: 13.5px; }
+  .why b { color: var(--brand); }
+  .warn { border-left: 3px solid var(--warn); background: var(--warn-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 14px 0; font-size: 13.5px; }
+  .warn b { color: var(--warn); }
+
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 5px 0; }
+  li::marker { color: var(--brand); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 12px 0; }
+  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 2px solid var(--line); padding: 6px 10px 6px 0; }
+  td { border-bottom: 1px solid var(--faint); padding: 8px 10px 8px 0; vertical-align: top; }
+
+  .check { list-style: none; padding-left: 0; }
+  .check li { padding-left: 28px; position: relative; }
+  .check li::before {
+    content: ""; position: absolute; left: 0; top: 4px; width: 16px; height: 16px;
+    border: 2px solid var(--brand); border-radius: 4px;
+  }
+  .copyblock { background: #f3f4f8; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 13.5px; margin: 12px 0; }
+  .copyblock .cb-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
+
+  .path { color: var(--muted); font-size: 13.5px; }
+  .path b { color: var(--ink); }
+  .arrow { color: var(--brand); font-weight: 700; }
+
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  @media print {
+    body { background: #fff; } .page { padding: 0; max-width: none; border: 0; }
+    h2 { break-after: avoid; } .why, .warn, table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></symbol>
+  <symbol id="i-brush" viewBox="0 0 24 24"><path d="m15 5 4 4L8 20H4v-4L15 5Z"/><path d="m13 7 4 4"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-4 4 3 3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3.4 8.4 7 10 3.6-1.6 7-5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m21 3-9 9m9-9-6 18-3-9-9-3 18-6Z"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 7V3m6 4V3M7 7h10v4a5 5 0 0 1-10 0V7Z"/><path d="M12 16v5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18-3-4-3-14.5 0-18Z"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 14a8 8 0 1 1 16 0"/><path d="m12 14 4-4"/><circle cx="12" cy="14" r="1.6"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.5 6.5a4.5 4.5 0 0 0-6 6L3 18l3 3 5.5-5.5a4.5 4.5 0 0 0 6-6L14 13l-3-3 3.5-3.5Z"/></symbol>
+</svg>
+
+<div class="page">
+  <span class="doc-tag">Internal · Ops runbook</span>
+  <h1>Onboarding a new client business</h1>
+  <p class="sub">Everything from "contract signed" to "client sending real WhatsApp messages", in order, with the reasons behind each step. Owned by the ops team; the client-facing half of this process is the companion guide <i>"Getting your business onto WhatsApp"</i> — send them that, keep this one.</p>
+  <div class="meta-row">Version 1.0 · September 2026 · applies to the AZentis Notify admin console · typical end-to-end time: <b>1–2 working days</b> (dominated by the client's Meta setup and template review, not by us)</div>
+
+  <h2><span class="num">0</span>Before you start</h2>
+  <p>Collect these once, up front — chasing them mid-flow is where onboardings stall:</p>
+  <ul class="check">
+    <li><b>Client's business details</b> — legal/display name, business category (clinic, shop, restaurant…), logo file, brand color if they have one.</li>
+    <li><b>One named contact on the client side</b> with authority over their Facebook Business assets — this is who will do (or approve) the Meta setup steps.</li>
+    <li><b>The phone number they'll send from</b> — confirmed <b>not</b> active on personal WhatsApp or the WhatsApp Business app. A number can't be in two places; if it's in use, they must either pick a different number or delete the existing WhatsApp account on it first.</li>
+    <li><b>Which integration they want</b> — portal only (their team logs in and works in the UI), API (their backend sends via our REST API), or both. This decides whether step 7 applies.</li>
+  </ul>
+  <div class="why"><b>Why the phone number question first:</b> it's the single most common blocker. Everything else in this runbook can proceed in parallel, but a number tangled up in a personal WhatsApp account stops the show at step 3 — surface it on day one.</div>
+
+  <h2><span class="num">1</span><svg class="ic"><use href="#i-user"/></svg>Create the tenant</h2>
+  <p class="path"><b>Admin console</b> <span class="arrow">→</span> Tenants <span class="arrow">→</span> New tenant</p>
+  <ul>
+    <li><b>Name</b> — the client's business name as customers should recognize it.</li>
+    <li><b>Slug</b> — lowercase letters, numbers, hyphens only (e.g. <code>sunrise-dental</code>). It's an internal identifier; short and obvious beats clever.</li>
+  </ul>
+  <div class="why"><b>Why tenants matter:</b> a tenant is a hard isolation boundary. Credentials, contacts, message history, templates, API keys — nothing crosses between tenants, ever. Getting a client their own tenant is what makes it safe to run many businesses on one platform.</div>
+
+  <h2><span class="num">2</span><svg class="ic"><use href="#i-brush"/></svg>Branding &amp; business category</h2>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 1 Branding</p>
+  <ul>
+    <li>Upload the logo, set the primary color, write a one-line business description.</li>
+    <li><b>Set the business category</b> — Healthcare, Retail, Restaurant, Services, Education, or Other.</li>
+  </ul>
+  <div class="why"><b>Why the category isn't cosmetic:</b> it decides which starter message templates the client sees first in step 4 — a clinic gets appointment reminders front and center, a shop gets order updates. Skipping it means the client wades through irrelevant templates.</div>
+
+  <h2><span class="num">3</span><svg class="ic"><use href="#i-key"/></svg>WhatsApp credentials</h2>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 2 Credentials <span class="arrow">→</span> "Enter credentials manually"</p>
+  <p>The client owns their Meta/WhatsApp assets; we operate them. The client-facing guide walks them through producing exactly four values. Request them with something like:</p>
+  <div class="copyblock">
+    <div class="cb-label">Copy-paste request to the client contact</div>
+    Hi — to connect your WhatsApp number to the platform we need four values from your Meta setup. The attached guide ("Getting your business onto WhatsApp", section 2) shows where each one lives, with screenshots-level detail:<br><br>
+    1. Phone Number ID&nbsp;&nbsp;2. WhatsApp Business Account ID&nbsp;&nbsp;3. Permanent access token&nbsp;&nbsp;4. App Secret<br><br>
+    Please share them through a password manager link or an encrypted note (not plain email or chat) — the token and secret are the keys to your WhatsApp account. We'll confirm the connection with a live test message the same day we receive them.
+  </div>
+  <p>When the values arrive:</p>
+  <ol>
+    <li>Paste all four into the Credentials form. The WABA ID is technically optional, <b>but always ask for it</b> — without it, template sync and template submission (step 4) can't work.</li>
+    <li>Click <b>Verify with Meta</b>. This makes a live call against Meta's API before anything is saved — you should see the business's verified name and phone number echoed back.</li>
+    <li>Save. Credentials are encrypted the moment they're stored; nobody, including us, reads them back out in plain text.</li>
+  </ol>
+  <table>
+    <tr><th>Verify fails with…</th><th>It means…</th><th>Do this</th></tr>
+    <tr><td><code>Invalid OAuth access token</code></td><td>Token was copied wrong, or it's a temporary token that expired (they last ~24h)</td><td>Client must generate a <b>System User</b> token (permanent) — guide section 2, step E</td></tr>
+    <tr><td><code>Unsupported get request</code> / object not found</td><td>Phone Number ID is wrong (often confused with the phone number itself or the WABA ID)</td><td>It's the long numeric ID under the number on Meta's <b>API Setup</b> screen, not the +91… number</td></tr>
+    <tr><td>Verified name looks wrong</td><td>They copied IDs from a different WABA/number</td><td>Confirm which number they intend to send from</td></tr>
+  </table>
+  <div class="warn"><b>Handle secrets like secrets.</b> Delete the client's message containing the token once saved, and never re-share it onward. If a token ever leaks, the client revokes it in Meta Business Settings and issues a new one — then you repeat this step.</div>
+
+  <h3><svg class="ic"><use href="#i-plug"/></svg>3b. Point the client's webhook at us (needed for replies &amp; STOP)</h3>
+  <p>In the client's Meta app: <span class="path"><b>WhatsApp</b> <span class="arrow">→</span> Configuration <span class="arrow">→</span> Webhook</span>. Have them (or do it with them on a call) set:</p>
+  <ul>
+    <li><b>Callback URL:</b> <code>https://&lt;our-api-domain&gt;/v1/webhook/whatsapp</code></li>
+    <li><b>Verify token:</b> generated when you saved credentials (shown in the save confirmation; retrievable by ops afterwards).</li>
+    <li><b>Subscribe to:</b> <code>messages</code>.</li>
+  </ul>
+  <div class="why"><b>Why this can't be skipped:</b> without the webhook, we still <i>send</i> fine — but customer replies, delivery/read receipts, and automatic STOP/START opt-out handling never reach us. An inbox that never fills up and consent that never updates is a compliance problem, not a cosmetic one.</div>
+
+  <h2><span class="num">4</span><svg class="ic"><use href="#i-doc"/></svg>Templates</h2>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 3 Templates</p>
+  <ol>
+    <li>Open the <b>Starter templates</b> gallery — it opens on the group matching the business category. Pick the 2–4 the client actually needs and hit <b>Submit to WhatsApp</b> on each. They go to Meta for review pre-filled and correctly formatted.</li>
+    <li>If the client already has approved templates on their WABA, click <b>Sync from Meta</b> to pull those in too.</li>
+    <li>Watch the status column: <b>PENDING → APPROVED</b> usually within minutes to a day. Re-sync to refresh.</li>
+  </ol>
+  <div class="why"><b>Why templates before test send:</b> WhatsApp only allows free-form messages inside a 24-hour window after a customer writes in. To message anyone <i>proactively</i> — the entire point of reminders and alerts — an approved template is mandatory. Template approval is the longest single wait in onboarding; start it early so it overlaps with everything else.</div>
+  <div class="warn"><b>If a template comes back REJECTED:</b> most rejections are category mismatches (promotional wording in a UTILITY template). Adjust the wording in WhatsApp Manager or pick the MARKETING starter instead — and remember marketing templates must keep the "Reply STOP to unsubscribe" line; every starter marked <i>Marketing</i> already includes it.</div>
+
+  <h2><span class="num">5</span><svg class="ic"><use href="#i-send"/></svg>Test send — prove it end to end</h2>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 4 Test send</p>
+  <ol>
+    <li>Send a test to <b>your own</b> phone first, then to the client contact's phone.</li>
+    <li>Have the recipient <b>reply</b> to the message — then check the tenant's <b>Inbox</b> page. The reply appearing there proves the webhook (step 3b) is wired correctly. This is the only cheap moment to catch a broken webhook; after go-live it surfaces as "customers say they replied and nobody answered".</li>
+  </ol>
+
+  <h2><span class="num">6</span><svg class="ic"><use href="#i-globe"/></svg>Portal access for the client's team</h2>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Workspace <span class="arrow">→</span> Portal access</p>
+  <ul>
+    <li>Create one portal account per client team member (email + temporary password — have them change it at first login).</li>
+    <li>Send them the portal URL: <code>https://&lt;admin-domain&gt;/portal</code>. What they get: dashboard, campaigns, contacts, templates, inbox, analytics. What they never see: credentials, API keys, other tenants.</li>
+  </ul>
+  <div class="why"><b>Why there's no self-signup:</b> portal accounts are created only by us, deliberately. It keeps account provenance auditable and means a client's WhatsApp channel can't be accessed by anyone we didn't explicitly create an account for.</div>
+
+  <h2><span class="num">7</span><svg class="ic"><use href="#i-plug"/></svg>API keys — only if their backend integrates</h2>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 5 API keys</p>
+  <ul>
+    <li>Issue a key, share it the same secure way as step 3 (it's shown once, then only its prefix).</li>
+    <li>Their backend calls <code>POST https://&lt;api-domain&gt;/v1/send</code> with <code>Authorization: Bearer &lt;key&gt;</code> — same guardrails as the portal: opt-in checks, quiet hours, rate limits all still apply.</li>
+  </ul>
+
+  <h2><span class="num">8</span><svg class="ic"><use href="#i-gauge"/></svg>Go-live &amp; the first two weeks</h2>
+  <ul class="check">
+    <li>Templates APPROVED, test message delivered, test reply visible in Inbox, portal login confirmed by the client.</li>
+    <li>Client has imported (or started importing) contacts <b>with opt-in consent</b> — see the consent section of the client guide. We enforce opt-in at send time; contacts without it simply won't receive messages.</li>
+    <li>Watch <b>Analytics → Sending health</b> for the first campaigns: the daily unique-customer ceiling (250/day until the client completes Meta business verification) and the quality rating. A warning banner appears automatically at 70% of the daily limit.</li>
+    <li>If they'll outgrow 250 customers/day: start their <b>Meta business verification</b> now (client guide, section 6) — it takes days, not hours, so don't wait for the wall.</li>
+  </ul>
+  <div class="why"><b>Why quality rating is the number to respect:</b> Meta scores every number by blocks and reports from recipients. High quality raises the sending ceiling automatically; poor quality lowers it and can pause the number. The two levers that keep it green are genuine opt-in (step 8, item 2) and honest, expected content — both are client behaviors, so set the expectation during onboarding, not after a downgrade.</div>
+
+  <h2><span class="num">9</span><svg class="ic"><use href="#i-wrench"/></svg>Troubleshooting quick reference</h2>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+    <tr><td>Send fails with error <code>131047</code></td><td>Free-form message outside the 24-hour customer window</td><td>Use an approved template for that send</td></tr>
+    <tr><td>Messages send but replies never appear in Inbox</td><td>Webhook not configured or wrong verify token (step 3b)</td><td>Re-check callback URL, verify token, and the <code>messages</code> subscription in the client's Meta app</td></tr>
+    <tr><td>Sends suddenly failing with auth errors</td><td>Client revoked/rotated the token, or the system user was deleted</td><td>Ask client for a fresh system-user token; re-do step 3</td></tr>
+    <tr><td>Contact isn't receiving messages, no error</td><td>Contact not opted in — the platform blocks the send by design</td><td>Confirm consent, opt the contact in, retry</td></tr>
+    <tr><td>Sending health shows tier/quality as "—"</td><td>Meta didn't return the fields (very new number, or token missing management permission)</td><td>Harmless for sending; re-check token permissions if it persists</td></tr>
+    <tr><td>Campaign counts look frozen</td><td>They're live-computed, not cached — if truly frozen, delivery receipts aren't arriving</td><td>Same webhook check as replies (step 3b)</td></tr>
+  </table>
+
+  <footer>
+    AZentis Notify — internal runbook. Companion document for clients: <i>Getting your business onto WhatsApp</i>. Every credential/branding/key change made in the admin console is written to the tenant's audit log automatically.
+  </footer>
+</div>
+</body>
+</html>
