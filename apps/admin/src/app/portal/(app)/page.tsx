@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import {
   Send, Eye, Inbox as InboxIcon, ArrowRight, Megaphone,
-  CheckCheck, LayoutGrid, Upload, type LucideIcon,
+  CheckCheck, LayoutGrid, Upload, TriangleAlert, type LucideIcon,
 } from 'lucide-react';
 import { requirePortalSessionOrRedirect } from '@/lib/tenantPortalAuth';
 import { getTenant } from '@/lib/tenants';
 import { getTenantRollup, getDailyActivity } from '@/lib/analytics';
+import { getSendingHealth } from '@/lib/sendingHealth';
 import { listConversations } from '@/lib/conversations';
 import { listCampaigns } from '@/lib/campaigns';
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from '@/components/ui/card';
@@ -48,13 +49,15 @@ const CAMPAIGN_STATUS_VARIANT: Record<string, 'outline' | 'secondary' | 'default
 
 export default async function PortalDashboardPage() {
   const session = requirePortalSessionOrRedirect();
-  const [tenant, rollup, daily, conversations, campaigns] = await Promise.all([
+  const [tenant, rollup, daily, conversations, campaigns, health] = await Promise.all([
     getTenant(session.tenantId),
     getTenantRollup(session.tenantId),
     getDailyActivity(session.tenantId),
     listConversations(session.tenantId),
     listCampaigns(session.tenantId),
+    getSendingHealth(session.tenantId),
   ]);
+  const healthUsage = health.dailyLimit ? health.uniqueRecipients24h / health.dailyLimit : null;
 
   const openChats = conversations.filter((c) => c.status === 'open');
   const unread = openChats.filter((c) => c.hasUnread).length;
@@ -87,6 +90,15 @@ export default async function PortalDashboardPage() {
             <StatCard icon={Eye} label="Read rate" value={pct(rollup.readRate)} sub={`${rollup.read.toLocaleString()} read`} accent="var(--chart-3)" />
             <StatCard icon={InboxIcon} label="Open chats" value={String(openChats.length)} sub={unread > 0 ? `${unread} unread` : 'all caught up'} accent="var(--primary-2)" />
           </div>
+
+          {healthUsage !== null && healthUsage >= 0.7 && (
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[oklch(0.72_0.15_75)]/40 bg-[oklch(0.72_0.15_75)]/10 px-4 py-3">
+              <TriangleAlert className="size-4 shrink-0 text-[oklch(0.72_0.15_75)]" />
+              <p className="min-w-60 flex-1 text-sm">
+                <b>{Math.round(healthUsage * 100)}% of today&apos;s sending limit used</b> — {health.uniqueRecipients24h.toLocaleString()} of {health.dailyLimit!.toLocaleString()} customers in the last 24 hours. Verifying your business with Meta raises this limit.
+              </p>
+            </div>
+          )}
 
           <Card>
             <CardHeader>

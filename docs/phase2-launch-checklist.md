@@ -16,6 +16,30 @@ Meta approves the app.
    exactly the flows to record.
 4. **App published** (Live mode, not Development).
 
+## App Review submission — what to actually record and write
+
+For the two Advanced Access permissions, Meta wants proof the app really does what it claims.
+Record these from the running admin app (dev mode is fine):
+
+**Recording 1 — `whatsapp_business_messaging` (sending):** log in → open a tenant → Setup →
+Test send → send a real message to a test number → show it arriving on the phone's WhatsApp.
+Keep the browser URL bar visible the whole time.
+
+**Recording 2 — `whatsapp_business_management` (template management):** open the same tenant →
+Setup → Templates → submit a starter template from the gallery → show it appearing in the
+templates table as PENDING → (optionally) show it in WhatsApp Manager.
+
+**Suggested justification text (adapt, don't paste blindly):**
+> Our platform lets business clients send WhatsApp notifications (appointment reminders,
+> order updates, alerts) to their own opted-in customers. `whatsapp_business_messaging` is
+> used to send these messages on behalf of onboarded client WABAs; `whatsapp_business_management`
+> is used to create and sync message templates and read phone-number quality signals for the
+> client's own dashboard. Clients onboard via Embedded Signup; each client's messages go only
+> to customers who opted in through that client, with STOP/START handled automatically.
+
+Also required before submission: app icon, privacy policy URL, and app category in
+App Settings → Basic.
+
 ## Meta console — configuration objects (after approval)
 
 5. Create an **Embedded Signup configuration**: Meta app → Facebook Login for Business →
