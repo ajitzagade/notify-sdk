@@ -1,0 +1,581 @@
+<title>WhatsApp Platform — Phase 1 &amp; 2 Mockups</title>
+<style>
+  :root {
+    --bg: oklch(0.965 0.007 255);
+    --fg: oklch(0.19 0.02 255);
+    --card: oklch(1 0 0);
+    --card-fg: oklch(0.19 0.02 255);
+    --primary: oklch(0.56 0.24 276);
+    --primary-2: oklch(0.62 0.14 195);
+    --primary-fg: oklch(0.99 0.01 280);
+    --secondary: oklch(0.95 0.006 250);
+    --muted: oklch(0.955 0.006 250);
+    --muted-fg: oklch(0.5 0.02 250);
+    --accent: oklch(0.93 0.045 276);
+    --accent-fg: oklch(0.34 0.14 276);
+    --destructive: oklch(0.6 0.22 25);
+    --border: oklch(0.9 0.008 250);
+    --input: oklch(0.9 0.008 250);
+    --signal: oklch(0.6 0.17 155);
+    --signal-soft: oklch(0.6 0.17 155 / 12%);
+    --warn: oklch(0.72 0.15 75);
+    --warn-soft: oklch(0.72 0.15 75 / 15%);
+    --wa-green: oklch(0.72 0.19 150);
+    --wa-bubble: oklch(0.95 0.05 140);
+    --wa-chat-bg: oklch(0.93 0.02 120);
+    --chrome: oklch(0.93 0.008 250);
+    --radius: 0.5rem;
+    --shadow-sm: 0 1px 3px 0 oklch(0.2 0.02 250 / 8%), 0 1px 2px -1px oklch(0.2 0.02 250 / 6%);
+    --shadow-md: 0 4px 8px -2px oklch(0.2 0.02 250 / 8%), 0 2px 4px -2px oklch(0.2 0.02 250 / 6%);
+    --shadow-lg: 0 12px 24px -6px oklch(0.2 0.02 250 / 12%), 0 4px 8px -4px oklch(0.2 0.02 250 / 8%);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(0.145 0.016 260);
+      --fg: oklch(0.96 0.005 250);
+      --card: oklch(0.195 0.017 258);
+      --card-fg: oklch(0.96 0.005 250);
+      --primary: oklch(0.68 0.2 276);
+      --primary-2: oklch(0.75 0.15 195);
+      --primary-fg: oklch(0.99 0.01 280);
+      --secondary: oklch(0.26 0.016 258);
+      --muted: oklch(0.225 0.015 258);
+      --muted-fg: oklch(0.67 0.02 250);
+      --accent: oklch(0.28 0.09 276);
+      --accent-fg: oklch(0.86 0.08 276);
+      --destructive: oklch(0.68 0.2 25);
+      --border: oklch(1 0 0 / 9%);
+      --input: oklch(1 0 0 / 14%);
+      --signal: oklch(0.72 0.16 155);
+      --signal-soft: oklch(0.72 0.16 155 / 16%);
+      --warn: oklch(0.78 0.14 80);
+      --warn-soft: oklch(0.78 0.14 80 / 16%);
+      --wa-green: oklch(0.72 0.19 150);
+      --wa-bubble: oklch(0.35 0.06 150);
+      --wa-chat-bg: oklch(0.19 0.02 140);
+      --chrome: oklch(0.17 0.016 258);
+      --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 40%), 0 1px 2px -1px oklch(0 0 0 / 30%);
+      --shadow-md: 0 4px 8px -2px oklch(0 0 0 / 40%), 0 2px 4px -2px oklch(0 0 0 / 30%);
+      --shadow-lg: 0 12px 24px -6px oklch(0 0 0 / 50%), 0 4px 8px -4px oklch(0 0 0 / 40%);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: oklch(0.145 0.016 260);
+    --fg: oklch(0.96 0.005 250);
+    --card: oklch(0.195 0.017 258);
+    --card-fg: oklch(0.96 0.005 250);
+    --primary: oklch(0.68 0.2 276);
+    --primary-2: oklch(0.75 0.15 195);
+    --primary-fg: oklch(0.99 0.01 280);
+    --secondary: oklch(0.26 0.016 258);
+    --muted: oklch(0.225 0.015 258);
+    --muted-fg: oklch(0.67 0.02 250);
+    --accent: oklch(0.28 0.09 276);
+    --accent-fg: oklch(0.86 0.08 276);
+    --destructive: oklch(0.68 0.2 25);
+    --border: oklch(1 0 0 / 9%);
+    --input: oklch(1 0 0 / 14%);
+    --signal: oklch(0.72 0.16 155);
+    --signal-soft: oklch(0.72 0.16 155 / 16%);
+    --warn: oklch(0.78 0.14 80);
+    --warn-soft: oklch(0.78 0.14 80 / 16%);
+    --wa-green: oklch(0.72 0.19 150);
+    --wa-bubble: oklch(0.35 0.06 150);
+    --wa-chat-bg: oklch(0.19 0.02 140);
+    --chrome: oklch(0.17 0.016 258);
+    --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 40%), 0 1px 2px -1px oklch(0 0 0 / 30%);
+    --shadow-md: 0 4px 8px -2px oklch(0 0 0 / 40%), 0 2px 4px -2px oklch(0 0 0 / 30%);
+    --shadow-lg: 0 12px 24px -6px oklch(0 0 0 / 50%), 0 4px 8px -4px oklch(0 0 0 / 40%);
+  }
+  :root[data-theme="light"] {
+    --bg: oklch(0.965 0.007 255);
+    --fg: oklch(0.19 0.02 255);
+    --card: oklch(1 0 0);
+    --card-fg: oklch(0.19 0.02 255);
+    --primary: oklch(0.56 0.24 276);
+    --primary-2: oklch(0.62 0.14 195);
+    --primary-fg: oklch(0.99 0.01 280);
+    --secondary: oklch(0.95 0.006 250);
+    --muted: oklch(0.955 0.006 250);
+    --muted-fg: oklch(0.5 0.02 250);
+    --accent: oklch(0.93 0.045 276);
+    --accent-fg: oklch(0.34 0.14 276);
+    --destructive: oklch(0.6 0.22 25);
+    --border: oklch(0.9 0.008 250);
+    --input: oklch(0.9 0.008 250);
+    --signal: oklch(0.6 0.17 155);
+    --signal-soft: oklch(0.6 0.17 155 / 12%);
+    --warn: oklch(0.72 0.15 75);
+    --warn-soft: oklch(0.72 0.15 75 / 15%);
+    --wa-green: oklch(0.72 0.19 150);
+    --wa-bubble: oklch(0.95 0.05 140);
+    --wa-chat-bg: oklch(0.93 0.02 120);
+    --chrome: oklch(0.93 0.008 250);
+    --shadow-sm: 0 1px 3px 0 oklch(0.2 0.02 250 / 8%), 0 1px 2px -1px oklch(0.2 0.02 250 / 6%);
+    --shadow-md: 0 4px 8px -2px oklch(0.2 0.02 250 / 8%), 0 2px 4px -2px oklch(0.2 0.02 250 / 6%);
+    --shadow-lg: 0 12px 24px -6px oklch(0.2 0.02 250 / 12%), 0 4px 8px -4px oklch(0.2 0.02 250 / 8%);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+
+  /* ---------- page header ---------- */
+  header.page { padding: 56px 0 8px; }
+  .eyebrow {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--primary);
+  }
+  h1 {
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 700;
+    letter-spacing: -0.02em; margin: 6px 0 10px; text-wrap: balance;
+  }
+  .lede { color: var(--muted-fg); max-width: 62ch; margin: 0 0 20px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.74rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 999px; border: 1px solid var(--border);
+  }
+  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 999px; }
+  .chip.reused { color: var(--muted-fg); } .chip.reused::before { background: var(--muted-fg); }
+  .chip.p1 { color: var(--primary); border-color: color-mix(in oklch, var(--primary), transparent 60%); }
+  .chip.p1::before { background: var(--primary); }
+  .chip.p2 { color: var(--primary-2); border-color: color-mix(in oklch, var(--primary-2), transparent 60%); }
+  .chip.p2::before { background: var(--primary-2); }
+
+  /* ---------- section scaffolding ---------- */
+  section.mock { margin-top: 64px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+  .sec-num {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.78rem; font-weight: 600; color: var(--primary);
+    border: 1.5px solid color-mix(in oklch, var(--primary), transparent 55%);
+    border-radius: 999px; width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transform: translateY(5px);
+  }
+  h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  .sec-sub { color: var(--muted-fg); font-size: 0.92rem; margin: 6px 0 20px; max-width: 68ch; }
+  .sec-sub .badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; vertical-align: 1px; }
+  .badge.b-p1 { background: color-mix(in oklch, var(--primary), transparent 86%); color: var(--primary); }
+  .badge.b-p2 { background: color-mix(in oklch, var(--primary-2), transparent 84%); color: var(--primary-2); }
+  .badge.b-reused { background: var(--muted); color: var(--muted-fg); }
+
+  /* browser frame */
+  .frame {
+    background: var(--card); color: var(--card-fg);
+    border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  .frame-bar {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--chrome); border-bottom: 1px solid var(--border);
+    padding: 9px 14px;
+  }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 999px; background: var(--border); display: block; }
+  .urlbar {
+    flex: 1; max-width: 420px; font-size: 0.74rem; color: var(--muted-fg);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 3px 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .frame-body { padding: 28px; overflow-x: auto; }
+  @media (max-width: 640px) { .frame-body { padding: 18px; } }
+
+  /* annotation notes */
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
+  .note {
+    border: 1px solid var(--border); border-left: 3px solid var(--muted-fg);
+    border-radius: 8px; padding: 10px 14px; font-size: 0.85rem;
+    background: var(--card); color: var(--card-fg);
+  }
+  .note.n-p1 { border-left-color: var(--primary); }
+  .note.n-p2 { border-left-color: var(--primary-2); }
+  .note b { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .note.n-p1 b { color: var(--primary); } .note.n-p2 b { color: var(--primary-2); }
+  .note.n-reused b { color: var(--muted-fg); }
+  .note p { margin: 0; color: var(--muted-fg); }
+
+  /* ---------- shared UI atoms inside mocks ---------- */
+  .ui-h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 2px; }
+  .ui-sub { color: var(--muted-fg); font-size: 0.88rem; margin: 0 0 22px; }
+  .ui-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: var(--shadow-sm); padding: 20px;
+  }
+  .ui-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; }
+  .ui-label .opt { color: var(--muted-fg); font-weight: 400; }
+  .ui-input {
+    width: 100%; border: 1px solid var(--input); border-radius: 7px;
+    background: var(--bg); color: var(--fg);
+    font-size: 0.86rem; padding: 8px 11px;
+  }
+  .ui-input.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.8rem; }
+  .ui-hint { font-size: 0.74rem; color: var(--muted-fg); margin-top: 4px; }
+  .fld { margin-bottom: 15px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 0.86rem; font-weight: 600; border-radius: 8px;
+    padding: 8px 16px; border: 1px solid transparent; cursor: default;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-fg); box-shadow: var(--shadow-sm); }
+  .btn-outline { background: transparent; border-color: var(--border); color: var(--fg); }
+  .btn-fb { background: oklch(0.51 0.19 262); color: white; box-shadow: var(--shadow-sm); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.72rem; font-weight: 600; border-radius: 999px; padding: 2px 9px;
+  }
+  .pill-ok { background: var(--signal-soft); color: var(--signal); }
+  .pill-warn { background: var(--warn-soft); color: var(--warn); }
+  .pill-muted { background: var(--muted); color: var(--muted-fg); }
+  .pill-acc { background: var(--accent); color: var(--accent-fg); }
+
+  /* ---------- mock 1: chooser ---------- */
+  .choose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .choose-grid { grid-template-columns: 1fr; } }
+  .choose-card { position: relative; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .choose-card.rec { border-color: color-mix(in oklch, var(--primary-2), transparent 45%); }
+  .choose-ico {
+    width: 40px; height: 40px; border-radius: 9px; display: flex;
+    align-items: center; justify-content: center; font-size: 1.15rem;
+  }
+  .ico-fb { background: color-mix(in oklch, oklch(0.51 0.19 262), transparent 85%); }
+  .ico-key { background: var(--accent); }
+  .choose-card h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+  .choose-card p { margin: 0; font-size: 0.85rem; color: var(--muted-fg); flex: 1; }
+  .corner { position: absolute; top: 14px; right: 14px; }
+
+  /* ---------- mock 2: manual form ---------- */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 780px) { .form-grid { grid-template-columns: 1fr; } }
+  .card-head { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 16px; }
+  .card-head .ci {
+    width: 34px; height: 34px; border-radius: 8px; background: var(--accent);
+    color: var(--accent-fg); display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; flex-shrink: 0;
+  }
+  .card-head h4 { margin: 0; font-size: 0.95rem; font-weight: 700; }
+  .card-head p { margin: 1px 0 0; font-size: 0.78rem; color: var(--muted-fg); }
+  .helpsteps {
+    background: var(--muted); border-radius: 8px; padding: 12px 14px;
+    font-size: 0.78rem; color: var(--muted-fg); margin-bottom: 16px;
+  }
+  .helpsteps b { color: var(--fg); font-size: 0.76rem; }
+  .helpsteps ol { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+  .verify-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+
+  /* ---------- mock 3: embedded signup ---------- */
+  .es-steps { display: flex; align-items: center; gap: 0; margin-bottom: 26px; flex-wrap: wrap; }
+  .es-step { display: flex; align-items: center; gap: 9px; }
+  .es-dot {
+    width: 26px; height: 26px; border-radius: 999px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.7rem; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--muted-fg); background: var(--card);
+  }
+  .es-step.done .es-dot { background: var(--signal); border-color: var(--signal); color: white; }
+  .es-step.live .es-dot { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+  .es-step span { font-size: 0.8rem; font-weight: 600; color: var(--muted-fg); }
+  .es-step.live span { color: var(--fg); }
+  .es-line { width: 34px; height: 1.5px; background: var(--border); margin: 0 10px; }
+  .fb-dialog {
+    max-width: 400px; margin: 0 auto; background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .fb-head {
+    background: oklch(0.51 0.19 262); color: white; padding: 12px 18px;
+    font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
+  }
+  .fb-body { padding: 20px; }
+  .fb-body p.q { font-weight: 600; font-size: 0.9rem; margin: 0 0 14px; }
+
+  /* ---------- mock 4: template library ---------- */
+  .cat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .cat-tab {
+    font-size: 0.8rem; font-weight: 600; padding: 5px 13px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted-fg); background: var(--card);
+  }
+  .cat-tab.on { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+  .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .tpl-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .tpl-preview { background: var(--wa-chat-bg); padding: 16px 14px 18px; flex: 1; }
+  .wa-bubble {
+    background: var(--wa-bubble); border-radius: 10px; border-top-left-radius: 3px;
+    padding: 9px 12px; font-size: 0.78rem; line-height: 1.45;
+    max-width: 95%; box-shadow: var(--shadow-sm); color: var(--fg);
+  }
+  .wa-bubble .var { color: var(--primary); font-weight: 600; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.72rem; }
+  .wa-time { font-size: 0.62rem; color: var(--muted-fg); text-align: right; margin-top: 4px; }
+  .wa-btnrow { margin-top: 7px; display: grid; gap: 4px; }
+  .wa-btn {
+    background: var(--card); border-radius: 7px; text-align: center;
+    font-size: 0.75rem; font-weight: 600; color: oklch(0.55 0.15 240);
+    padding: 5px; box-shadow: var(--shadow-sm);
+  }
+  .tpl-meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); }
+  .tpl-meta .row1 { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .tpl-name { font-size: 0.83rem; font-weight: 700; }
+  .tpl-meta .use { font-size: 0.76rem; font-weight: 600; color: var(--primary); }
+
+  /* ---------- mock 5: health widget ---------- */
+  .health-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .stat-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+  .stat-value { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin: 2px 0 4px; }
+  .stat-value small { font-size: 0.85rem; color: var(--muted-fg); font-weight: 500; }
+  .meter { height: 7px; border-radius: 999px; background: var(--muted); overflow: hidden; margin: 8px 0 6px; }
+  .meter i { display: block; height: 100%; border-radius: 999px; }
+  .stat-foot { font-size: 0.75rem; color: var(--muted-fg); }
+  .health-cta {
+    margin-top: 16px; border: 1px solid color-mix(in oklch, var(--warn), transparent 55%);
+    background: var(--warn-soft); border-radius: 10px; padding: 14px 18px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  .health-cta p { margin: 0; font-size: 0.85rem; flex: 1; min-width: 240px; }
+
+  footer.page {
+    margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--border);
+    font-size: 0.82rem; color: var(--muted-fg);
+  }
+  a { color: var(--primary); }
+</style>
+
+<div class="wrap">
+
+<header class="page">
+  <div class="eyebrow">notify-sdk · feature/meta-tech-provider</div>
+  <h1>WhatsApp Platform — Phase 1 &amp; 2 mockups</h1>
+  <p class="lede">Five screens covering the roadmap's onboarding and engagement surface, drawn in the admin app's existing design system (shadcn base-nova tokens, light &amp; dark). Every element is tagged by where it comes from:</p>
+  <div class="legend">
+    <span class="chip reused">Reused — exists today</span>
+    <span class="chip p1">Phase 1 — generalize + templates + health</span>
+    <span class="chip p2">Phase 2 — Embedded Signup (Tech Provider)</span>
+  </div>
+</header>
+
+<!-- ============ 1. CHOOSER ============ -->
+<section class="mock">
+  <div class="sec-head"><span class="sec-num">1</span><h2>Connect WhatsApp — two doors, one platform</h2></div>
+  <p class="sec-sub">The entry screen every new business sees. In Phase 1 only the right-hand door is active; the Facebook door appears disabled with a "coming soon" state until Phase 2 ships. Both terminate in the same credentials record — nothing downstream knows the difference.</p>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="urlbar">app.azentis.io/setup/whatsapp</span></div>
+    <div class="frame-body">
+      <p class="ui-h1">Connect WhatsApp</p>
+      <p class="ui-sub">Choose how you'd like to link your business's WhatsApp number. Both options give you the same platform features.</p>
+      <div class="choose-grid">
+        <div class="ui-card choose-card rec">
+          <span class="corner pill pill-acc">Recommended · new businesses</span>
+          <div class="choose-ico ico-fb">📘</div>
+          <h4>Continue with Facebook</h4>
+          <p>No Meta developer account needed. Log in with Facebook, confirm your business name and phone number, and we set everything up for you — nothing to copy or paste.</p>
+          <div><span class="btn btn-fb">Continue with Facebook</span></div>
+          <span class="pill pill-muted">Ships in Phase 2</span>
+        </div>
+        <div class="ui-card choose-card">
+          <span class="corner pill pill-muted">For existing Meta setups</span>
+          <div class="choose-ico ico-key">🔑</div>
+          <h4>I already have WhatsApp API credentials</h4>
+          <p>Your business already has a Meta app and WhatsApp Business Account. Paste your Phone Number ID, access token, and app secret — we verify them live before saving.</p>
+          <div><span class="btn btn-outline">Enter credentials manually</span></div>
+          <span class="pill pill-ok">✓ Works today</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note n-p1"><b>Phase 1</b><p>New chooser screen, business-agnostic copy (no clinic wording). Facebook card rendered disabled until Phase 2.</p></div>
+    <div class="note n-reused"><b>Reused</b><p>Manual door routes to today's <span class="mono">CredentialsForm</span> flow — same fields, same live Meta verification.</p></div>
+    <div class="note n-p2"><b>Phase 2</b><p>Facebook door activates: launches Meta's Embedded Signup popup against the platform's own Meta App.</p></div>
+  </div>
+</section>
+
+<!-- ============ 2. MANUAL SETUP ============ -->
+<section class="mock">
+  <div class="sec-head"><span class="sec-num">2</span><h2>Manual setup — one page, verified before save</h2></div>
+  <p class="sec-sub">Path A generalized. Business identity on the left (works for a clinic, a shop, a brand — category-driven), WhatsApp credentials on the right with the existing help-steps aside. The Verify button hits Meta's Graph API live; Save is disabled until verification passes. <span class="badge b-reused">mostly reused</span></p>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="urlbar">app.azentis.io/setup/whatsapp/manual</span></div>
+    <div class="frame-body">
+      <p class="ui-h1">Set up your WhatsApp connection</p>
+      <p class="ui-sub">One page. Once verified, you can send your first message immediately.</p>
+      <div class="form-grid">
+        <div class="ui-card">
+          <div class="card-head"><span class="ci">🏪</span>
+            <div><h4>Your business</h4><p>Shown to your customers and on your dashboard.</p></div></div>
+          <div class="fld"><label class="ui-label">Business name</label><input class="ui-input" value="Sunrise Dental Clinic" readonly></div>
+          <div class="fld"><label class="ui-label">Category</label><input class="ui-input" value="Healthcare — Clinic ▾" readonly>
+            <p class="ui-hint">Retail shop · Restaurant · Services · Education · Healthcare · Other — drives which starter templates you see.</p></div>
+          <div class="fld"><label class="ui-label">Timezone</label><input class="ui-input" value="Asia/Kolkata (GMT+5:30) ▾" readonly>
+            <p class="ui-hint">Used for quiet hours — we won't message your customers at 2 AM.</p></div>
+          <div class="fld"><label class="ui-label">Logo &amp; brand color <span class="opt">(optional)</span></label>
+            <div style="display:flex;gap:10px;align-items:center">
+              <span style="width:38px;height:38px;border-radius:9px;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;color:var(--primary-fg);font-weight:700">S</span>
+              <span class="btn btn-outline" style="font-size:0.78rem;padding:6px 12px">Upload logo</span>
+            </div></div>
+        </div>
+        <div class="ui-card">
+          <div class="card-head"><span class="ci">🔐</span>
+            <div><h4>WhatsApp credentials</h4><p>From your Meta developer console. Encrypted the moment you save.</p></div></div>
+          <div class="helpsteps"><b>Where do I find these?</b>
+            <ol><li>developers.facebook.com → your app → <b>WhatsApp → API Setup</b></li>
+            <li>Copy the Phone Number ID and WABA ID</li>
+            <li>Business Settings → <b>System Users</b> → generate a permanent token</li>
+            <li>App Settings → Basic → copy the <b>App Secret</b></li></ol></div>
+          <div class="fld"><label class="ui-label">Phone Number ID</label><input class="ui-input mono" value="712893410884523" readonly></div>
+          <div class="fld"><label class="ui-label">WhatsApp Business Account ID <span class="opt">(recommended)</span></label><input class="ui-input mono" value="104857203991726" readonly></div>
+          <div class="fld"><label class="ui-label">Permanent access token</label><input class="ui-input mono" value="••••••••••••••••••••••••••••" readonly></div>
+          <div class="fld"><label class="ui-label">App secret <span class="opt">(needed for replies &amp; STOP handling)</span></label><input class="ui-input mono" value="••••••••••••••••" readonly></div>
+          <div class="verify-row">
+            <span class="btn btn-outline">Verify with Meta</span>
+            <span class="pill pill-ok">✓ Verified — “Sunrise Dental” · +91 98••• ••210</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:22px;display:flex;justify-content:flex-end;gap:10px">
+        <span class="btn btn-outline">Back</span>
+        <span class="btn btn-primary">Save &amp; continue → choose templates</span>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note n-reused"><b>Reused</b><p>Credential fields, live Graph API verification, per-tenant encryption — today's <span class="mono">CredentialsForm.tsx</span> + <span class="mono">metaGraph.ts</span> unchanged.</p></div>
+    <div class="note n-p1"><b>Phase 1</b><p>Business-identity column with a category selector; category filters the starter template library on the next screen. Clinic is one option, not the premise.</p></div>
+    <div class="note n-p1"><b>Phase 1</b><p>Flow ends by routing into template selection — setup and first-send become one continuous path instead of separate ops tabs.</p></div>
+  </div>
+</section>
+
+<!-- ============ 3. EMBEDDED SIGNUP ============ -->
+<section class="mock">
+  <div class="sec-head"><span class="sec-num">3</span><h2>Embedded Signup — the zero-paste path</h2></div>
+  <p class="sec-sub">Path B. Meta's own hosted dialog opens over our page; the business logs in, confirms details, verifies its number by OTP — and Meta hands our backend the credentials via OAuth. The business never sees a token. <span class="badge b-p2">Phase 2</span></p>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="urlbar">app.azentis.io/setup/whatsapp/connect</span></div>
+    <div class="frame-body">
+      <div class="es-steps">
+        <span class="es-step done"><span class="es-dot">✓</span><span>Facebook login</span></span><span class="es-line"></span>
+        <span class="es-step done"><span class="es-dot">✓</span><span>Business details</span></span><span class="es-line"></span>
+        <span class="es-step live"><span class="es-dot">3</span><span>Verify phone number</span></span><span class="es-line"></span>
+        <span class="es-step"><span class="es-dot">4</span><span>Done — start sending</span></span>
+      </div>
+      <div class="fb-dialog">
+        <div class="fb-head"><span>Meta · WhatsApp Business</span><span style="opacity:.7">✕</span></div>
+        <div class="fb-body">
+          <p class="q">Verify the number for <b>Corner Bakery</b></p>
+          <p style="font-size:0.82rem;color:var(--muted-fg);margin:0 0 14px">We sent a 6-digit code by SMS to <b>+91 90••• ••847</b>. This number will be your business's WhatsApp identity.</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+            <input class="ui-input mono" value="4" readonly style="width:38px;text-align:center"><input class="ui-input mono" value="7" readonly style="width:38px;text-align:center"><input class="ui-input mono" value="2" readonly style="width:38px;text-align:center"><input class="ui-input mono" value="" readonly style="width:38px"><input class="ui-input mono" value="" readonly style="width:38px"><input class="ui-input mono" value="" readonly style="width:38px">
+          </div>
+          <div style="display:grid"><span class="btn btn-fb" style="justify-content:center">Verify</span></div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:0.78rem;color:var(--muted-fg);margin:18px 0 0">Behind the scenes: OAuth code → platform backend exchanges it → WABA + phone number attached to the Azentis Meta App → credentials written to the same store the manual path uses.</p>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note n-p2"><b>Phase 2 — in product</b><p>FB JS SDK launch button, OAuth code exchange endpoint, token/WABA provisioning, webhook subscribe — all new backend surface.</p></div>
+    <div class="note n-p2"><b>Phase 2 — prerequisites</b><p>Blocked on the 4 open Meta console items: Facebook Login for Business, business verification, App Review (Advanced Access), Publish.</p></div>
+    <div class="note n-reused"><b>Reused</b><p>Everything after credential storage: <span class="mono">TenantClientRegistry</span>, sending, webhooks, analytics — identical for both paths.</p></div>
+  </div>
+</section>
+
+<!-- ============ 4. TEMPLATE LIBRARY ============ -->
+<section class="mock">
+  <div class="sec-head"><span class="sec-num">4</span><h2>Starter template library — pick, personalize, submit</h2></div>
+  <p class="sec-sub">The lever on "no manual effort": a business picks pre-drafted, pre-categorized templates instead of writing copy that Meta might reject. Previews render exactly as customers will see them. Filtered by the category chosen at setup. <span class="badge b-p1">Phase 1</span></p>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="urlbar">app.azentis.io/setup/templates</span></div>
+    <div class="frame-body">
+      <p class="ui-h1">Choose your starter messages</p>
+      <p class="ui-sub">Pick the ones you need — we pre-fill your business name and submit them to WhatsApp for approval (usually under a day).</p>
+      <div class="cat-tabs">
+        <span class="cat-tab on">Appointments</span><span class="cat-tab">Orders &amp; delivery</span><span class="cat-tab">Promotions</span><span class="cat-tab">Alerts &amp; reports</span><span class="cat-tab">Follow-ups</span>
+      </div>
+      <div class="tpl-grid">
+        <div class="ui-card tpl-card">
+          <div class="tpl-preview">
+            <div class="wa-bubble">Hi <span class="var">{{name}}</span> 👋 This is a reminder of your appointment at <b>Sunrise Dental Clinic</b> on <span class="var">{{date}}</span> at <span class="var">{{time}}</span>.
+              <div class="wa-btnrow"><div class="wa-btn">Confirm</div><div class="wa-btn">Reschedule</div></div>
+              <div class="wa-time">10:02</div></div>
+          </div>
+          <div class="tpl-meta"><div class="row1"><span class="tpl-name">Appointment reminder</span><span class="pill pill-ok">Pre-approved copy</span></div><span class="use">Use this template →</span></div>
+        </div>
+        <div class="ui-card tpl-card">
+          <div class="tpl-preview">
+            <div class="wa-bubble">✅ <span class="var">{{name}}</span>, your appointment at <b>Sunrise Dental Clinic</b> is confirmed for <span class="var">{{date}}</span>, <span class="var">{{time}}</span>. Reply STOP to opt out.<div class="wa-time">10:02</div></div>
+          </div>
+          <div class="tpl-meta"><div class="row1"><span class="tpl-name">Booking confirmation</span><span class="pill pill-ok">Pre-approved copy</span></div><span class="use">Use this template →</span></div>
+        </div>
+        <div class="ui-card tpl-card">
+          <div class="tpl-preview">
+            <div class="wa-bubble">Hello <span class="var">{{name}}</span>, your report from <b>Sunrise Dental Clinic</b> is ready 📄 <span class="var">{{document}}</span>
+              <div class="wa-btnrow"><div class="wa-btn">View report</div></div>
+              <div class="wa-time">16:40</div></div>
+          </div>
+          <div class="tpl-meta"><div class="row1"><span class="tpl-name">Report ready</span><span class="pill pill-warn">Needs Meta approval</span></div><span class="use">Customize &amp; submit →</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note n-p1"><b>Phase 1</b><p>Curated library per category, variable slots pre-wired, one-click submit through the existing <span class="mono">syncTemplates()</span>/HSM pipeline.</p></div>
+    <div class="note n-reused"><b>Reused</b><p>Template sync, HSM sending, the WhatsApp-style preview (existing <span class="mono">body_preview</span> rendering), campaign send path.</p></div>
+    <div class="note n-p1"><b>Phase 1</b><p>Approval status tracked per template — the dashboard nudges the business when a template clears review and is ready to send.</p></div>
+  </div>
+</section>
+
+<!-- ============ 5. HEALTH ============ -->
+<section class="mock">
+  <div class="sec-head"><span class="sec-num">5</span><h2>Sending health — see the ceiling before you hit it</h2></div>
+  <p class="sec-sub">Every unverified business starts at 250 unique customers per day. Today that limit is invisible until sends start failing. This widget sits on the dashboard: live usage, quality rating, and a verification nudge that appears only when it starts to matter. <span class="badge b-p1">Phase 1</span></p>
+  <div class="frame">
+    <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="urlbar">app.azentis.io/dashboard</span></div>
+    <div class="frame-body">
+      <div class="health-grid">
+        <div class="ui-card">
+          <div class="stat-label">Customers messaged today</div>
+          <div class="stat-value">184 <small>/ 250</small></div>
+          <div class="meter"><i style="width:74%;background:var(--warn)"></i></div>
+          <div class="stat-foot">Resets on a rolling 24-hour window</div>
+        </div>
+        <div class="ui-card">
+          <div class="stat-label">Quality rating</div>
+          <div class="stat-value" style="display:flex;align-items:center;gap:9px">High <span class="pill pill-ok">● Healthy</span></div>
+          <div class="stat-foot">Based on blocks &amp; reports from your customers. High quality raises your limit automatically.</div>
+        </div>
+        <div class="ui-card">
+          <div class="stat-label">Messaging tier</div>
+          <div class="stat-value">Starter</div>
+          <div class="stat-foot">Unverified business · 250/day · 2 numbers · 250 templates</div>
+        </div>
+      </div>
+      <div class="health-cta">
+        <span style="font-size:1.2rem">⚠️</span>
+        <p><b>You're at 74% of today's limit.</b> Verify your business with Meta to unlock 1,000+ customers per day — takes about 10 minutes, we'll walk you through it.</p>
+        <span class="btn btn-primary">Start verification</span>
+      </div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note n-p1"><b>Phase 1</b><p>Tier + quality pulled from Meta's Graph API per tenant; usage computed from existing <span class="mono">notify_log</span> rollups. Nudge appears above 70% only.</p></div>
+    <div class="note n-p1"><b>Phase 1</b><p>Verification stays optional — the platform works unverified. This reframes verification as a growth step, not a signup wall.</p></div>
+    <div class="note n-reused"><b>Reused</b><p>Analytics engine (live-computed rollups), dashboard stat-card visual language from the tenant portal.</p></div>
+  </div>
+</section>
+
+<footer class="page wrap">
+  Companion docs on <span class="mono">feature/meta-tech-provider</span>: <span class="mono">docs/meta-tech-provider-feasibility.md</span> · <span class="mono">docs/whatsapp-platform-roadmap.md</span>. Build order after sign-off: Phase 1 (screens 1-manual, 2, 4, 5) → Phase 2 (screens 1-Facebook, 3) → Phase 3 hardening.
+</footer>
+
+</div>
