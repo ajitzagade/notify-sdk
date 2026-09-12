@@ -1,0 +1,288 @@
+<title>What you can do on AZentis Notify</title>
+<style>
+  :root {
+    --page: #f4f5f3; --card: #ffffff; --ink: #191b22; --ink-2: #52565f; --muted: #82868f;
+    --line: #e2e3e0; --hairline: rgba(15,17,15,0.08);
+    --owner: #4c3fd6; --owner-soft: #eeecfc; --owner-line: #d5d1f6;
+    --client: #0e8f6f; --client-soft: #e5f6f0; --client-line: #bfe9dc;
+    --both: #b5760f; --both-soft: #fbf1de;
+    --shadow: 0 1px 2px rgba(20,20,15,0.04), 0 10px 28px -14px rgba(20,20,15,0.16);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #121316; --card: #1a1c21; --ink: #eef0f4; --ink-2: #b7bac3; --muted: #82868f;
+      --line: #2b2e34; --hairline: rgba(255,255,255,0.08);
+      --owner: #a79dfb; --owner-soft: #24213f; --owner-line: #3a3564;
+      --client: #5fd3ac; --client-soft: #17322a; --client-line: #26493d;
+      --both: #e8b25a; --both-soft: #362b16;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #121316; --card: #1a1c21; --ink: #eef0f4; --ink-2: #b7bac3; --muted: #82868f;
+    --line: #2b2e34; --hairline: rgba(255,255,255,0.08);
+    --owner: #a79dfb; --owner-soft: #24213f; --owner-line: #3a3564;
+    --client: #5fd3ac; --client-soft: #17322a; --client-line: #26493d;
+    --both: #e8b25a; --both-soft: #362b16;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -14px rgba(0,0,0,0.6);
+  }
+  :root[data-theme="light"] {
+    --page: #f4f5f3; --card: #ffffff; --ink: #191b22; --ink-2: #52565f; --muted: #82868f;
+    --line: #e2e3e0; --hairline: rgba(15,17,15,0.08);
+    --owner: #4c3fd6; --owner-soft: #eeecfc; --owner-line: #d5d1f6;
+    --client: #0e8f6f; --client-soft: #e5f6f0; --client-line: #bfe9dc;
+    --both: #b5760f; --both-soft: #fbf1de;
+    --shadow: 0 1px 2px rgba(20,20,15,0.04), 0 10px 28px -14px rgba(20,20,15,0.16);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 52px 28px 90px; }
+  @media (max-width: 640px) { .wrap { padding: 36px 16px 70px; } }
+
+  /* ---------- header ---------- */
+  .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); letter-spacing: -.025em; margin: 10px 0 10px; text-wrap: balance; }
+  .lede { color: var(--ink-2); max-width: 66ch; margin: 0 0 30px; font-size: 15.5px; }
+
+  /* ---------- three-tier flow diagram ---------- */
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 8px 0 44px; }
+  .flow-node {
+    flex: 1; background: var(--card); border: 1px solid var(--hairline); border-radius: 14px;
+    padding: 20px 20px 18px; box-shadow: var(--shadow); position: relative;
+  }
+  .flow-node .fn-icon {
+    width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
+  .flow-node.n-owner .fn-icon { background: var(--owner-soft); color: var(--owner); }
+  .flow-node.n-client .fn-icon { background: var(--client-soft); color: var(--client); }
+  .flow-node.n-cust .fn-icon { background: var(--both-soft); color: var(--both); }
+  .flow-node .fn-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .flow-node .fn-sub { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .flow-arrow { flex: 0 0 44px; display: flex; align-items: center; justify-content: center; color: var(--line); }
+  .flow-arrow svg { width: 26px; height: 16px; }
+  @media (max-width: 780px) {
+    .flow { flex-direction: column; gap: 12px; }
+    .flow-arrow { transform: rotate(90deg); flex-basis: 20px; }
+  }
+
+  /* ---------- section headers ---------- */
+  .role-section { margin-top: 54px; }
+  .role-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .role-chip {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700;
+    padding: 5px 12px; border-radius: 999px; border: 1px solid;
+  }
+  .role-chip.owner { color: var(--owner); background: var(--owner-soft); border-color: var(--owner-line); }
+  .role-chip.client { color: var(--client); background: var(--client-soft); border-color: var(--client-line); }
+  .role-chip svg { width: 13px; height: 13px; }
+  h2 { font-size: 1.4rem; letter-spacing: -.02em; margin: 0; }
+  .role-desc { color: var(--ink-2); font-size: 14px; max-width: 68ch; margin: 8px 0 26px; }
+
+  /* ---------- capability groups ---------- */
+  .groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 18px; }
+  .group {
+    background: var(--card); border: 1px solid var(--hairline); border-radius: 14px;
+    padding: 20px 22px 18px; box-shadow: var(--shadow);
+  }
+  .group-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .group-ico { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .owner .group-ico { background: var(--owner-soft); color: var(--owner); }
+  .client .group-ico { background: var(--client-soft); color: var(--client); }
+  .group-ico svg { width: 16px; height: 16px; }
+  .group-title { font-size: 14.5px; font-weight: 700; }
+
+  .cap { padding: 10px 0; border-top: 1px solid var(--line); }
+  .cap:first-of-type { border-top: none; padding-top: 0; }
+  .cap-title { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .cap-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .tag {
+    font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    padding: 1.5px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .tag.soon { background: var(--both-soft); color: var(--both); }
+  .tag.optin { background: var(--client-soft); color: var(--client); }
+  code { background: var(--line); border-radius: 4px; padding: 0 5px; font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* ---------- customer strip ---------- */
+  .cust-strip {
+    margin-top: 54px; border-radius: 14px; border: 1px solid var(--both-soft);
+    background: var(--both-soft); padding: 22px 26px;
+  }
+  .cust-strip .cs-head { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14.5px; color: var(--both); margin-bottom: 10px; }
+  .cust-strip .cs-head svg { width: 16px; height: 16px; }
+  .cust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .cust-item { font-size: 13px; color: var(--ink-2); }
+  .cust-item b { color: var(--ink); }
+
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16"/><path d="M14 10h5a1 1 0 0 1 1 1v10"/><path d="M8 8h.01M8 12h.01M8 16h.01M20 14h.01M20 18h.01"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5h16v4"/><path d="M4 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M5 9v10h14V9"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.3"/><path d="M2.5 20c0-3.4 2.9-5.5 6.5-5.5s6.5 2.1 6.5 5.5"/><circle cx="17.5" cy="9" r="2.6"/><path d="M18 14.5c2.3.5 3.8 2.1 3.8 4.8"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 26 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h22m0 0-6-6m6 6-6 6"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9m-4 4 3 3"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 5 3.4 8.4 7 10 3.6-1.6 7-5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V3m6 4V3M7 7h10v4a5 5 0 0 1-10 0V7Z"/><path d="M12 16v5"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6 10V4m6 15v-7m6 7V11"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21 3-9 9m9-9-6 18-3-9-9-3 18-6Z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.1 12.5 4H5v7.5l8.1 8.1a2 2 0 0 0 2.8 0l4.7-4.7a2 2 0 0 0 0-2.8Z"/><path d="M8.5 8.5h.01"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a8 8 0 1 1 16 0"/><path d="m12 14 4-4"/><circle cx="12" cy="14" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-user-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="3.5"/><path d="M3 20c0-3.5 3-5.5 7-5.5"/><path d="m16.5 15.5 2 2 3.5-3.5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-robot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M12 5v4M9 3.5h6"/><circle cx="9" cy="14.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="14.5" r="1.2" fill="currentColor" stroke="none"/><path d="M2 13v3M22 13v3"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 3h6l2-3h4"/><path d="M5 12 4 6h16l-1 6"/><path d="M4 12v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5.5-5.5L4 21"/></symbol>
+</svg>
+
+<div class="wrap">
+  <div class="eyebrow">AZentis Notify · Platform Reference</div>
+  <h1>Everything this platform can do</h1>
+  <p class="lede">Two roles use this system, and each gets a very different set of powers. This is the full map — not a marketing summary — organized exactly the way the product itself is: what the platform owner can configure for any client, and what a client business can actually do once they're live.</p>
+
+  <div class="flow">
+    <div class="flow-node n-owner">
+      <div class="fn-icon"><svg viewBox="0 0 24 24"><use href="#i-building"/></svg></div>
+      <div class="fn-title">Platform owner</div>
+      <div class="fn-sub">Runs the ops console. Onboards, configures, and monitors every client business on one shared platform.</div>
+    </div>
+    <div class="flow-arrow"><svg viewBox="0 0 26 16"><use href="#i-arrow"/></svg></div>
+    <div class="flow-node n-client">
+      <div class="fn-icon"><svg viewBox="0 0 24 24"><use href="#i-store"/></svg></div>
+      <div class="fn-title">Client business</div>
+      <div class="fn-sub">A tenant — fully isolated credentials, contacts, and history. Works in their own portal or their own backend via API.</div>
+    </div>
+    <div class="flow-arrow"><svg viewBox="0 0 26 16"><use href="#i-arrow"/></svg></div>
+    <div class="flow-node n-cust">
+      <div class="fn-icon"><svg viewBox="0 0 24 24"><use href="#i-users"/></svg></div>
+      <div class="fn-title">Their customers</div>
+      <div class="fn-sub">Receive real WhatsApp messages, reply, and control their own consent — never contacted without opting in.</div>
+    </div>
+  </div>
+
+  <!-- ============================= OWNER ============================= -->
+  <div class="role-section">
+    <div class="role-head">
+      <h2>As the platform owner</h2>
+      <span class="role-chip owner"><svg viewBox="0 0 24 24"><use href="#i-building"/></svg>ops console</span>
+    </div>
+    <p class="role-desc">Everything below happens in the admin console — one place to bring on, configure, and watch over every client business, without touching code or redeploying anything.</p>
+
+    <div class="groups owner">
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-key"/></svg></div><div class="group-title">Bringing a client on board</div></div>
+        <div class="cap"><div class="cap-title">Create an isolated tenant</div><div class="cap-desc">Name, slug, category, branding — a hard isolation boundary from every other client on the platform.</div></div>
+        <div class="cap"><div class="cap-title">Connect their WhatsApp number</div><div class="cap-desc">Paste credentials from a client's existing Meta setup, live-verified against Meta's API before anything saves.</div></div>
+        <div class="cap"><div class="cap-title">Continue with Facebook <span class="tag soon">Coming</span></div><div class="cap-desc">One-click Embedded Signup once Meta approval completes — no manual credential copying at all.</div></div>
+        <div class="cap"><div class="cap-title">Send a live test message</div><div class="cap-desc">Confirm delivery and the reply loop both work before calling onboarding done.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-pulse"/></svg></div><div class="group-title">Keeping every channel healthy</div></div>
+        <div class="cap"><div class="cap-title">Submit ready-made templates</div><div class="cap-desc">A starter library matched to the client's business category — pick, submit to Meta, done.</div></div>
+        <div class="cap"><div class="cap-title">Sync approved templates</div><div class="cap-desc">Pull in whatever's already live on a client's own WhatsApp Business Account.</div></div>
+        <div class="cap"><div class="cap-title">Watch sending health</div><div class="cap-desc">Daily usage against the tier ceiling and Meta's quality rating, per client, before either becomes a problem.</div></div>
+        <div class="cap"><div class="cap-title">Rotate the master encryption key</div><div class="cap-desc">Re-encrypt every client's stored credentials platform-wide without any downtime.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></div><div class="group-title">Governing access</div></div>
+        <div class="cap"><div class="cap-title">Issue &amp; revoke API keys</div><div class="cap-desc">One key per client backend integration — shown once, then only its prefix, ever again.</div></div>
+        <div class="cap"><div class="cap-title">Create portal accounts</div><div class="cap-desc">Client team logins exist only because ops created them — no self-signup, ever.</div></div>
+        <div class="cap"><div class="cap-title">Read the full audit trail</div><div class="cap-desc">Every credential, branding, or key change, attributed to the admin who made it.</div></div>
+        <div class="cap"><div class="cap-title">Suspend or archive a tenant</div><div class="cap-desc">Pause a client's sending ability without deleting their history.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-bolt"/></svg></div><div class="group-title">Extending a client's setup</div></div>
+        <div class="cap"><div class="cap-title">Turn on AI auto-reply</div><div class="cap-desc">First-line responses using the client's own OpenAI/Anthropic key, capped and handed off to a human deterministically.</div></div>
+        <div class="cap"><div class="cap-title">Configure outbound webhooks</div><div class="cap-desc">Push send/delivery/reply events into a client's own CRM or data warehouse — HMAC-signed, SSRF-guarded.</div></div>
+        <div class="cap"><div class="cap-title">Enable MCP access</div><div class="cap-desc">Let a client's own AI assistant (Claude Desktop, Cursor) read logs or send messages through the same guardrails.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></div><div class="group-title">Seeing the whole platform</div></div>
+        <div class="cap"><div class="cap-title">Live analytics, any tenant</div><div class="cap-desc">Sent/delivered/read/failed/replies, computed on every request — never a cached snapshot.</div></div>
+        <div class="cap"><div class="cap-title">Full campaign detail</div><div class="cap-desc">The exact message sent, per-recipient outcome, and every reply, for any campaign, any client.</div></div>
+        <div class="cap"><div class="cap-title">A shared inbox, per tenant</div><div class="cap-desc">See and reply to any client's customer conversations directly if they need the help.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= CLIENT ============================= -->
+  <div class="role-section">
+    <div class="role-head">
+      <h2>As a client business</h2>
+      <span class="role-chip client"><svg viewBox="0 0 24 24"><use href="#i-store"/></svg>portal &amp; API</span>
+    </div>
+    <p class="role-desc">Once connected, a client works in their own portal — or has their own backend call the same platform directly. Everything here is scoped to that one business; nothing crosses tenant lines.</p>
+
+    <div class="groups client">
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-send"/></svg></div><div class="group-title">Reaching customers proactively</div></div>
+        <div class="cap"><div class="cap-title">Session messages</div><div class="cap-desc">OTPs, task assignments, approvals, deploy alerts, generic alerts with buttons — within a 24h reply window.</div></div>
+        <div class="cap"><div class="cap-title">Real broadcast campaigns</div><div class="cap-desc">Send Meta-approved templates to a whole contact list, reachable even outside the 24h window.</div></div>
+        <div class="cap"><div class="cap-title">Media &amp; documents</div><div class="cap-desc">Invoices, receipts, product photos, voice notes — just a public link, no pre-upload step.</div></div>
+        <div class="cap"><div class="cap-title">Pick from starter templates</div><div class="cap-desc">Pre-written, category-matched messages — submit for approval without writing copy from scratch.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-inbox"/></svg></div><div class="group-title">Having real conversations</div></div>
+        <div class="cap"><div class="cap-title">A shared inbox</div><div class="cap-desc">Every customer reply as a conversation, assignable across the team, reply straight from here.</div></div>
+        <div class="cap"><div class="cap-title">Every reply, correlated</div><div class="cap-desc">Button taps and text replies both land against the exact message that triggered them.</div></div>
+        <div class="cap"><div class="cap-title">Full campaign history</div><div class="cap-desc">What was actually sent, who got it, who read it, and what they said back — one click away.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-tag"/></svg></div><div class="group-title">Growing your audience</div></div>
+        <div class="cap"><div class="cap-title">Import &amp; tag contacts</div><div class="cap-desc">CSV import, tags like "VIP" or "trial-expiring", merge-on-import or replace-on-edit.</div></div>
+        <div class="cap"><div class="cap-title">Build targeted lists</div><div class="cap-desc">Filter by tag for the campaign you're actually sending, not your whole contact base.</div></div>
+        <div class="cap"><div class="cap-title">Consent handled for you <span class="tag optin">Automatic</span></div><div class="cap-desc">STOP opts a customer out instantly and permanently blocks sends to them; START reverses it. You can't override it by accident.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-robot"/></svg></div><div class="group-title">Automating the busywork</div></div>
+        <div class="cap"><div class="cap-title">AI first-line replies</div><div class="cap-desc">Answer common questions automatically with your own OpenAI/Anthropic key, capped per conversation.</div></div>
+        <div class="cap"><div class="cap-title">Deterministic human handoff</div><div class="cap-desc">When the AI can't help or hits its cap, it hands off cleanly — never loops, never goes silent.</div></div>
+        <div class="cap"><div class="cap-title">Push events to your own systems</div><div class="cap-desc">Send/delivery/reply events land in your CRM or support desk the moment they happen.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-chart"/></svg></div><div class="group-title">Understanding your performance</div></div>
+        <div class="cap"><div class="cap-title">Live delivery analytics</div><div class="cap-desc">Delivery, read, and reply rates — recomputed on every load, never yesterday's numbers.</div></div>
+        <div class="cap"><div class="cap-title">Sending health at a glance</div><div class="cap-desc">Today's usage against your daily limit, your quality rating, and a nudge before you hit the ceiling.</div></div>
+        <div class="cap"><div class="cap-title">A 14-day activity view</div><div class="cap-desc">The dashboard you actually open every morning — sent, read, and reply trends over two weeks.</div></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="group-ico"><svg viewBox="0 0 24 24"><use href="#i-plug"/></svg></div><div class="group-title">Connecting your own systems</div></div>
+        <div class="cap"><div class="cap-title">A REST API, your key</div><div class="cap-desc"><code>/v1/send</code>, <code>send-bulk</code>, <code>opt-in</code>, <code>opt-out</code>, <code>logs</code> — your backend, never our credentials.</div></div>
+        <div class="cap"><div class="cap-title">Same guardrails, either path</div><div class="cap-desc">Opt-in checks, quiet hours, and rate limits apply identically to the portal and to your API calls.</div></div>
+        <div class="cap"><div class="cap-title">An AI assistant on your own key</div><div class="cap-desc">Point Claude Desktop or Cursor at your API key to read logs, or send messages once you opt in — bulk send is never exposed this way.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= CUSTOMER STRIP ============================= -->
+  <div class="cust-strip">
+    <div class="cs-head"><svg viewBox="0 0 24 24"><use href="#i-user-check"/></svg>What their customers actually experience</div>
+    <div class="cust-grid">
+      <div class="cust-item"><b>An authentic sender.</b> Messages arrive under the business's real, reviewed display name.</div>
+      <div class="cust-item"><b>A real conversation.</b> Replies reach a person, not a void — same thread, either direction.</div>
+      <div class="cust-item"><b>Consent that actually works.</b> Reply STOP, get nothing further — no exceptions, no re-asking.</div>
+      <div class="cust-item"><b>Never contacted cold.</b> The platform blocks sends to anyone who hasn't opted in, even if they're on a list.</div>
+    </div>
+  </div>
+
+  <footer>AZentis Notify · Platform capabilities reference · reflects the live product plus features already built and pending Meta approval (marked Coming)</footer>
+</div>
