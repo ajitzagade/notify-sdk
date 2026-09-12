@@ -182,7 +182,7 @@ export function InboxClient({
                 key={c.id}
                 type="button"
                 onClick={() => openConversation(c.id)}
-                className={`flex w-full items-start gap-2.5 border-b border-border px-4 py-3 text-left transition-colors hover:bg-muted/50 ${
+                className={`flex w-full items-start gap-2.5 border-b border-border px-4 py-3 text-left transition-colors hover:bg-muted ${
                   selectedId === c.id ? 'bg-muted/70' : ''
                 }`}
               >

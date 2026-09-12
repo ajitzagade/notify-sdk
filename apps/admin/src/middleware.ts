@@ -42,5 +42,9 @@ export function middleware(req: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // icon.png/apple-icon.png are Next's App Router favicon convention (a real
+  // route, not a static file) — without excluding them here the same way
+  // favicon.ico already is, the auth check 307s every favicon request to
+  // /login, which is why the icon never actually rendered.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png).*)'],
 };

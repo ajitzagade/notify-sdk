@@ -133,7 +133,7 @@ export default async function PortalDashboardPage() {
                   <ul className="divide-y divide-border/60">
                     {recentConversations.map((c) => (
                       <li key={c.id}>
-                        <Link href="/portal/inbox" className="flex items-center gap-3 py-2.5 transition-colors hover:bg-muted/40">
+                        <Link href="/portal/inbox" className="flex items-center gap-3 py-2.5 transition-colors hover:bg-muted">
                           <Avatar className="size-8 shrink-0">
                             <AvatarFallback className="text-xs">
                               {(c.contactName ?? c.contactPhone).slice(0, 1).toUpperCase()}
@@ -176,7 +176,7 @@ export default async function PortalDashboardPage() {
                   <ul className="divide-y divide-border/60">
                     {recentCampaigns.map((c) => (
                       <li key={c.id}>
-                        <Link href="/portal/campaigns" className="flex items-center gap-3 py-2.5 transition-colors hover:bg-muted/40">
+                        <Link href="/portal/campaigns" className="flex items-center gap-3 py-2.5 transition-colors hover:bg-muted">
                           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                             <Megaphone className="size-3.5" />
                           </div>

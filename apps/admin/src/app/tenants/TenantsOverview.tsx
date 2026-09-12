@@ -54,7 +54,7 @@ export function TenantsOverview({ tenants }: { tenants: TenantListItem[] }) {
               <motion.li key={t.id} variants={itemVariants} className={i > 0 ? 'border-t border-border' : ''}>
                 <Link
                   href={`/tenants/${t.id}`}
-                  className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/50"
+                  className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted"
                 >
                   <Avatar className="size-9 rounded-lg transition-transform duration-200 group-hover:scale-105">
                     {t.logoBlobUrl && <AvatarImage src={t.logoBlobUrl} alt="" />}
