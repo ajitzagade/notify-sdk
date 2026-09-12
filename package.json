@@ -13,6 +13,8 @@
     "clean": "turbo run clean"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "dotenv": "^16.6.1",
     "turbo": "^1.13.0",
     "typescript": "^5.4.0"
   }

@@ -39,6 +39,8 @@ done
 
 pnpm --filter @orgname/notify build        # must run before apps/admin or apps/api's /v1 routes can pick up SDK changes
 pnpm --filter @orgname/notify test         # jest, mocks the HTTP layer — no network/DB needed
+pnpm --filter admin test                  # jest over apps/admin's src/lib (starter templates, metaGraph with fetch mocked, submit flow) — no network/DB needed
+pnpm exec playwright test                 # E2E smoke suite (e2e/ at repo root) — needs Postgres up, seeded admin + demo data; starts the admin dev server itself. See e2e/README.md
 cd packages/notify && npx jest -t "sends a text message"   # run a single test by name (pnpm's own `test --` double-forwards `--` to jest and breaks arg parsing — use npx jest directly)
 
 pnpm --filter admin dev                   # apps/admin → :3012 (needs .env.local: DATABASE_URL, NOTIFY_MASTER_KEY, SESSION_SECRET, BLOB_READ_WRITE_TOKEN)
