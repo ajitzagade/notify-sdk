@@ -12,6 +12,8 @@ export interface ConversationRecord {
   status: ConversationStatus;
   assignedAdminId: string | null;
   assignedAdminEmail: string | null;
+  assignedPortalUserId: string | null;
+  assignedPortalUserEmail: string | null;
   hasUnread: boolean;
   lastMessageAt: string;
   createdAt: string;
@@ -19,28 +21,34 @@ export interface ConversationRecord {
 
 function rowToConversation(row: Record<string, unknown>): ConversationRecord {
   return {
-    id:                  row.id as string,
-    tenantId:            row.tenant_id as string,
-    contactPhone:        row.contact_phone as string,
-    contactName:         row.contact_name as string | null,
-    status:              row.status as ConversationStatus,
-    assignedAdminId:     row.assigned_admin_id as string | null,
-    assignedAdminEmail:  row.assigned_admin_email as string | null,
-    hasUnread:           row.has_unread as boolean,
-    lastMessageAt:       row.last_message_at as string,
-    createdAt:           row.created_at as string,
+    id:                       row.id as string,
+    tenantId:                 row.tenant_id as string,
+    contactPhone:             row.contact_phone as string,
+    contactName:              row.contact_name as string | null,
+    status:                   row.status as ConversationStatus,
+    assignedAdminId:          row.assigned_admin_id as string | null,
+    assignedAdminEmail:       row.assigned_admin_email as string | null,
+    assignedPortalUserId:     row.assigned_portal_user_id as string | null,
+    assignedPortalUserEmail:  row.assigned_portal_user_email as string | null,
+    hasUnread:                row.has_unread as boolean,
+    lastMessageAt:            row.last_message_at as string,
+    createdAt:                row.created_at as string,
   };
 }
 
+const CONVERSATION_SELECT = `
+  SELECT c.*, ct.name AS contact_name,
+         u.email AS assigned_admin_email,
+         pu.email AS assigned_portal_user_email
+    FROM conversations c
+    LEFT JOIN contacts ct ON ct.tenant_id = c.tenant_id AND ct.phone = c.contact_phone
+    LEFT JOIN admin_users u ON u.id = c.assigned_admin_id
+    LEFT JOIN tenant_portal_users pu ON pu.id = c.assigned_portal_user_id
+`;
+
 export async function listConversations(tenantId: string): Promise<ConversationRecord[]> {
   const { rows } = await getPool().query(
-    `SELECT c.*, ct.name AS contact_name, u.email AS assigned_admin_email
-       FROM conversations c
-       LEFT JOIN contacts ct ON ct.tenant_id = c.tenant_id AND ct.phone = c.contact_phone
-       LEFT JOIN admin_users u ON u.id = c.assigned_admin_id
-      WHERE c.tenant_id = $1
-      ORDER BY c.last_message_at DESC
-      LIMIT 200`,
+    `${CONVERSATION_SELECT} WHERE c.tenant_id = $1 ORDER BY c.last_message_at DESC LIMIT 200`,
     [tenantId]
   );
   return rows.map(rowToConversation);
@@ -48,11 +56,7 @@ export async function listConversations(tenantId: string): Promise<ConversationR
 
 export async function getConversation(tenantId: string, conversationId: string): Promise<ConversationRecord | null> {
   const { rows } = await getPool().query(
-    `SELECT c.*, ct.name AS contact_name, u.email AS assigned_admin_email
-       FROM conversations c
-       LEFT JOIN contacts ct ON ct.tenant_id = c.tenant_id AND ct.phone = c.contact_phone
-       LEFT JOIN admin_users u ON u.id = c.assigned_admin_id
-      WHERE c.tenant_id = $1 AND c.id = $2 LIMIT 1`,
+    `${CONVERSATION_SELECT} WHERE c.tenant_id = $1 AND c.id = $2 LIMIT 1`,
     [tenantId, conversationId]
   );
   return rows[0] ? rowToConversation(rows[0]) : null;
@@ -124,6 +128,16 @@ export async function assignConversation(tenantId: string, conversationId: strin
   await getPool().query(
     `UPDATE conversations SET assigned_admin_id = $3 WHERE tenant_id = $1 AND id = $2`,
     [tenantId, conversationId, adminId]
+  );
+}
+
+/** The portal-side equivalent — a client's own team member, not an ops admin. */
+export async function assignConversationToPortalUser(
+  tenantId: string, conversationId: string, portalUserId: string | null
+): Promise<void> {
+  await getPool().query(
+    `UPDATE conversations SET assigned_portal_user_id = $3 WHERE tenant_id = $1 AND id = $2`,
+    [tenantId, conversationId, portalUserId]
   );
 }
 

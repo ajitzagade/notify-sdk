@@ -37,16 +37,22 @@ export function InboxClient({
   tenantId,
   initialConversations,
   adminUsers,
+  portalUsers = [],
   baseApiPath,
   showAssignment = true,
+  assignMode = 'admin',
 }: {
   tenantId: string;
   initialConversations: ConversationRecord[];
   adminUsers: AdminUserSummary[];
+  /** The portal's own team members — a client's inbox distributes among these, not ops staff. */
+  portalUsers?: AdminUserSummary[];
   baseApiPath?: string;
-  /** Assigning to an internal ops teammate is an admin-only concept — the tenant portal hides this control. */
   showAssignment?: boolean;
+  /** 'admin' assigns to internal ops staff (assigned_admin_id); 'portal' assigns to the tenant's own team (assigned_portal_user_id) — different pool, different column, same UI. */
+  assignMode?: 'admin' | 'portal';
 }) {
+  const assignees = assignMode === 'portal' ? portalUsers : adminUsers;
   const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const [conversations, setConversations] = useState(initialConversations);
   const [selectedId, setSelectedId] = useState<string | null>(initialConversations[0]?.id ?? null);
@@ -113,21 +119,23 @@ export function InboxClient({
     }
   };
 
-  const handleAssign = async (adminId: string) => {
-    // No portal-side /assign route exists — assignment is an admin-only
-    // concept. showAssignment already hides the only UI that calls this,
-    // but guard here too so a future caller can't silently 404 against it.
+  const handleAssign = async (userId: string) => {
     if (!showAssignment || !selected) return;
-    const value = adminId === '__unassigned__' ? null : adminId;
+    const value = userId === '__unassigned__' ? null : userId;
+    const bodyKey = assignMode === 'portal' ? 'userId' : 'adminId';
     try {
       const res = await fetch(`${apiBase}/inbox/conversations/${selected.id}/assign`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ adminId: value }),
+        body:    JSON.stringify({ [bodyKey]: value }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Failed to assign');
-      const email = adminUsers.find((a) => a.id === value)?.email ?? null;
-      setSelected((prev) => (prev ? { ...prev, assignedAdminId: value, assignedAdminEmail: email } : prev));
+      const email = assignees.find((a) => a.id === value)?.email ?? null;
+      setSelected((prev) => (prev ? (
+        assignMode === 'portal'
+          ? { ...prev, assignedPortalUserId: value, assignedPortalUserEmail: email }
+          : { ...prev, assignedAdminId: value, assignedAdminEmail: email }
+      ) : prev));
       toast.success(value ? `Assigned to ${email}` : 'Unassigned');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
@@ -198,8 +206,10 @@ export function InboxClient({
                   <div className="mt-0.5 flex items-center gap-1.5">
                     {c.hasUnread && <span className="size-1.5 shrink-0 rounded-full bg-primary" />}
                     {c.status === 'closed' && <Badge variant="outline" className="text-[10px]">closed</Badge>}
-                    {c.assignedAdminEmail && (
-                      <span className="truncate text-[11px] text-muted-foreground">→ {c.assignedAdminEmail}</span>
+                    {(assignMode === 'portal' ? c.assignedPortalUserEmail : c.assignedAdminEmail) && (
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        → {assignMode === 'portal' ? c.assignedPortalUserEmail : c.assignedAdminEmail}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -225,15 +235,15 @@ export function InboxClient({
               <div className="flex shrink-0 items-center gap-2">
                 {showAssignment && (
                   <Select
-                    value={selected.assignedAdminId ?? '__unassigned__'}
+                    value={(assignMode === 'portal' ? selected.assignedPortalUserId : selected.assignedAdminId) ?? '__unassigned__'}
                     onValueChange={(v) => v && handleAssign(v)}
-                    // items map so the trigger shows the admin's email, not the raw UUID
-                    items={{ __unassigned__: 'Unassigned', ...Object.fromEntries(adminUsers.map((a) => [a.id, a.email])) }}
+                    // items map so the trigger shows the email, not the raw UUID
+                    items={{ __unassigned__: 'Unassigned', ...Object.fromEntries(assignees.map((a) => [a.id, a.email])) }}
                   >
                     <SelectTrigger className="w-44"><SelectValue placeholder="Assign to…" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__unassigned__">Unassigned</SelectItem>
-                      {adminUsers.map((a) => (
+                      {assignees.map((a) => (
                         <SelectItem key={a.id} value={a.id}>{a.email}</SelectItem>
                       ))}
                     </SelectContent>
