@@ -7,8 +7,11 @@
 <style>
   :root {
     --ink: #1d2130; --muted: #5d6478; --faint: #eceef4; --line: #dfe2ec;
-    --brand: #5a49e8; --brand-soft: #efedfd; --ok: #1e8e5a; --ok-soft: #e7f5ee;
-    --warn: #a36a00; --warn-soft: #fdf3e0; --paper: #ffffff;
+    --brand: #5a49e8; --brand-soft: #efedfd; --brand-soft2: #e2ddfb;
+    --ok: #1e8e5a; --ok-soft: #e7f5ee; --ok-line: #b9e3cc;
+    --warn: #a36a00; --warn-soft: #fdf3e0;
+    --danger: #b3261e; --danger-soft: #fbe9e7;
+    --paper: #ffffff; --chip: #f3f4f8;
   }
   * { box-sizing: border-box; }
   body {
@@ -16,21 +19,21 @@
     font: 15px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .page { max-width: 800px; margin: 0 auto; padding: 48px 28px 80px; background: var(--paper); min-height: 100vh; }
-  @media (min-width: 900px) { .page { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+  .page { max-width: 860px; margin: 0 auto; padding: 48px 28px 80px; background: var(--paper); min-height: 100vh; }
+  @media (min-width: 940px) { .page { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
 
   .doc-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ok); background: var(--ok-soft); border-radius: 4px; padding: 3px 8px; }
   h1 { font-size: 27px; letter-spacing: -.02em; margin: 12px 0 6px; }
   .sub { color: var(--muted); margin: 0 0 8px; max-width: 62ch; }
-  .meta-row { font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .meta-row { font-size: 12.5px; color: var(--muted); padding-bottom: 4px; margin-bottom: 8px; }
 
-  h2 { font-size: 19px; letter-spacing: -.01em; margin: 40px 0 6px; display: flex; align-items: center; gap: 10px; }
+  h2 { font-size: 19px; letter-spacing: -.01em; margin: 44px 0 6px; display: flex; align-items: center; gap: 10px; }
   h2 .num {
     width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff;
     display: inline-flex; align-items: center; justify-content: center;
     font-size: 13.5px; font-weight: 700; flex-shrink: 0;
   }
-  h3 { font-size: 15px; margin: 22px 0 6px; }
+  h3 { font-size: 15px; margin: 24px 0 6px; }
   .stepletter { display: inline-flex; width: 22px; height: 22px; border-radius: 6px; background: var(--brand-soft); color: var(--brand); font-size: 12px; font-weight: 700; align-items: center; justify-content: center; margin-right: 8px; }
   p { margin: 8px 0; } b { font-weight: 600; }
   code { background: var(--faint); border-radius: 4px; padding: 1px 6px; font-size: 13px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
@@ -50,7 +53,7 @@
   .check li { padding-left: 28px; position: relative; }
   .check li::before { content: ""; position: absolute; left: 0; top: 4px; width: 16px; height: 16px; border: 2px solid var(--brand); border-radius: 4px; }
 
-  .grab { background: #f3f4f8; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+  .grab { background: var(--chip); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
   .grab .g-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--brand); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
   .path { color: var(--muted); font-size: 13.5px; }
   .path b { color: var(--ink); }
@@ -61,9 +64,84 @@
   td { border-bottom: 1px solid var(--faint); padding: 8px 10px 8px 0; vertical-align: top; }
 
   footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+
+  /* ============ DIAGRAM: journey ribbon ============ */
+  .journey { display: flex; align-items: stretch; gap: 0; margin: 22px 0 6px; }
+  .j-stage { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; padding: 0 6px; }
+  .j-stage .j-ico {
+    width: 46px; height: 46px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 8px; flex-shrink: 0;
+    border: 2px solid var(--brand-soft2);
+  }
+  .j-stage .j-ico svg { width: 20px; height: 20px; }
+  .j-stage .j-who { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--brand); margin-bottom: 2px; }
+  .j-stage .j-label { font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .j-stage .j-cap { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .j-connector { flex: 0 0 28px; display: flex; align-items: center; justify-content: center; padding-top: 23px; color: var(--brand-soft2); }
+  .j-connector svg { width: 22px; height: 14px; }
+  @media (max-width: 640px) {
+    .journey { flex-direction: column; gap: 10px; }
+    .j-connector { transform: rotate(90deg); padding: 0; align-self: center; }
+    .j-stage { flex-direction: row; text-align: left; gap: 12px; }
+    .j-stage .j-ico { margin-bottom: 0; }
+  }
+
+  /* ============ DIAGRAM: Meta object anatomy ============ */
+  .anatomy { border: 1.5px dashed var(--brand-soft2); border-radius: 14px; padding: 18px 18px 20px; margin: 16px 0 20px; background: linear-gradient(180deg, var(--brand-soft) 0%, transparent 70px); }
+  .anatomy-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--brand); margin-bottom: 12px; }
+  .anatomy-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .anatomy-box { flex: 1; min-width: 220px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .anatomy-box .ab-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .anatomy-box .ab-where { font-size: 11px; color: var(--muted); margin-bottom: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .anatomy-out { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
+  .anatomy-out svg { width: 13px; height: 13px; color: var(--brand); flex-shrink: 0; }
+  .anatomy-out .chip { background: var(--brand-soft); color: var(--brand); border-radius: 5px; padding: 2px 8px; font-weight: 700; font-size: 11.5px; }
+  .anatomy-sub { border-top: 1px dashed var(--line); margin-top: 10px; padding-top: 10px; }
+
+  /* ============ DIAGRAM: mock screen ============ */
+  .mockscreen { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 14px 0 18px; box-shadow: 0 1px 2px rgba(20,20,40,0.05); }
+  .ms-bar { background: #eef0f5; border-bottom: 1px solid var(--line); padding: 7px 12px; display: flex; align-items: center; gap: 8px; }
+  .ms-bar .dots { display: flex; gap: 4px; }
+  .ms-bar .dots i { width: 7px; height: 7px; border-radius: 50%; background: #c7cbd8; display: block; }
+  .ms-bar .ms-url { font-size: 11px; color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .ms-body { padding: 16px 18px; background: #fafbfd; }
+  .ms-field { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .ms-field .fl { color: var(--muted); font-size: 11px; }
+  .ms-field .fv { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink); }
+  .ms-field.hot { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .ms-field.hot .fl { color: var(--brand); font-weight: 700; }
+  .ms-btn { display: inline-block; background: var(--brand); color: #fff; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 6px 14px; margin-top: 4px; }
+  .ms-callout { display: flex; align-items: flex-start; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--brand); font-weight: 600; }
+  .ms-callout svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ============ DIAGRAM: consent lifecycle ============ */
+  .lifecycle { display: flex; align-items: center; margin: 18px 0; flex-wrap: wrap; gap: 4px; }
+  .lc-node { display: flex; flex-direction: column; align-items: center; text-align: center; width: 118px; }
+  .lc-node .lc-ico { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+  .lc-node .lc-ico svg { width: 19px; height: 19px; }
+  .lc-node.neutral .lc-ico { background: var(--faint); color: var(--muted); }
+  .lc-node.good .lc-ico { background: var(--ok-soft); color: var(--ok); border: 2px solid var(--ok-line); }
+  .lc-node.bad .lc-ico { background: var(--danger-soft); color: var(--danger); }
+  .lc-node .lc-label { font-size: 12px; font-weight: 700; }
+  .lc-node .lc-cap { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .lc-arrow { flex: 0 0 auto; color: var(--brand-soft2); align-self: center; margin-bottom: 20px; }
+  .lc-arrow svg { width: 20px; height: 14px; }
+  .lc-arrow.back { color: var(--danger); opacity: .5; }
+  @media (max-width: 620px) { .lifecycle { flex-direction: column; } .lc-arrow { transform: rotate(90deg); margin: 0; } }
+
+  /* ============ DIAGRAM: sending limit meter ============ */
+  .limitmeter { margin: 16px 0 8px; }
+  .lm-track { display: flex; height: 34px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+  .lm-seg1 { flex: 0 0 25%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .lm-seg2 { flex: 1; background: repeating-linear-gradient(135deg, var(--brand-soft), var(--brand-soft) 8px, #fff 8px, #fff 16px); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border-left: 2px dashed var(--brand); }
+  .lm-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .lm-flag { position: relative; }
+  .lm-flag .lm-tag { position: absolute; left: 25%; top: -22px; transform: translateX(-50%); font-size: 10px; font-weight: 700; background: var(--ink); color: #fff; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .lm-flag .lm-tag::after { content: ""; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: var(--ink); }
+
   @media print {
     body { background: #fff; } .page { padding: 0; max-width: none; border: 0; }
-    h2 { break-after: avoid; } .why, .warn, .good, .grab, table { break-inside: avoid; }
+    h2 { break-after: avoid; } .why, .warn, .good, .grab, table, .anatomy, .mockscreen, .journey, .lifecycle { break-inside: avoid; }
   }
 </style>
 </head>
@@ -77,13 +155,52 @@
   <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.7"/><path d="M17.5 14.6c2.4.4 4 2 4 4.4"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M4 19h16M7 19v-6m5 6V9m5 10V5"/></symbol>
   <symbol id="i-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7"/><circle cx="12" cy="17" r=".5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5 9.5 18 20 6"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><circle cx="7" cy="7" r=".8" fill="currentColor" stroke="none"/><circle cx="7" cy="17" r=".8" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/><circle cx="9" cy="12" r=".8" fill="currentColor" stroke="none"/><circle cx="12.5" cy="12" r=".8" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r=".8" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-user-plus" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3 20c0-3.5 3-5.5 7-5.5"/><path d="M18 9v6m3-3h-6"/></symbol>
+  <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3.4 8.4 7 10 3.6-1.6 7-5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-shield-x" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3.4 8.4 7 10 3.6-1.6 7-5 7-10V6l-7-3Z"/><path d="m9.5 9.5 5 5m0-5-5 5"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 14"><path d="M1 7h20m0 0-7-6m7 6-7 6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></symbol>
 </svg>
 
 <div class="page">
   <span class="doc-tag">Client guide</span>
   <h1>Getting your business onto WhatsApp</h1>
   <p class="sub">This guide takes you from nothing to sending automated WhatsApp messages — appointment reminders, order updates, offers — to your customers. You do the Meta setup once (about 45 minutes); we handle everything after that.</p>
-  <div class="meta-row">AZentis Notify · Version 1.0 · September 2026 · If you get stuck at any step, stop and message us — a two-minute call beats an hour of guessing.</div>
+  <div class="meta-row">AZentis Notify · Version 1.1 · September 2026 · If you get stuck at any step, stop and message us — a two-minute call beats an hour of guessing.</div>
+
+  <!-- ===== JOURNEY DIAGRAM ===== -->
+  <div class="journey">
+    <div class="j-stage">
+      <div class="j-ico"><svg class="ic" viewBox="0 0 24 24"><use href="#i-key"/></svg></div>
+      <div class="j-who">You · ~45 min</div>
+      <div class="j-label">Set up on Meta</div>
+      <div class="j-cap">Section 2, six short steps</div>
+    </div>
+    <div class="j-connector"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="j-stage">
+      <div class="j-ico"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg></div>
+      <div class="j-who">You · 2 min</div>
+      <div class="j-label">Send us 4 values</div>
+      <div class="j-cap">Securely, one time</div>
+    </div>
+    <div class="j-connector"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="j-stage">
+      <div class="j-ico"><svg class="ic" viewBox="0 0 24 24"><use href="#i-server"/></svg></div>
+      <div class="j-who">Us · same day</div>
+      <div class="j-label">Connect &amp; test</div>
+      <div class="j-cap">Templates, live test message</div>
+    </div>
+    <div class="j-connector"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="j-stage">
+      <div class="j-ico"><svg class="ic" viewBox="0 0 24 24"><use href="#i-wa"/></svg></div>
+      <div class="j-who">You</div>
+      <div class="j-label">Go live</div>
+      <div class="j-cap">Working in your portal</div>
+    </div>
+  </div>
 
   <h2><span class="num">1</span><svg class="ic"><use href="#i-list"/></svg>What you'll need before starting</h2>
   <ul class="check">
@@ -96,11 +213,36 @@
   <div class="why"><b>Why this setup exists at all:</b> WhatsApp requires every business to have its own official WhatsApp Business Account with Meta. It's what makes your messages arrive with your business name instead of an anonymous number — and it's why this is a one-time setup, not something you'll ever repeat.</div>
 
   <h2><span class="num">2</span><svg class="ic"><use href="#i-key"/></svg>The Meta setup — four values we need from you</h2>
-  <p>You'll create your business's WhatsApp account on Meta's side, then hand us four values so our platform can send on your behalf. Follow the letters in order.</p>
+  <p>Before the step-by-step, here's the map of what you're building. It looks like more pieces than it is — everything nests inside one Business Portfolio, which is the "account" you're creating:</p>
+
+  <!-- ===== ANATOMY DIAGRAM ===== -->
+  <div class="anatomy">
+    <div class="anatomy-title">Your Business Portfolio (business.facebook.com)</div>
+    <div class="anatomy-row">
+      <div class="anatomy-box">
+        <div class="ab-title"><svg class="ic" style="color:var(--brand)"><use href="#i-server"/></svg>Your App</div>
+        <div class="ab-where">developers.facebook.com</div>
+        <div>Has the <b>WhatsApp</b> product added →</div>
+        <div class="anatomy-out"><svg><use href="#i-arrow-right"/></svg><span class="chip">Phone Number ID</span></div>
+        <div class="anatomy-out"><svg><use href="#i-arrow-right"/></svg><span class="chip">WABA ID</span></div>
+        <div class="anatomy-sub">
+          Also has an <b>App Secret</b> (App settings → Basic) →
+          <div class="anatomy-out"><svg><use href="#i-arrow-right"/></svg><span class="chip">App Secret</span></div>
+        </div>
+      </div>
+      <div class="anatomy-box">
+        <div class="ab-title"><svg class="ic" style="color:var(--brand)"><use href="#i-user-plus"/></svg>A System User</div>
+        <div class="ab-where">Business Settings → Users</div>
+        <div>A "robot" identity you create once, given permission to manage your App →</div>
+        <div class="anatomy-out"><svg><use href="#i-arrow-right"/></svg><span class="chip">Access token (never expires)</span></div>
+      </div>
+    </div>
+  </div>
+  <p>Those four highlighted values — <b>Phone Number ID, WABA ID, App Secret, Access token</b> — are exactly what step F asks you to send us. Follow the lettered steps below to go get them.</p>
 
   <h3><span class="stepletter">A</span>Create your Meta business portfolio</h3>
   <p class="path">Go to <b>business.facebook.com</b> <span class="arrow">→</span> log in with your Facebook account <span class="arrow">→</span> Create a business portfolio (if you don't already have one)</p>
-  <p>Enter your business name, your name, and a business email. This "portfolio" is Meta's container for everything your business owns — pages, ad accounts, and soon your WhatsApp account.</p>
+  <p>Enter your business name, your name, and a business email.</p>
 
   <h3><span class="stepletter">B</span>Create an app on Meta's developer site</h3>
   <p class="path">Go to <b>developers.facebook.com</b> <span class="arrow">→</span> My Apps <span class="arrow">→</span> Create App <span class="arrow">→</span> choose the <b>Business</b> type <span class="arrow">→</span> name it after your business <span class="arrow">→</span> connect it to the portfolio from step A</p>
@@ -108,10 +250,18 @@
 
   <h3><span class="stepletter">C</span>Add WhatsApp and your phone number</h3>
   <p class="path">Inside your new app <span class="arrow">→</span> find <b>WhatsApp</b> in the product list <span class="arrow">→</span> Set up <span class="arrow">→</span> open <b>API Setup</b></p>
-  <ul>
-    <li>Click <b>Add phone number</b>: enter your business name (this is the <b>display name</b> customers will see — Meta reviews it, so make it your real business name), your business number, and confirm the code Meta sends by SMS or call.</li>
-    <li>Once added, the API Setup screen shows two long numbers. Copy both:</li>
-  </ul>
+  <p>Click <b>Add phone number</b>: enter your business name (this is the <b>display name</b> customers will see — Meta reviews it, so make it your real business name), your business number, and confirm the code Meta sends by SMS or call. The screen you land on afterwards looks roughly like this:</p>
+
+  <!-- ===== MOCK SCREEN: API Setup ===== -->
+  <div class="mockscreen">
+    <div class="ms-bar"><span class="dots"><i></i><i></i><i></i></span><span class="ms-url">developers.facebook.com/apps/…/whatsapp-business/wa-settings</span></div>
+    <div class="ms-body">
+      <div class="ms-field hot"><span class="fl">PHONE NUMBER ID</span><span class="fv">108294710xxxxxx</span></div>
+      <div class="ms-field hot"><span class="fl">WHATSAPP BUSINESS ACCOUNT ID</span><span class="fv">193847102xxxxxx</span></div>
+      <div class="ms-field"><span class="fl">DISPLAY PHONE NUMBER</span><span class="fv">+91 90xxx xxxxx</span></div>
+      <div class="ms-callout"><svg><use href="#i-key"/></svg>Copy the two highlighted IDs — these are values 1 &amp; 2 of 4.</div>
+    </div>
+  </div>
   <div class="grab">
     <div class="g-title"><svg class="ic"><use href="#i-key"/></svg>Values 1 &amp; 2 of 4</div>
     <b>Phone Number ID</b> — the long ID shown under your phone number (this is <i>not</i> the phone number itself)<br>
@@ -125,6 +275,18 @@
     <li>Click <b>Add Assets</b> → Apps → select the app from step B → enable <b>Manage app</b>.</li>
     <li>Click <b>Generate New Token</b> → pick the app → set expiry to <b>Never</b> → tick the permissions <code>whatsapp_business_messaging</code> and <code>whatsapp_business_management</code> → Generate.</li>
   </ol>
+
+  <!-- ===== MOCK SCREEN: Generate Token ===== -->
+  <div class="mockscreen">
+    <div class="ms-bar"><span class="dots"><i></i><i></i><i></i></span><span class="ms-url">business.facebook.com/settings/system-users</span></div>
+    <div class="ms-body">
+      <div class="ms-field"><span class="fl">APP</span><span class="fv">your-business-app</span></div>
+      <div class="ms-field"><span class="fl">TOKEN EXPIRATION</span><span class="fv">Never ✓</span></div>
+      <div class="ms-field hot"><span class="fl">PERMISSIONS</span><span class="fv">whatsapp_business_messaging, whatsapp_business_management ✓</span></div>
+      <div class="ms-btn">Generate New Token</div>
+      <div class="ms-callout"><svg><use href="#i-key"/></svg>Meta shows the token once — copy it immediately.</div>
+    </div>
+  </div>
   <div class="grab">
     <div class="g-title"><svg class="ic"><use href="#i-key"/></svg>Value 3 of 4</div>
     <b>Permanent access token</b> — a very long string of letters and numbers. Copy it immediately; Meta shows it only once.
@@ -154,10 +316,32 @@
   <div class="why"><b>Why templates are a thing:</b> WhatsApp lets a business message anyone freely only within 24 hours of that person's last message to you. Outside that window — which is exactly when a reminder or delivery update happens — WhatsApp requires a pre-approved template. It's their spam defense, and it's also why messages from businesses on WhatsApp feel trustworthy rather than junky.</div>
 
   <h2><span class="num">4</span><svg class="ic"><use href="#i-people"/></svg>Your customers must say yes first — consent</h2>
-  <p>This is the one rule that protects everything else:</p>
+  <p>This is the one rule that protects everything else. Here's exactly what happens to a contact, start to finish:</p>
+
+  <!-- ===== CONSENT LIFECYCLE DIAGRAM ===== -->
+  <div class="lifecycle">
+    <div class="lc-node neutral">
+      <div class="lc-ico"><svg><use href="#i-user-plus"/></svg></div>
+      <div class="lc-label">Contact added</div>
+      <div class="lc-cap">CSV import or signup</div>
+    </div>
+    <div class="lc-arrow"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="lc-node good">
+      <div class="lc-ico"><svg><use href="#i-shield-check"/></svg></div>
+      <div class="lc-label">Opted in</div>
+      <div class="lc-cap">Messages flow normally</div>
+    </div>
+    <div class="lc-arrow"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="lc-node bad">
+      <div class="lc-ico"><svg><use href="#i-shield-x"/></svg></div>
+      <div class="lc-label">Replies STOP</div>
+      <div class="lc-cap">Blocked automatically</div>
+    </div>
+  </div>
+  <p style="margin-top:-6px"><svg class="ic" style="color:var(--muted)"><use href="#i-refresh"/></svg> <span style="color:var(--muted); font-size:13px">A later reply of <b style="color:var(--ink)">START</b> moves them straight back to "Opted in" — no action needed from you either way.</span></p>
+
   <ul>
     <li><b>Only message customers who agreed to receive WhatsApp messages from you</b> — a checkbox on your booking form, a signup sheet, a verbal yes you record. When you import contacts, you're confirming they opted in.</li>
-    <li><b>STOP always works, automatically.</b> If a customer replies STOP, our platform opts them out instantly and blocks future sends to them — you don't have to do anything, and you can't accidentally override it. START opts them back in.</li>
     <li>The platform enforces this at send time: a contact without consent simply won't receive messages, even if they're on a campaign list.</li>
   </ul>
   <div class="good"><b>Why this is in your interest, not just a rule:</b> Meta scores your number by how often recipients block or report you. A good score raises your daily sending allowance automatically; a bad one shrinks it and can pause your number entirely. Consent isn't paperwork — it's what keeps your channel alive and your messages welcome.</div>
@@ -175,10 +359,21 @@
   </table>
 
   <h2><span class="num">6</span><svg class="ic"><use href="#i-up"/></svg>Your sending limit, and when to think about verification</h2>
+  <p>Every new business starts at a fixed daily allowance. It's <i>250 different people</i> a day, not 250 messages — for most businesses that's plenty to start:</p>
+
+  <!-- ===== SENDING LIMIT METER ===== -->
+  <div class="limitmeter">
+    <div class="lm-flag"><span class="lm-tag">Verification</span></div>
+    <div class="lm-track">
+      <div class="lm-seg1">250 / day</div>
+      <div class="lm-seg2">1,000+ / day</div>
+    </div>
+    <div class="lm-labels"><span>Every business starts here</span><span>After Meta business verification (a few days)</span></div>
+  </div>
+
   <ul>
-    <li>Every new business starts with a WhatsApp allowance of <b>250 unique customers per 24 hours</b>. For most businesses that's plenty to start — it's 250 <i>different people</i> a day, not 250 messages.</li>
-    <li>The limit <b>grows automatically</b> as you send consistently with a good quality score.</li>
-    <li>If you expect to contact more than ~200 different customers a day soon, complete <b>Meta business verification</b> (uploading registration documents at business.facebook.com → Security Centre). It typically takes a few days and raises the ceiling to 1,000+/day. We'll flag it in your dashboard when you're approaching the limit — and we can walk you through it.</li>
+    <li>The limit <b>grows automatically</b> as you send consistently with a good quality score, even before verification.</li>
+    <li>If you expect to contact more than ~200 different customers a day soon, complete <b>Meta business verification</b> (uploading registration documents at business.facebook.com → Security Centre). We'll flag it in your dashboard when you're approaching the limit — and we can walk you through it.</li>
   </ul>
 
   <h2><span class="num">7</span><svg class="ic"><use href="#i-q"/></svg>Common questions</h2>

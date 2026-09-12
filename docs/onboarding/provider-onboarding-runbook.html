@@ -7,8 +7,10 @@
 <style>
   :root {
     --ink: #1d2130; --muted: #5d6478; --faint: #eceef4; --line: #dfe2ec;
-    --brand: #5a49e8; --brand-soft: #efedfd; --ok: #1e8e5a; --ok-soft: #e7f5ee;
+    --brand: #5a49e8; --brand-soft: #efedfd; --brand-soft2: #e2ddfb;
+    --ok: #1e8e5a; --ok-soft: #e7f5ee;
     --warn: #a36a00; --warn-soft: #fdf3e0; --danger: #c0392b; --paper: #ffffff;
+    --chip: #f3f4f8; --wa-bubble: #eafaf0; --wa-bg: #e9edf3;
   }
   * { box-sizing: border-box; }
   body {
@@ -16,15 +18,15 @@
     font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .page { max-width: 800px; margin: 0 auto; padding: 48px 28px 80px; background: var(--paper); min-height: 100vh; }
-  @media (min-width: 900px) { .page { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+  .page { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; background: var(--paper); min-height: 100vh; }
+  @media (min-width: 960px) { .page { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
 
   .doc-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); background: var(--brand-soft); border-radius: 4px; padding: 3px 8px; }
   h1 { font-size: 27px; letter-spacing: -.02em; margin: 12px 0 6px; }
   .sub { color: var(--muted); margin: 0 0 8px; max-width: 60ch; }
-  .meta-row { font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .meta-row { font-size: 12.5px; color: var(--muted); padding-bottom: 4px; margin-bottom: 6px; }
 
-  h2 { font-size: 19px; letter-spacing: -.01em; margin: 40px 0 6px; display: flex; align-items: center; gap: 10px; }
+  h2 { font-size: 19px; letter-spacing: -.01em; margin: 42px 0 6px; display: flex; align-items: center; gap: 10px; }
   h2 .num {
     width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff;
     display: inline-flex; align-items: center; justify-content: center;
@@ -54,7 +56,7 @@
     content: ""; position: absolute; left: 0; top: 4px; width: 16px; height: 16px;
     border: 2px solid var(--brand); border-radius: 4px;
   }
-  .copyblock { background: #f3f4f8; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 13.5px; margin: 12px 0; }
+  .copyblock { background: var(--chip); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 13.5px; margin: 12px 0; }
   .copyblock .cb-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px; }
 
   .path { color: var(--muted); font-size: 13.5px; }
@@ -62,9 +64,81 @@
   .arrow { color: var(--brand); font-weight: 700; }
 
   footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+
+  /* ============ DIAGRAM: pipeline stepper (mirrors the real product's Setup tab) ============ */
+  .pipeline { margin: 22px 0 8px; }
+  .pl-row { display: flex; align-items: flex-start; position: relative; }
+  .pl-node { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 1; }
+  .pl-node .pl-circle {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--paper); border: 2px solid var(--brand);
+    color: var(--brand); display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; margin-bottom: 6px;
+  }
+  .pl-node.bookend .pl-circle { background: var(--faint); border-color: var(--line); color: var(--muted); }
+  .pl-node .pl-label { font-size: 12px; font-weight: 700; }
+  .pl-node .pl-cap { font-size: 10.5px; color: var(--muted); }
+  .pl-line { position: absolute; top: 17px; left: 6%; right: 6%; height: 2px; background: var(--brand-soft2); z-index: 0; }
+  @media (max-width: 720px) {
+    .pl-row { flex-wrap: wrap; gap: 14px 4px; }
+    .pl-node { flex: 0 0 30%; }
+    .pl-line { display: none; }
+  }
+
+  /* ============ DIAGRAM: swimlane ============ */
+  .swim { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 16px 0 20px; }
+  .swim-head { display: grid; grid-template-columns: 110px 1fr 1fr 1fr; background: var(--faint); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .swim-head > div { padding: 8px 10px; border-right: 1px solid var(--line); }
+  .swim-head > div:last-child { border-right: none; }
+  .swim-row { display: grid; grid-template-columns: 110px 1fr 1fr 1fr; border-top: 1px solid var(--line); font-size: 12.5px; }
+  .swim-row > div { padding: 10px; border-right: 1px solid var(--line); }
+  .swim-row > div:last-child { border-right: none; }
+  .swim-row .swim-phase { font-weight: 700; background: var(--chip); display: flex; align-items: center; }
+  .swim-chip { display: inline-block; background: var(--brand-soft); color: var(--brand); border-radius: 5px; padding: 3px 8px; font-size: 11.5px; font-weight: 600; }
+  .swim-chip.meta { background: #eaf0fb; color: #2f5fa8; }
+  .swim-dash { color: var(--line); }
+  @media (max-width: 640px) {
+    .swim-head, .swim-row { grid-template-columns: 90px 1fr; }
+    .swim-head > div:nth-child(3), .swim-head > div:nth-child(4) { display: none; }
+    .swim-row > div:nth-child(3), .swim-row > div:nth-child(4) { display: none; }
+  }
+
+  /* ============ DIAGRAM: mock screen ============ */
+  .mockscreen { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 14px 0 18px; box-shadow: 0 1px 2px rgba(20,20,40,0.05); }
+  .ms-bar { background: #eef0f5; border-bottom: 1px solid var(--line); padding: 7px 12px; display: flex; align-items: center; gap: 8px; }
+  .ms-bar .dots { display: flex; gap: 4px; }
+  .ms-bar .dots i { width: 7px; height: 7px; border-radius: 50%; background: #c7cbd8; display: block; }
+  .ms-bar .ms-url { font-size: 11px; color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .ms-body { padding: 16px 18px; background: #fafbfd; }
+  .ms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .ms-grid { grid-template-columns: 1fr; } }
+  .ms-field { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 12.5px; }
+  .ms-field .fl { color: var(--muted); font-size: 11px; display: block; margin-bottom: 2px; }
+  .ms-field .fv { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink); }
+  .ms-btn { display: inline-block; background: var(--brand); color: #fff; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 6px 14px; margin-top: 4px; margin-right: 6px; }
+  .ms-btn.outline { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
+  .ms-side-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+
+  /* WhatsApp starter template card, matching the real product's preview style */
+  .tpl-card { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--paper); }
+  .tpl-preview { background: var(--wa-bg); padding: 12px; }
+  .wa-bubble { background: var(--wa-bubble); border-radius: 8px; border-top-left-radius: 2px; padding: 8px 10px; font-size: 11.5px; line-height: 1.4; max-width: 92%; }
+  .wa-bubble .var { color: var(--brand); font-weight: 700; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; }
+  .tpl-meta { padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); font-size: 11.5px; }
+  .tpl-status { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
+
+  /* ============ DIAGRAM: sequence (reply-loop test) ============ */
+  .sequence { display: flex; align-items: stretch; gap: 4px; margin: 18px 0 8px; flex-wrap: wrap; }
+  .sq-box { flex: 1; min-width: 108px; background: var(--chip); border: 1px solid var(--line); border-radius: 8px; padding: 10px 8px; text-align: center; font-size: 11.5px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .sq-box svg { width: 18px; height: 18px; color: var(--brand); }
+  .sq-box.good { background: var(--ok-soft); border-color: var(--ok); }
+  .sq-box.good svg { color: var(--ok); }
+  .sq-arrow { display: flex; align-items: center; color: var(--brand-soft2); flex: 0 0 auto; }
+  .sq-arrow svg { width: 18px; height: 12px; }
+  @media (max-width: 720px) { .sequence { flex-direction: column; } .sq-arrow { transform: rotate(90deg); align-self: center; margin: -4px 0; } }
+
   @media print {
     body { background: #fff; } .page { padding: 0; max-width: none; border: 0; }
-    h2 { break-after: avoid; } .why, .warn, table { break-inside: avoid; }
+    h2 { break-after: avoid; } .why, .warn, table, .swim, .mockscreen, .pipeline, .sequence { break-inside: avoid; }
   }
 </style>
 </head>
@@ -80,13 +154,33 @@
   <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18-3-4-3-14.5 0-18Z"/></symbol>
   <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 14a8 8 0 1 1 16 0"/><path d="m12 14 4-4"/><circle cx="12" cy="14" r="1.6"/></symbol>
   <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.5 6.5a4.5 4.5 0 0 0-6 6L3 18l3 3 5.5-5.5a4.5 4.5 0 0 0 6-6L14 13l-3-3 3.5-3.5Z"/></symbol>
+  <symbol id="i-meta" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 15c1.5-4 2.5-6 4-6s2.5 2 4 6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-reply" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.4-3.6A7.96 7.96 0 0 1 4 12Z"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 12h4l2 3h6l2-3h4"/><path d="M5 12 4 6h16l-1 6"/><path d="M4 12v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 14"><path d="M1 7h20m0 0-7-6m7 6-7 6"/></symbol>
 </svg>
 
 <div class="page">
   <span class="doc-tag">Internal · Ops runbook</span>
   <h1>Onboarding a new client business</h1>
   <p class="sub">Everything from "contract signed" to "client sending real WhatsApp messages", in order, with the reasons behind each step. Owned by the ops team; the client-facing half of this process is the companion guide <i>"Getting your business onto WhatsApp"</i> — send them that, keep this one.</p>
-  <div class="meta-row">Version 1.0 · September 2026 · applies to the AZentis Notify admin console · typical end-to-end time: <b>1–2 working days</b> (dominated by the client's Meta setup and template review, not by us)</div>
+  <div class="meta-row">Version 1.1 · September 2026 · applies to the AZentis Notify admin console · typical end-to-end time: <b>1–2 working days</b> (dominated by the client's Meta setup and template review, not by us)</div>
+
+  <!-- ===== PIPELINE DIAGRAM — mirrors the real Setup tab stepper ===== -->
+  <div class="pipeline">
+    <div class="pl-row">
+      <div class="pl-line"></div>
+      <div class="pl-node bookend"><div class="pl-circle"><svg class="ic"><use href="#i-user"/></svg></div><div class="pl-label">Tenant</div><div class="pl-cap">§1</div></div>
+      <div class="pl-node"><div class="pl-circle">1</div><div class="pl-label">Branding</div><div class="pl-cap">§2</div></div>
+      <div class="pl-node"><div class="pl-circle">2</div><div class="pl-label">Credentials</div><div class="pl-cap">§3</div></div>
+      <div class="pl-node"><div class="pl-circle">3</div><div class="pl-label">Templates</div><div class="pl-cap">§4</div></div>
+      <div class="pl-node"><div class="pl-circle">4</div><div class="pl-label">Test send</div><div class="pl-cap">§5</div></div>
+      <div class="pl-node"><div class="pl-circle">5</div><div class="pl-label">API keys</div><div class="pl-cap">§7</div></div>
+      <div class="pl-node bookend"><div class="pl-circle"><svg class="ic"><use href="#i-globe"/></svg></div><div class="pl-label">Go live</div><div class="pl-cap">§8</div></div>
+    </div>
+  </div>
+  <p style="font-size:12.5px;color:var(--muted);margin-top:-2px">Numbered steps 1–5 are exactly the Setup tab pipeline inside a tenant's admin page — this runbook follows the same order.</p>
 
   <h2><span class="num">0</span>Before you start</h2>
   <p>Collect these once, up front — chasing them mid-flow is where onboardings stall:</p>
@@ -97,6 +191,50 @@
     <li><b>Which integration they want</b> — portal only (their team logs in and works in the UI), API (their backend sends via our REST API), or both. This decides whether step 7 applies.</li>
   </ul>
   <div class="why"><b>Why the phone number question first:</b> it's the single most common blocker. Everything else in this runbook can proceed in parallel, but a number tangled up in a personal WhatsApp account stops the show at step 3 — surface it on day one.</div>
+
+  <h2 style="margin-top:32px">Who does what, and when</h2>
+  <p>Before the detailed steps — a map of the whole process across the three parties involved. Most rows are just one actor; the two that need coordination (Credentials, Test) are worth noting up front:</p>
+
+  <!-- ===== SWIMLANE DIAGRAM ===== -->
+  <div class="swim">
+    <div class="swim-head"><div>Phase</div><div>Client</div><div>Ops (you)</div><div>Meta</div></div>
+    <div class="swim-row">
+      <div class="swim-phase">Tenant</div>
+      <div><span class="swim-dash">—</span></div>
+      <div><span class="swim-chip">Create tenant, set branding</span></div>
+      <div><span class="swim-dash">—</span></div>
+    </div>
+    <div class="swim-row">
+      <div class="swim-phase">Credentials</div>
+      <div><span class="swim-chip">Do the Meta setup, send 4 values securely</span></div>
+      <div><span class="swim-chip">Paste values, click Verify</span></div>
+      <div><span class="swim-chip meta">Confirms token &amp; number live</span></div>
+    </div>
+    <div class="swim-row">
+      <div class="swim-phase">Webhook</div>
+      <div><span class="swim-chip">Configures callback URL (guided)</span></div>
+      <div><span class="swim-chip">Gives client the URL + verify token</span></div>
+      <div><span class="swim-dash">—</span></div>
+    </div>
+    <div class="swim-row">
+      <div class="swim-phase">Templates</div>
+      <div><span class="swim-dash">—</span></div>
+      <div><span class="swim-chip">Submit starters from gallery</span></div>
+      <div><span class="swim-chip meta">Reviews, approves/rejects</span></div>
+    </div>
+    <div class="swim-row">
+      <div class="swim-phase">Test send</div>
+      <div><span class="swim-chip">Receives test, replies</span></div>
+      <div><span class="swim-chip">Sends test, checks Inbox</span></div>
+      <div><span class="swim-dash">—</span></div>
+    </div>
+    <div class="swim-row">
+      <div class="swim-phase">Go live</div>
+      <div><span class="swim-chip">Logs into portal</span></div>
+      <div><span class="swim-chip">Creates portal accounts</span></div>
+      <div><span class="swim-dash">—</span></div>
+    </div>
+  </div>
 
   <h2><span class="num">1</span><svg class="ic"><use href="#i-user"/></svg>Create the tenant</h2>
   <p class="path"><b>Admin console</b> <span class="arrow">→</span> Tenants <span class="arrow">→</span> New tenant</p>
@@ -123,7 +261,28 @@
     1. Phone Number ID&nbsp;&nbsp;2. WhatsApp Business Account ID&nbsp;&nbsp;3. Permanent access token&nbsp;&nbsp;4. App Secret<br><br>
     Please share them through a password manager link or an encrypted note (not plain email or chat) — the token and secret are the keys to your WhatsApp account. We'll confirm the connection with a live test message the same day we receive them.
   </div>
-  <p>When the values arrive:</p>
+  <p>When the values arrive, this is the screen you're filling in:</p>
+
+  <!-- ===== MOCK SCREEN: Credentials form ===== -->
+  <div class="mockscreen">
+    <div class="ms-bar"><span class="dots"><i></i><i></i><i></i></span><span class="ms-url">admin console → tenants/{id} → Setup → Credentials</span></div>
+    <div class="ms-body">
+      <div class="ms-grid">
+        <div>
+          <div class="ms-field"><span class="fl">PHONE NUMBER ID</span><span class="fv">108294710xxxxxx</span></div>
+          <div class="ms-field"><span class="fl">WHATSAPP BUSINESS ACCOUNT ID</span><span class="fv">193847102xxxxxx</span></div>
+          <div class="ms-field"><span class="fl">ACCESS TOKEN</span><span class="fv">••••••••••••••••</span></div>
+          <div class="ms-field"><span class="fl">APP SECRET</span><span class="fv">••••••••••••</span></div>
+          <div class="ms-btn outline">Verify with Meta</div>
+          <div class="ms-btn">Save</div>
+        </div>
+        <div>
+          <div class="ms-side-title">Where to find these</div>
+          <p style="font-size:11.5px;color:var(--muted);margin:0">A help panel here walks the client through developers.facebook.com step by step — the same six lettered steps as the client guide.</p>
+        </div>
+      </div>
+    </div>
+  </div>
   <ol>
     <li>Paste all four into the Credentials form. The WABA ID is technically optional, <b>but always ask for it</b> — without it, template sync and template submission (step 4) can't work.</li>
     <li>Click <b>Verify with Meta</b>. This makes a live call against Meta's API before anything is saved — you should see the business's verified name and phone number echoed back.</li>
@@ -148,8 +307,30 @@
 
   <h2><span class="num">4</span><svg class="ic"><use href="#i-doc"/></svg>Templates</h2>
   <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 3 Templates</p>
+  <p>The gallery opens on the group matching the business category — this is roughly what a client sees when they pick one:</p>
+
+  <!-- ===== MOCK SCREEN: Starter template gallery ===== -->
+  <div class="mockscreen">
+    <div class="ms-bar"><span class="dots"><i></i><i></i><i></i></span><span class="ms-url">admin console → tenants/{id} → Setup → Templates</span></div>
+    <div class="ms-body">
+      <div class="ms-grid">
+        <div class="tpl-card">
+          <div class="tpl-preview">
+            <div class="wa-bubble">Hi <span class="var">{{name}}</span> 👋 This is a reminder of your appointment at <b>{{business}}</b> on <span class="var">{{date}}</span>.</div>
+          </div>
+          <div class="tpl-meta"><span>Appointment reminder</span><span class="ms-btn" style="margin:0;padding:4px 10px;font-size:11px">Submit</span></div>
+        </div>
+        <div class="tpl-card">
+          <div class="tpl-preview">
+            <div class="wa-bubble">✅ <span class="var">{{name}}</span>, your booking is confirmed for <span class="var">{{date}}</span>, <span class="var">{{time}}</span>.</div>
+          </div>
+          <div class="tpl-meta"><span>Booking confirmation</span><span class="tpl-status">Pending</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <ol>
-    <li>Open the <b>Starter templates</b> gallery — it opens on the group matching the business category. Pick the 2–4 the client actually needs and hit <b>Submit to WhatsApp</b> on each. They go to Meta for review pre-filled and correctly formatted.</li>
+    <li>Open the <b>Starter templates</b> gallery. Pick the 2–4 the client actually needs and hit <b>Submit to WhatsApp</b> on each. They go to Meta for review pre-filled and correctly formatted.</li>
     <li>If the client already has approved templates on their WABA, click <b>Sync from Meta</b> to pull those in too.</li>
     <li>Watch the status column: <b>PENDING → APPROVED</b> usually within minutes to a day. Re-sync to refresh.</li>
   </ol>
@@ -158,6 +339,21 @@
 
   <h2><span class="num">5</span><svg class="ic"><use href="#i-send"/></svg>Test send — prove it end to end</h2>
   <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 4 Test send</p>
+  <p>This single test proves the whole round trip works — not just sending, but the reply path too:</p>
+
+  <!-- ===== SEQUENCE DIAGRAM: reply-loop test ===== -->
+  <div class="sequence">
+    <div class="sq-box"><svg><use href="#i-send"/></svg>Ops sends test</div>
+    <div class="sq-arrow"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="sq-box"><svg><use href="#i-meta"/></svg>Meta delivers</div>
+    <div class="sq-arrow"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="sq-box"><svg><use href="#i-phone"/></svg>Client's phone</div>
+    <div class="sq-arrow"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="sq-box"><svg><use href="#i-reply"/></svg>Client replies</div>
+    <div class="sq-arrow"><svg viewBox="0 0 24 14"><use href="#i-arrow-right"/></svg></div>
+    <div class="sq-box good"><svg><use href="#i-inbox"/></svg>Appears in Inbox</div>
+  </div>
+
   <ol>
     <li>Send a test to <b>your own</b> phone first, then to the client contact's phone.</li>
     <li>Have the recipient <b>reply</b> to the message — then check the tenant's <b>Inbox</b> page. The reply appearing there proves the webhook (step 3b) is wired correctly. This is the only cheap moment to catch a broken webhook; after go-live it surfaces as "customers say they replied and nobody answered".</li>
