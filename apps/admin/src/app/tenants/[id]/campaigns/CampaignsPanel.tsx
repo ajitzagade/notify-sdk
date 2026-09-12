@@ -20,6 +20,7 @@ import { Progress } from '@/components/ui/progress';
 import { WhatsAppPreview } from '@/components/whatsapp-preview';
 import { CampaignDetailSheet } from './CampaignDetailSheet';
 import { toast } from '@/lib/toast';
+import { estimateCampaignCostINR, formatINR } from '@/lib/pricing';
 
 function bodyText(template: TemplateRecord): string {
   return template.components.find((c) => c.type === 'BODY')?.text ?? '';
@@ -78,6 +79,11 @@ export function CampaignsPanel({
   const [error, setError]               = useState<string | null>(null);
 
   const selectedTemplate = templates.find((t) => t.id === templateId) ?? null;
+  const selectedList     = lists.find((l) => l.id === listId) ?? null;
+  const estimatedCostINR = useMemo(
+    () => (selectedTemplate && selectedList ? estimateCampaignCostINR(selectedTemplate.category, selectedList.memberCount) : null),
+    [selectedTemplate, selectedList]
+  );
   const paramCount       = useMemo(() => (selectedTemplate ? placeholderCount(bodyText(selectedTemplate)) : 0), [selectedTemplate]);
   const requiredHeader   = selectedTemplate ? headerMediaType(selectedTemplate) : null;
   const matchingAssets   = useMemo(
@@ -325,9 +331,18 @@ export function CampaignsPanel({
                       {runningId === c.id ? (
                         <Progress value={null} className="w-32" />
                       ) : c.stats ? (
-                        'error' in c.stats
-                          ? `Error: ${c.stats.error}`
-                          : `Sent ${c.stats.sent} · Failed ${c.stats.failed} · Skipped ${c.stats.skipped} · Total ${c.stats.total}`
+                        'error' in c.stats ? (
+                          `Error: ${c.stats.error}`
+                        ) : (
+                          <>
+                            {`Sent ${c.stats.sent} · Failed ${c.stats.failed} · Skipped ${c.stats.skipped} · Total ${c.stats.total}`}
+                            {(() => {
+                              const category = templates.find((t) => t.name === c.hsmTemplateName)?.category;
+                              const cost = category ? estimateCampaignCostINR(category, Number(c.stats.sent) || 0) : null;
+                              return cost !== null ? ` · Cost ${formatINR(cost)}` : null;
+                            })()}
+                          </>
+                        )
                       ) : (
                         '—'
                       )}
@@ -360,7 +375,12 @@ export function CampaignsPanel({
         )}
       </CardContent>
       {lists.length > 0 && templates.length > 0 && (
-        <CardFooter>
+        <CardFooter className="flex items-center justify-between gap-4">
+          {estimatedCostINR !== null ? (
+            <p className="text-xs text-muted-foreground">
+              Est. cost: <span className="font-medium text-foreground">{formatINR(estimatedCostINR)}</span> for {selectedList?.memberCount} recipients ({selectedTemplate?.category.toLowerCase()})
+            </p>
+          ) : <span />}
           <Button type="submit" form="create-campaign-form" disabled={!canCreate}>
             {creating ? <Loader2 className="animate-spin" /> : <Plus />}
             {creating ? 'Creating…' : 'Create campaign'}
