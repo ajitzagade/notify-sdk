@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // /privacy and /data-deletion must stay public: Meta's App Review crawls them
 // (Privacy Policy URL + User Data Deletion URL in App settings → Basic).
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/portal/login', '/api/portal/auth/login', '/privacy', '/data-deletion'];
+// /api/cron/* has its own CRON_SECRET bearer-token check (see that route) —
+// it must stay public here too, since Vercel's own cron invocation never
+// carries an admin session cookie and would otherwise 401 before reaching it.
+const PUBLIC_PATHS = ['/login', '/api/auth/login', '/portal/login', '/api/portal/auth/login', '/privacy', '/data-deletion', '/api/cron'];
 
 /**
  * Next 14's middleware runs on the Edge runtime, which doesn't have Node's

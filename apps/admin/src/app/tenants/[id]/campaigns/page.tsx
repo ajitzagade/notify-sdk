@@ -5,6 +5,7 @@ import { listBroadcastLists } from '@/lib/broadcastLists';
 import { listTemplates } from '@/lib/templates';
 import { listCampaigns } from '@/lib/campaigns';
 import { listMediaAssets } from '@/lib/media';
+import { listFollowUpSequences } from '@/lib/followUpSequences';
 import { Megaphone } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { PageTitle } from '@/components/page-title';
@@ -16,11 +17,12 @@ export default async function CampaignsPage({ params }: { params: { id: string }
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
 
-  const [lists, templates, campaigns, mediaAssets] = await Promise.all([
+  const [lists, templates, campaigns, mediaAssets, followUps] = await Promise.all([
     listBroadcastLists(tenant.id),
     listTemplates(tenant.id),
     listCampaigns(tenant.id),
     listMediaAssets(tenant.id),
+    listFollowUpSequences(tenant.id),
   ]);
 
   return (
@@ -47,6 +49,8 @@ export default async function CampaignsPage({ params }: { params: { id: string }
             templates={templates}
             campaigns={campaigns}
             mediaAssets={mediaAssets}
+            followUps={followUps}
+            showFollowUps
           />
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ImageIcon, Megaphone, Plus, Loader2, Play, History } from 'lucide-react';
+import { AlertCircle, ImageIcon, Megaphone, Plus, Loader2, Play, History, Repeat } from 'lucide-react';
 import type { BroadcastListRecord } from '@/lib/broadcastLists';
 import type { TemplateRecord } from '@/lib/templates';
 import type { CampaignRecord, HeaderMediaType } from '@/lib/campaigns';
@@ -21,15 +21,9 @@ import { WhatsAppPreview } from '@/components/whatsapp-preview';
 import { CampaignDetailSheet } from './CampaignDetailSheet';
 import { toast } from '@/lib/toast';
 import { estimateCampaignCostINR, formatINR } from '@/lib/pricing';
-
-function bodyText(template: TemplateRecord): string {
-  return template.components.find((c) => c.type === 'BODY')?.text ?? '';
-}
-
-function placeholderCount(text: string): number {
-  const matches = [...text.matchAll(/\{\{(\d+)\}\}/g)].map((m) => Number(m[1]));
-  return matches.length ? Math.max(...matches) : 0;
-}
+import { bodyText, placeholderCount } from '@/lib/templateParams';
+import type { FollowUpSequenceRecord } from '@/lib/followUpSequences';
+import { FollowUpDialog } from './FollowUpDialog';
 
 /** A template's approved HEADER component format, if it has a media header — 'image' | 'video' | 'document' — or null for a text/no header. */
 function headerMediaType(template: TemplateRecord): HeaderMediaType | null {
@@ -53,6 +47,8 @@ export function CampaignsPanel({
   templates,
   campaigns,
   mediaAssets,
+  followUps = [],
+  showFollowUps = false,
   baseApiPath,
   mediaUploadHint = "upload one from the Test Send tab first",
 }: {
@@ -62,6 +58,9 @@ export function CampaignsPanel({
   templates: TemplateRecord[];
   campaigns: CampaignRecord[];
   mediaAssets: MediaAssetRecord[];
+  followUps?: FollowUpSequenceRecord[];
+  /** Ops-only feature — not surfaced in the tenant portal. */
+  showFollowUps?: boolean;
   /** Defaults to the admin console's own API — pass '/api/portal' to run this panel inside the tenant portal instead. */
   baseApiPath?: string;
   mediaUploadHint?: string;
@@ -76,7 +75,14 @@ export function CampaignsPanel({
   const [creating, setCreating]         = useState(false);
   const [runningId, setRunningId]       = useState<string | null>(null);
   const [detailId, setDetailId]         = useState<string | null>(null);
+  const [followUpCampaignId, setFollowUpCampaignId] = useState<string | null>(null);
   const [error, setError]               = useState<string | null>(null);
+
+  const followUpByCampaign = useMemo(
+    () => new Map(followUps.map((f) => [f.campaignId, f])),
+    [followUps]
+  );
+  const followUpCampaign = campaigns.find((c) => c.id === followUpCampaignId) ?? null;
 
   const selectedTemplate = templates.find((t) => t.id === templateId) ?? null;
   const selectedList     = lists.find((l) => l.id === listId) ?? null;
@@ -353,6 +359,11 @@ export function CampaignsPanel({
                         <Button type="button" variant="outline" size="sm" onClick={() => setDetailId(c.id)}>
                           <History /> History
                         </Button>
+                        {showFollowUps && c.status === 'completed' && (
+                          <Button type="button" variant="outline" size="sm" onClick={() => setFollowUpCampaignId(c.id)}>
+                            <Repeat /> {followUpByCampaign.has(c.id) ? 'Follow-up' : 'Add follow-up'}
+                          </Button>
+                        )}
                         {c.status === 'draft' && (
                           <Button
                             type="button"
@@ -393,6 +404,18 @@ export function CampaignsPanel({
         campaignId={detailId}
         onClose={() => setDetailId(null)}
       />
+      {showFollowUps && followUpCampaign && (
+        <FollowUpDialog
+          apiBase={apiBase}
+          campaignId={followUpCampaign.id}
+          campaignName={followUpCampaign.name}
+          templates={templates}
+          existingFollowUp={followUpByCampaign.get(followUpCampaign.id) ?? null}
+          open={!!followUpCampaignId}
+          onOpenChange={(open) => !open && setFollowUpCampaignId(null)}
+          onChange={() => router.refresh()}
+        />
+      )}
     </Card>
   );
 }
