@@ -48,7 +48,7 @@ App Settings → Basic.
    (Facebook Login for Business → Settings) and set a valid OAuth redirect if prompted.
    `localhost` works for development testing.
 7. Configure the **webhook callback** on the platform app's WhatsApp product: URL =
-   `https://<api host>/v1/webhook/whatsapp`, subscribe to `messages`. The verify challenge
+   `https://api.azentis.in/v1/webhook/whatsapp`, subscribe to `messages`. The verify challenge
    uses the per-tenant `verify_token` — for the platform app use any fixed token accepted by
    the existing webhook GET handler config in apps/api.
 

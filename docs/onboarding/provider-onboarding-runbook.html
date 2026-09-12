@@ -299,7 +299,7 @@
   <h3><svg class="ic"><use href="#i-plug"/></svg>3b. Point the client's webhook at us (needed for replies &amp; STOP)</h3>
   <p>In the client's Meta app: <span class="path"><b>WhatsApp</b> <span class="arrow">→</span> Configuration <span class="arrow">→</span> Webhook</span>. Have them (or do it with them on a call) set:</p>
   <ul>
-    <li><b>Callback URL:</b> <code>https://&lt;our-api-domain&gt;/v1/webhook/whatsapp</code></li>
+    <li><b>Callback URL:</b> <code>https://api.azentis.in/v1/webhook/whatsapp</code></li>
     <li><b>Verify token:</b> generated when you saved credentials (shown in the save confirmation; retrievable by ops afterwards).</li>
     <li><b>Subscribe to:</b> <code>messages</code>.</li>
   </ul>
@@ -371,7 +371,7 @@
   <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Setup <span class="arrow">→</span> 5 API keys</p>
   <ul>
     <li>Issue a key, share it the same secure way as step 3 (it's shown once, then only its prefix).</li>
-    <li>Their backend calls <code>POST https://&lt;api-domain&gt;/v1/send</code> with <code>Authorization: Bearer &lt;key&gt;</code> — same guardrails as the portal: opt-in checks, quiet hours, rate limits all still apply.</li>
+    <li>Their backend calls <code>POST https://api.azentis.in/v1/send</code> with <code>Authorization: Bearer &lt;key&gt;</code> — same guardrails as the portal: opt-in checks, quiet hours, rate limits all still apply.</li>
   </ul>
 
   <h2><span class="num">8</span><svg class="ic"><use href="#i-gauge"/></svg>Go-live &amp; the first two weeks</h2>
