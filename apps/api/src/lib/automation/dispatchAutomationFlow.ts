@@ -1,29 +1,55 @@
 import type { InboundReply, NotifyClient } from '@orgname/notify';
 import { getPool } from '../db';
-import { ACTIVE_FLOW, type FlowStep } from './flows';
+import type { FlowStep } from './flows';
+
+interface FlowDefinitionRow {
+  id: string;
+  steps: FlowStep[];
+  completion_message: string;
+}
 
 interface FlowSessionRow {
+  flow_definition_id: string | null;
   current_step: number;
   answers: unknown[];
   status: 'active' | 'completed';
 }
 
+async function findMatchingFlow(tenantId: string, keyword: string): Promise<FlowDefinitionRow | null> {
+  const { rows } = await getPool().query(
+    `SELECT id, steps, completion_message FROM flow_definitions
+      WHERE tenant_id = $1 AND is_active = true AND trigger_keyword = $2
+      LIMIT 1`,
+    [tenantId, keyword.toLowerCase()]
+  );
+  return rows[0] ?? null;
+}
+
 async function getSession(tenantId: string, phone: string): Promise<FlowSessionRow | null> {
   const { rows } = await getPool().query(
-    `SELECT current_step, answers, status FROM flow_sessions WHERE tenant_id = $1 AND phone = $2`,
+    `SELECT flow_definition_id, current_step, answers, status FROM flow_sessions WHERE tenant_id = $1 AND phone = $2`,
     [tenantId, phone]
   );
   return rows[0] ?? null;
 }
 
-async function startSession(tenantId: string, phone: string, flowKey: string): Promise<void> {
+async function getFlowById(id: string): Promise<FlowDefinitionRow | null> {
+  const { rows } = await getPool().query(
+    `SELECT id, steps, completion_message FROM flow_definitions WHERE id = $1`,
+    [id]
+  );
+  return rows[0] ?? null;
+}
+
+async function startSession(tenantId: string, phone: string, flowDefinitionId: string, triggerKeyword: string): Promise<void> {
   await getPool().query(
-    `INSERT INTO flow_sessions (tenant_id, phone, flow_key, current_step, answers, status, started_at, completed_at, updated_at)
-     VALUES ($1, $2, $3, 0, '[]', 'active', NOW(), NULL, NOW())
+    `INSERT INTO flow_sessions (tenant_id, phone, flow_key, flow_definition_id, current_step, answers, status, started_at, completed_at, updated_at)
+     VALUES ($1, $2, $3, $4, 0, '[]', 'active', NOW(), NULL, NOW())
      ON CONFLICT (tenant_id, phone) DO UPDATE SET
-       flow_key = EXCLUDED.flow_key, current_step = 0, answers = '[]', status = 'active',
+       flow_key = EXCLUDED.flow_key, flow_definition_id = EXCLUDED.flow_definition_id,
+       current_step = 0, answers = '[]', status = 'active',
        started_at = NOW(), completed_at = NULL, updated_at = NOW()`,
-    [tenantId, phone, flowKey]
+    [tenantId, phone, triggerKeyword, flowDefinitionId]
   );
 }
 
@@ -54,12 +80,12 @@ async function sendStep(client: NotifyClient, to: string, step: FlowStep): Promi
 const CONSENT_KEYWORDS = new Set(['stop', 'unsubscribe', 'start', 'subscribe']);
 
 /**
- * Fixed, platform-wide Q&A automation — a customer texts the trigger keyword
- * to start, then each subsequent reply (button tap or free text) is recorded
- * verbatim as that step's answer and advances to the next question. No
- * validation against the offered options — keeping this simple was a
- * deliberate choice, not an oversight; add validation if a flow later needs
- * to reject off-menu answers.
+ * Per-tenant configurable Q&A automation (generalized from the original
+ * fixed "book" flow — see apps/admin/src/lib/flowDefinitions.ts for the
+ * admin-console editor this data comes from). A customer texts a tenant's
+ * own trigger keyword to start; each subsequent reply is recorded verbatim
+ * as that step's answer and advances to the next question. No validation
+ * against the offered options — a deliberate simplicity choice.
  *
  * Registered as an eventBus 'reply' listener in tenantRegistry.ts, ahead of
  * dispatchAiAutoReply — returns true when it has consumed the message so the
@@ -78,21 +104,26 @@ export async function dispatchAutomationFlow(
     const session = await getSession(tenantId, reply.from);
 
     if (!session || session.status !== 'active') {
-      if (text.toLowerCase() !== ACTIVE_FLOW.triggerKeyword) return false;
-      await startSession(tenantId, reply.from, ACTIVE_FLOW.key);
-      await sendStep(client, reply.from, ACTIVE_FLOW.steps[0]);
+      const flow = await findMatchingFlow(tenantId, text);
+      if (!flow) return false;
+      await startSession(tenantId, reply.from, flow.id, text.toLowerCase());
+      await sendStep(client, reply.from, flow.steps[0]);
       return true;
     }
+
+    if (!session.flow_definition_id) return false; // orphaned session (flow deleted mid-conversation) — fail open
+    const flow = await getFlowById(session.flow_definition_id);
+    if (!flow) return false; // flow deleted/renamed since the session started
 
     const answers = [...session.answers, text];
     const nextStep = session.current_step + 1;
 
-    if (nextStep >= ACTIVE_FLOW.steps.length) {
+    if (nextStep >= flow.steps.length) {
       await recordAnswerAndAdvance(tenantId, reply.from, answers, nextStep, true);
-      await client.send({ to: reply.from, template: 'text', text: ACTIVE_FLOW.completionMessage });
+      await client.send({ to: reply.from, template: 'text', text: flow.completion_message });
     } else {
       await recordAnswerAndAdvance(tenantId, reply.from, answers, nextStep, false);
-      await sendStep(client, reply.from, ACTIVE_FLOW.steps[nextStep]);
+      await sendStep(client, reply.from, flow.steps[nextStep]);
     }
     return true;
   } catch (err) {

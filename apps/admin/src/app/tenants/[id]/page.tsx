@@ -10,6 +10,7 @@ import { listPortalUsers } from '@/lib/tenantPortalUsers';
 import { listAuditLog } from '@/lib/auditLog';
 import { getAiConfigStatus } from '@/lib/aiConfig';
 import { listWebhookEndpoints } from '@/lib/webhookEndpoints';
+import { listFlowDefinitions } from '@/lib/flowDefinitions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,6 +25,7 @@ import { PortalAccessPanel } from './PortalAccessPanel';
 import { AuditLogPanel } from './AuditLogPanel';
 import { AnalyticsPanel } from './AnalyticsPanel';
 import { AiAssistantPanel } from './AiAssistantPanel';
+import { AutomationPanel } from './AutomationPanel';
 import { WebhooksPanel } from './WebhooksPanel';
 import { TenantWorkspaceTabs } from './TenantWorkspaceTabs';
 
@@ -37,7 +39,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
   requireAdminSessionOrRedirect();
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
-  const [credentials, mediaAssets, templates, apiKeys, portalUsers, auditEntries, aiStatus, webhookEndpoints] = await Promise.all([
+  const [credentials, mediaAssets, templates, apiKeys, portalUsers, auditEntries, aiStatus, webhookEndpoints, flows] = await Promise.all([
     getCredentialStatus(tenant.id),
     listMediaAssets(tenant.id),
     listTemplates(tenant.id),
@@ -46,6 +48,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
     listAuditLog(tenant.id),
     getAiConfigStatus(tenant.id),
     listWebhookEndpoints(tenant.id),
+    listFlowDefinitions(tenant.id),
   ]);
 
   return (
@@ -89,6 +92,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
         <TenantWorkspaceTabs
           analytics={<AnalyticsPanel tenantId={tenant.id} />}
           ai={<AiAssistantPanel tenantId={tenant.id} status={aiStatus} />}
+          automation={<AutomationPanel tenantId={tenant.id} flows={flows} />}
           portalAccess={<PortalAccessPanel tenantId={tenant.id} users={portalUsers} />}
           webhooks={<WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />}
           audit={<AuditLogPanel entries={auditEntries} />}

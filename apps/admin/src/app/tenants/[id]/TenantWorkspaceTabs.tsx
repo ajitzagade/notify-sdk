@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import {
-  LayoutGrid, ListChecks, BarChart3, Sparkles, UserRound, Webhook, History,
+  LayoutGrid, ListChecks, BarChart3, Sparkles, UserRound, Webhook, History, Workflow,
   Palette, ShieldCheck, LayoutTemplate, Send, KeyRound, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const WORKSPACE_TABS: { value: string; label: string; icon: LucideIcon }[] = [
   { value: 'analytics',     label: 'Analytics',     icon: BarChart3 },
   { value: 'ai',            label: 'AI assistant',  icon: Sparkles },
+  { value: 'automation',    label: 'Automation',    icon: Workflow },
   { value: 'portal-access', label: 'Portal access', icon: UserRound },
   { value: 'webhooks',      label: 'Webhooks',      icon: Webhook },
   { value: 'audit',         label: 'Audit log',     icon: History },
@@ -25,10 +26,10 @@ const SETUP_STEPS: { value: string; label: string; icon: LucideIcon }[] = [
 ];
 
 export function TenantWorkspaceTabs({
-  analytics, ai, portalAccess, webhooks, audit,
+  analytics, ai, automation, portalAccess, webhooks, audit,
   branding, credentials, templates, testSend, apiKeys,
 }: {
-  analytics: React.ReactNode; ai: React.ReactNode; portalAccess: React.ReactNode;
+  analytics: React.ReactNode; ai: React.ReactNode; automation: React.ReactNode; portalAccess: React.ReactNode;
   webhooks: React.ReactNode; audit: React.ReactNode;
   branding: React.ReactNode; credentials: React.ReactNode; templates: React.ReactNode;
   testSend: React.ReactNode; apiKeys: React.ReactNode;
@@ -38,7 +39,7 @@ export function TenantWorkspaceTabs({
   const [setupValue, setSetupValue] = useState('branding');
 
   const workspacePanels: Record<string, React.ReactNode> = {
-    analytics, ai, 'portal-access': portalAccess, webhooks, audit,
+    analytics, ai, automation, 'portal-access': portalAccess, webhooks, audit,
   };
   const setupPanels: Record<string, React.ReactNode> = {
     branding, credentials, templates, 'test-send': testSend, 'api-keys': apiKeys,
