@@ -91,12 +91,23 @@ function registerWebhookDispatch(client: NotifyClient, tenantId: string): void {
   });
 }
 
+const credentialsProvider = new PgTenantCredentialsProvider();
+
+/**
+ * Decrypted credentials for server-side Graph API calls that live outside the
+ * SDK's send path (template submission, phone-number health). Same provider
+ * instance the registry uses — never cache the result; tokens can rotate.
+ */
+export async function getDecryptedTenantCredentials(tenantId: string): Promise<TenantWaCredentials> {
+  return credentialsProvider.getCredentials(tenantId);
+}
+
 let registry: TenantClientRegistry | null = null;
 
 export function getTenantRegistry(): TenantClientRegistry {
   if (registry) return registry;
   registry = new TenantClientRegistry({
-    credentialsProvider: new PgTenantCredentialsProvider(),
+    credentialsProvider,
     pool: getPool(),
     defaults: {
       timezone:   'Asia/Kolkata',

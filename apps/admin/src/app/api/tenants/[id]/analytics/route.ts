@@ -3,16 +3,18 @@ import { withAdminSession } from '@/lib/auth';
 import { getTenant } from '@/lib/tenants';
 import { listCampaigns } from '@/lib/campaigns';
 import { getTenantRollup, getCampaignLiveStats, getDailyActivity } from '@/lib/analytics';
+import { getSendingHealth } from '@/lib/sendingHealth';
 
 export const GET = withAdminSession(async (_session, _req: NextRequest, ctx: { params: { id: string } }) => {
   const tenant = await getTenant(ctx.params.id);
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
 
-  const [rollup, campaigns, liveStats, daily] = await Promise.all([
+  const [rollup, campaigns, liveStats, daily, health] = await Promise.all([
     getTenantRollup(tenant.id),
     listCampaigns(tenant.id),
     getCampaignLiveStats(tenant.id),
     getDailyActivity(tenant.id),
+    getSendingHealth(tenant.id),
   ]);
 
   const campaignsWithStats = campaigns.map((c) => ({
@@ -20,5 +22,5 @@ export const GET = withAdminSession(async (_session, _req: NextRequest, ctx: { p
     live: liveStats.get(c.id) ?? null,
   }));
 
-  return NextResponse.json({ rollup, campaigns: campaignsWithStats, daily });
+  return NextResponse.json({ rollup, campaigns: campaignsWithStats, daily, health });
 });

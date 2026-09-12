@@ -9,6 +9,7 @@ export interface TenantRecord {
   primaryColor: string | null;
   secondaryColor: string | null;
   businessDescription: string | null;
+  category: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +24,7 @@ function rowToTenant(row: Record<string, unknown>): TenantRecord {
     primaryColor:         row.primary_color as string | null,
     secondaryColor:       row.secondary_color as string | null,
     businessDescription:  row.business_description as string | null,
+    category:             row.category as string | null,
     createdAt:            row.created_at as string,
     updatedAt:            row.updated_at as string,
   };
@@ -60,7 +62,7 @@ export async function createTenant(input: {
 
 export async function updateTenantBranding(
   id: string,
-  update: { name?: string; primaryColor?: string; secondaryColor?: string; businessDescription?: string }
+  update: { name?: string; primaryColor?: string; secondaryColor?: string; businessDescription?: string; category?: string }
 ): Promise<TenantRecord | null> {
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -70,6 +72,7 @@ export async function updateTenantBranding(
   if (update.primaryColor !== undefined)          { fields.push(`primary_color = $${i++}`); values.push(update.primaryColor); }
   if (update.secondaryColor !== undefined)        { fields.push(`secondary_color = $${i++}`); values.push(update.secondaryColor); }
   if (update.businessDescription !== undefined)   { fields.push(`business_description = $${i++}`); values.push(update.businessDescription); }
+  if (update.category !== undefined)              { fields.push(`category = $${i++}`); values.push(update.category); }
 
   if (!fields.length) return getTenant(id);
   fields.push(`updated_at = NOW()`);

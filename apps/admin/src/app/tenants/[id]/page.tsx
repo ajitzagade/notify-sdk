@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { BrandingForm } from './BrandingForm';
 import { CredentialsForm } from './CredentialsForm';
+import { ConnectWhatsAppChooser } from './ConnectWhatsAppChooser';
 import { TemplatesPanel } from './TemplatesPanel';
 import { TestSendForm } from './TestSendForm';
 import { ApiKeysPanel } from './ApiKeysPanel';
@@ -92,8 +93,19 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
           webhooks={<WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />}
           audit={<AuditLogPanel entries={auditEntries} />}
           branding={<BrandingForm tenant={tenant} />}
-          credentials={<CredentialsForm tenantId={tenant.id} status={credentials} />}
-          templates={<TemplatesPanel tenantId={tenant.id} templates={templates} />}
+          credentials={
+            <ConnectWhatsAppChooser configured={credentials.configured}>
+              <CredentialsForm tenantId={tenant.id} status={credentials} />
+            </ConnectWhatsAppChooser>
+          }
+          templates={
+            <TemplatesPanel
+              tenantId={tenant.id}
+              templates={templates}
+              tenantCategory={tenant.category}
+              credentialsReady={credentials.configured && Boolean(credentials.wabaId)}
+            />
+          }
           testSend={
             <TestSendForm
               tenantId={tenant.id}

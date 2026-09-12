@@ -7,6 +7,93 @@ export interface MetaVerifyResult {
   error?: string;
 }
 
+export interface MetaTemplateCreateResult {
+  ok: boolean;
+  id?: string;
+  status?: string;
+  category?: string;
+  error?: string;
+}
+
+/**
+ * Submits a new message template to Meta for review.
+ * POST /{waba_id}/message_templates — the write counterpart of the SDK's
+ * listApprovedTemplates() sync. Meta responds with the template id and an
+ * initial status (usually PENDING, sometimes APPROVED immediately).
+ */
+export async function createWhatsAppTemplate(
+  accessToken: string,
+  wabaId: string,
+  template: { name: string; language: string; category: 'UTILITY' | 'MARKETING'; components: unknown[] }
+): Promise<MetaTemplateCreateResult> {
+  try {
+    const res = await fetch(`${GRAPH_BASE}/${encodeURIComponent(wabaId)}/message_templates`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(template),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      const message =
+        (data?.error?.error_user_msg as string) ??
+        (data?.error?.message as string) ??
+        `HTTP ${res.status}`;
+      return { ok: false, error: message };
+    }
+
+    return {
+      ok: true,
+      id:       data.id as string | undefined,
+      status:   data.status as string | undefined,
+      category: data.category as string | undefined,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export interface MetaPhoneHealth {
+  ok: boolean;
+  qualityRating?: string | null;
+  messagingLimitTier?: string | null;
+  error?: string;
+}
+
+/**
+ * Reads the phone number's quality rating and messaging-limit tier — the two
+ * Meta-side signals behind the sending-health widget. Short timeout: this is
+ * called on analytics requests and must never hang the dashboard.
+ */
+export async function fetchPhoneNumberHealth(
+  accessToken: string,
+  phoneNumberId: string
+): Promise<MetaPhoneHealth> {
+  try {
+    const res = await fetch(
+      `${GRAPH_BASE}/${encodeURIComponent(phoneNumberId)}?fields=quality_rating,messaging_limit_tier`,
+      { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(5000) }
+    );
+    const data = await res.json();
+
+    if (!res.ok) {
+      const message = (data?.error?.message as string) ?? `HTTP ${res.status}`;
+      return { ok: false, error: message };
+    }
+
+    return {
+      ok: true,
+      qualityRating:      (data.quality_rating as string | undefined) ?? null,
+      messagingLimitTier: (data.messaging_limit_tier as string | undefined) ?? null,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Confirms an access token + phone number ID pair is actually valid against Meta. */
 export async function verifyWhatsAppCredentials(
   accessToken: string,

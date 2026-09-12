@@ -13,7 +13,7 @@ export const GET = withAdminSession(async (_session, _req: NextRequest, ctx: { p
 
 export const PATCH = withAdminSession(async (session, req: NextRequest, ctx: { params: { id: string } }) => {
   const body = (await req.json()) as {
-    name?: string; primaryColor?: string; secondaryColor?: string; businessDescription?: string;
+    name?: string; primaryColor?: string; secondaryColor?: string; businessDescription?: string; category?: string;
   };
   const tenant = await updateTenantBranding(ctx.params.id, body);
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });

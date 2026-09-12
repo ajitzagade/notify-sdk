@@ -9,6 +9,8 @@ import { CardTitleGroup } from '@/components/card-title-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TENANT_CATEGORIES, TENANT_CATEGORY_ITEMS } from '@/lib/categories';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +24,7 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
   const [name, setName]                 = useState(tenant.name);
   const [primaryColor, setPrimaryColor] = useState(tenant.primaryColor ?? '#111111');
   const [description, setDescription]   = useState(tenant.businessDescription ?? '');
+  const [category, setCategory]         = useState(tenant.category ?? '');
   const [saving, setSaving]             = useState(false);
   const [uploading, setUploading]       = useState(false);
   const [error, setError]               = useState<string | null>(null);
@@ -34,7 +37,7 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
       const res = await fetch(`/api/tenants/${tenant.id}`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ name, primaryColor, businessDescription: description }),
+        body:    JSON.stringify({ name, primaryColor, businessDescription: description, ...(category ? { category } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to save');
@@ -112,6 +115,23 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
                 className="h-8 w-16 cursor-pointer p-1"
               />
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Business category</Label>
+            {/* items map is required — Select.Value renders the raw value otherwise. */}
+            <Select
+              value={category || null}
+              onValueChange={(v) => v && setCategory(v)}
+              items={TENANT_CATEGORY_ITEMS}
+            >
+              <SelectTrigger className="w-full sm:max-w-xs"><SelectValue placeholder="Choose a category…" /></SelectTrigger>
+              <SelectContent>
+                {TENANT_CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Picks which starter templates this business sees first.</p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="branding-description">Business description</Label>

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/lib/toast';
+import { StarterTemplateGallery } from './StarterTemplateGallery';
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive'> = {
   APPROVED: 'default',
@@ -20,8 +21,14 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive'> = 
 };
 
 export function TemplatesPanel({
-  tenantId, templates, baseApiPath,
-}: { tenantId: string; templates: TemplateRecord[]; baseApiPath?: string }) {
+  tenantId, templates, baseApiPath, tenantCategory = null, credentialsReady = true,
+}: {
+  tenantId: string;
+  templates: TemplateRecord[];
+  baseApiPath?: string;
+  tenantCategory?: string | null;
+  credentialsReady?: boolean;
+}) {
   const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const router = useRouter();
   const [syncing, setSyncing] = useState(false);
@@ -46,6 +53,13 @@ export function TemplatesPanel({
   };
 
   return (
+    <div className="grid gap-6">
+    <StarterTemplateGallery
+      apiBase={apiBase}
+      tenantCategory={tenantCategory}
+      existingStatuses={Object.fromEntries(templates.map((t) => [t.name, t.status]))}
+      credentialsReady={credentialsReady}
+    />
     <Card>
       <CardHeader>
         <CardTitleGroup
@@ -76,7 +90,7 @@ export function TemplatesPanel({
               </div>
               <div>
                 <p className="text-sm font-medium">No templates synced yet</p>
-                <p className="mt-1 text-sm text-muted-foreground">Use &quot;Sync from Meta&quot; above to pull in this tenant&apos;s approved templates.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Submit a starter template above, or use &quot;Sync from Meta&quot; to pull in templates already approved on this account.</p>
               </div>
             </div>
             <HelpSteps
@@ -122,5 +136,6 @@ export function TemplatesPanel({
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
