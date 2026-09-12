@@ -1,12 +1,11 @@
 import 'dotenv/config';
 import express, { NextFunction, Request, Response } from 'express';
-import helmet from 'helmet';
 import {
   NotifyClient,
   InlineQueueAdapter,
   InMemoryAdapter,
 } from '@orgname/notify';
-import { v1Router } from './routes/v1';
+import { app } from './app';
 
 // Express 4 doesn't forward rejected promises from async handlers to error
 // middleware, so an unhandled rejection would otherwise crash the process.
@@ -74,19 +73,17 @@ notify.broadcastLists
   .define({ name: 'engineering', phones: [] })
   .define({ name: 'all-hands',   phones: [] });
 
-// ── 4. Mount Express webhook ───────────────────────────────────────────────
-const app = express();
-app.use(helmet());
-
-// Webhook mounts run BEFORE any generic JSON body-parser: they need the raw
-// body for HMAC signature verification via their own express.json({verify})
-// middleware, and body-parser silently no-ops on a second parse attempt once
-// something upstream already consumed the body — mounting a global
-// express.json() first (as this used to do) meant the verify callback below
-// never actually fired, so req.rawBody was always empty and real Meta
-// signatures could never validate.
+// ── 4. Mount the demo webhook onto the shared app (helmet + /v1 already on it,
+// see src/app.ts) ───────────────────────────────────────────────────────────
+//
+// Runs BEFORE any generic JSON body-parser: it needs the raw body for HMAC
+// signature verification via its own express.json({verify}) middleware, and
+// body-parser silently no-ops on a second parse attempt once something
+// upstream already consumed the body — mounting a global express.json()
+// first (as this used to do) meant the verify callback below never actually
+// fired, so req.rawBody was always empty and real Meta signatures could
+// never validate.
 notify.webhookExpress(app);       // single-tenant demo webhook (GET/POST /webhook/whatsapp)
-app.use('/v1', v1Router);         // multi-tenant API — has its own webhook + JSON parsing internally
 
 app.use(express.json());
 
