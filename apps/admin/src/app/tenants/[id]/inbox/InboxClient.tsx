@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/lib/toast';
+import { CannedResponsesMenu } from './CannedResponsesMenu';
 
 function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -278,6 +279,7 @@ export function InboxClient({
             </div>
 
             <form onSubmit={handleSend} className="flex items-end gap-2 border-t border-border p-4">
+              <CannedResponsesMenu apiBase={apiBase} onInsert={(body) => setReplyText((prev) => (prev ? `${prev} ${body}` : body))} />
               <Textarea
                 rows={1}
                 placeholder="Type a reply…"
