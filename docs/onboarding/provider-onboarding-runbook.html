@@ -165,7 +165,7 @@
   <span class="doc-tag">Internal · Ops runbook</span>
   <h1>Onboarding a new client business</h1>
   <p class="sub">Everything from "contract signed" to "client sending real WhatsApp messages", in order, with the reasons behind each step. Owned by the ops team; the client-facing half of this process is the companion guide <i>"Getting your business onto WhatsApp"</i> — send them that, keep this one.</p>
-  <div class="meta-row">Version 1.1 · September 2026 · applies to the AZentis Notify admin console · typical end-to-end time: <b>1–2 working days</b> (dominated by the client's Meta setup and template review, not by us)</div>
+  <div class="meta-row">Version 1.2 · September 2026 · applies to the AZentis Notify admin console · typical end-to-end time: <b>1–2 working days</b> (dominated by the client's Meta setup and template review, not by us)</div>
 
   <!-- ===== PIPELINE DIAGRAM — mirrors the real Setup tab stepper ===== -->
   <div class="pipeline">
@@ -383,7 +383,43 @@
   </ul>
   <div class="why"><b>Why quality rating is the number to respect:</b> Meta scores every number by blocks and reports from recipients. High quality raises the sending ceiling automatically; poor quality lowers it and can pause the number. The two levers that keep it green are genuine opt-in (step 8, item 2) and honest, expected content — both are client behaviors, so set the expectation during onboarding, not after a downgrade.</div>
 
-  <h2><span class="num">9</span><svg class="ic"><use href="#i-wrench"/></svg>Troubleshooting quick reference</h2>
+  <h2><span class="num">9</span><svg class="ic"><use href="#i-send"/></svg>Workspace features — automation, follow-ups &amp; team tools</h2>
+  <p>Everything above gets a tenant sending. These live in the tenant's <b>Workspace</b> tabs (not the Setup pipeline) and are worth walking a client through once they're live — most save real staff time from week one.</p>
+
+  <h3><svg class="ic"><use href="#i-send"/></svg>9a. Automation flows — keyword-triggered Q&amp;A</h3>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Workspace <span class="arrow">→</span> Automation</p>
+  <p>A customer texts a keyword (e.g. <code>book</code>) and gets a guided Q&amp;A — each question either free text or up to 3 WhatsApp quick-reply buttons — ending in a completion message. Ops builds these per tenant; there's no client-facing builder.</p>
+  <ul>
+    <li>Every message in a flow is a <b>session reply</b>, not a template — no Meta approval needed, live the moment it's saved.</li>
+    <li>A live preview next to the form shows exactly how the trigger, each question, and the completion message will render on WhatsApp before you save.</li>
+    <li>One flow per trigger keyword per tenant; keywords can't be <code>stop</code>/<code>start</code>/<code>subscribe</code>/<code>unsubscribe</code> — those are reserved for consent.</li>
+  </ul>
+  <div class="why"><b>Where this fits:</b> it's for tenants who want a lightweight, always-on intake (appointment requests, order-status lookups) without building a real backend integration. For anything requiring real business logic (actual calendar availability, live inventory), the tenant's own system should own that and call our <code>/v1/send</code> API — this is a front door, not a booking engine.</div>
+
+  <h3><svg class="ic"><use href="#i-send"/></svg>9b. Auto follow-up sequences</h3>
+  <p class="path"><b>Tenant page</b> <span class="arrow">→</span> Campaigns <span class="arrow">→</span> a completed campaign row <span class="arrow">→</span> Add follow-up</p>
+  <p>One follow-up template per campaign (not a multi-step drip): if a recipient never replies within N days, a second Meta-approved template goes out automatically.</p>
+  <ul>
+    <li>Checked <b>once a day</b> by a scheduled job — set expectations with the client that "N days" is a floor, not a same-hour trigger.</li>
+    <li>Only fires for recipients who received the original send and never replied — anyone who responded is automatically excluded.</li>
+    <li>The follow-up must be its own approved template (submit it via step 4 first if it doesn't exist yet).</li>
+  </ul>
+
+  <h3><svg class="ic"><use href="#i-inbox"/></svg>9c. Canned responses</h3>
+  <p class="path">Inbox <span class="arrow">→</span> composer <span class="arrow">→</span> quick-insert icon</p>
+  <p>A per-tenant library of reusable snippets (label + body) for answers agents type often. Inserting fills the reply box — it never auto-sends, so the agent can still edit before hitting Send. <b>The client's own portal team can create and manage these themselves</b> — no ops involvement needed after go-live.</p>
+
+  <h3><svg class="ic"><use href="#i-user"/></svg>9d. Automatic chat assignment</h3>
+  <p>New or unclaimed conversations distribute round-robin to the tenant's <b>least-loaded active portal user</b> — the moment a customer's reply creates or reopens a conversation. Once assigned, a conversation stays with that agent until manually reassigned.</p>
+  <div class="why"><b>Why this is portal-only:</b> internal ops staff aren't tenant-scoped (one admin can work many tenants), so there's no well-defined pool to round-robin an ops assignment over — that stays manual, same as always. This only auto-assigns within a client's own team.</div>
+
+  <h3><svg class="ic"><use href="#i-gauge"/></svg>9e. Campaign cost estimate</h3>
+  <p>The Campaigns create form and completed-campaign rows show an estimated Meta cost (India per-message rate card by template category — marketing costs meaningfully more than utility/authentication). It's an estimate for planning, not a bill — Meta invoices the client's own business account directly.</p>
+
+  <h3><svg class="ic"><use href="#i-phone"/></svg>9f. Phone numbers default to +91</h3>
+  <p>Test Send and CSV contact import now auto-prefix a bare 10-digit number with India's country code — type <code>9876543210</code>, it's stored and sent as <code>919876543210</code>. Numbers that already include a country code (Indian or otherwise) pass through untouched, so this never mis-prefixes an already-complete number. For a non-Indian tenant's contacts, always include the full country code by hand.</p>
+
+  <h2><span class="num">10</span><svg class="ic"><use href="#i-wrench"/></svg>Troubleshooting quick reference</h2>
   <table>
     <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
     <tr><td>Send fails with error <code>131047</code></td><td>Free-form message outside the 24-hour customer window</td><td>Use an approved template for that send</td></tr>
@@ -392,6 +428,8 @@
     <tr><td>Contact isn't receiving messages, no error</td><td>Contact not opted in — the platform blocks the send by design</td><td>Confirm consent, opt the contact in, retry</td></tr>
     <tr><td>Sending health shows tier/quality as "—"</td><td>Meta didn't return the fields (very new number, or token missing management permission)</td><td>Harmless for sending; re-check token permissions if it persists</td></tr>
     <tr><td>Campaign counts look frozen</td><td>They're live-computed, not cached — if truly frozen, delivery receipts aren't arriving</td><td>Same webhook check as replies (step 3b)</td></tr>
+    <tr><td>Customer texts the trigger keyword, nothing happens</td><td>Flow is paused, keyword typo, or the customer is still mid-way through a <i>different</i> active flow (flows don't interrupt each other)</td><td>Check the flow is Active in Workspace → Automation; confirm the exact keyword; check for a stuck session in that customer's thread</td></tr>
+    <tr><td>Follow-up never went out</td><td>Recipient replied (auto-excluded), campaign isn't marked completed, or fewer than N days have passed</td><td>Confirm the parent campaign's status is "completed" and the delay has elapsed — remember it's checked once/day, not instantly at the N-day mark</td></tr>
   </table>
 
   <footer>
