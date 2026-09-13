@@ -2,7 +2,7 @@ import './globals.css';
 import { Toaster } from '@/components/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-export const metadata = { title: '@orgname/notify — Admin' };
+export const metadata = { title: 'Message Broadcast by Azentis' };
 
 const THEME_INIT_SCRIPT = `
 (function () {
