@@ -3,6 +3,7 @@ import { MediaAttachment, HsmComponent } from '@orgname/notify';
 import { withAdminSession } from '@/lib/auth';
 import { getTenant, getCredentialStatus } from '@/lib/tenants';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
+import { normalizePhone } from '@/lib/phone';
 
 /**
  * Sends a real text message through the tenant's own WhatsApp number — the
@@ -26,7 +27,7 @@ export const POST = withAdminSession(async (_session, req: NextRequest, ctx: { p
     attachment?: MediaAttachment;
     hsmTemplate?: { name: string; language: string; components?: HsmComponent[] };
   };
-  const phone = body.phone?.trim();
+  const phone = body.phone?.trim() ? normalizePhone(body.phone.trim()) : '';
   if (!phone) {
     return NextResponse.json({ error: 'phone is required' }, { status: 400 });
   }

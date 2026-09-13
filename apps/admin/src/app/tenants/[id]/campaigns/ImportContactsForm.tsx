@@ -47,7 +47,7 @@ export function ImportContactsForm({
   };
 
   const downloadTemplate = () => {
-    const sample = 'phone,name\n919876543210,Priya Sharma\n919123456789,Rahul Verma\n14155550123,Sam Carter\n';
+    const sample = 'phone,name\n9876543210,Priya Sharma\n9123456789,Rahul Verma\n14155550123,Sam Carter\n';
     const url = URL.createObjectURL(new Blob([sample], { type: 'text/csv' }));
     const a = Object.assign(document.createElement('a'), { href: url, download: 'contacts-template.csv' });
     a.click();
@@ -109,7 +109,7 @@ export function ImportContactsForm({
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Columns: <code>phone,name</code> — one contact per row, header row optional. The file fills the box below so you can review before importing.
+              Columns: <code>phone,name</code> — one contact per row, header row optional. 10-digit Indian numbers default to +91 automatically; other countries need the full country code. The file fills the box below so you can review before importing.
             </p>
             {fileNote && (
               <p className="flex items-center gap-1.5 text-xs text-signal">
@@ -124,7 +124,7 @@ export function ImportContactsForm({
               id="contacts-csv"
               required
               rows={6}
-              placeholder={'919876543210,Priya Sharma\n919123456789,Rahul Verma'}
+              placeholder={'9876543210,Priya Sharma\n9123456789,Rahul Verma'}
               value={csv}
               onChange={(e) => setCsv(e.target.value)}
               className="font-mono text-xs"

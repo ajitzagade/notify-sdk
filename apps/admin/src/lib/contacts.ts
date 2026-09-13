@@ -1,4 +1,5 @@
 import { getPool } from './db';
+import { normalizePhone } from './phone';
 
 export interface ContactRecord {
   id: string;
@@ -97,7 +98,7 @@ export function parseContactsCsv(raw: string): CsvImportRow[] {
     .filter(Boolean)
     .map((line) => {
       const [phoneRaw, ...rest] = line.split(',').map((s) => s.trim().replace(/^"|"$/g, ''));
-      return { phone: phoneRaw.replace(/[^0-9]/g, ''), name: rest.join(',') || undefined };
+      return { phone: normalizePhone(phoneRaw), name: rest.join(',') || undefined };
     })
     .filter((row) => row.phone.length > 0);
 }

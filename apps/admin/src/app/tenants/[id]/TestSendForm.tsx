@@ -170,8 +170,9 @@ export function TestSendForm({
         <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <form id="test-send-form" onSubmit={handleSend} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="test-send-phone">Phone number (international, no +)</Label>
-            <Input id="test-send-phone" required placeholder="919876543210" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Label htmlFor="test-send-phone">Phone number</Label>
+            <Input id="test-send-phone" required placeholder="9876543210" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <p className="text-xs text-muted-foreground">10-digit Indian numbers default to +91 automatically — for other countries, include the full country code (e.g. 14155550123).</p>
           </div>
 
           <Tabs value={mode} onValueChange={(v) => handleModeChange(v as SendMode)}>
