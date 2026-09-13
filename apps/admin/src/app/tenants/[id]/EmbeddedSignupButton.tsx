@@ -43,32 +43,46 @@ export function EmbeddedSignupButton({ tenantId }: { tenantId: string }) {
   useEffect(() => {
     if (!appId) return;
 
+    // TEMPORARY diagnostic (remove once the real cause is confirmed): log
+    // every single postMessage this window receives, unconditionally, before
+    // any filtering — the previous version filtered by origin/type first and
+    // could silently swallow the very message we need to see.
     const onMessage = (event: MessageEvent) => {
+      // eslint-disable-next-line no-console
+      console.log('[EmbeddedSignup] raw message event:', { origin: event.origin, data: event.data });
+
+      let origin: string;
       try {
-        const origin = new URL(event.origin).hostname;
-        // Meta hosts the Embedded Signup popup on various *.facebook.com
-        // subdomains (www., web., business., m., …) — a strict equality
-        // check against just two of them silently drops the message on any
-        // other subdomain, which looks exactly like "Meta never sent it."
-        if (origin !== 'facebook.com' && !origin.endsWith('.facebook.com')) return;
-      } catch {
+        origin = new URL(event.origin).hostname;
+      } catch (err) {
+        console.log('[EmbeddedSignup] event.origin failed to parse as a URL:', event.origin, err);
         return;
       }
+      // Meta hosts the Embedded Signup popup on various *.facebook.com
+      // subdomains (www., web., business., m., …) — a strict equality check
+      // against just two of them silently drops the message on any other
+      // subdomain, which looks exactly like "Meta never sent it."
+      if (origin !== 'facebook.com' && !origin.endsWith('.facebook.com')) {
+        console.log('[EmbeddedSignup] ignoring message from non-facebook origin:', origin);
+        return;
+      }
+
+      let data: unknown;
       try {
-        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-        if (data?.type === 'WA_EMBEDDED_SIGNUP' && data?.data?.waba_id) {
-          signupInfo.current = {
-            wabaId:        String(data.data.waba_id),
-            phoneNumberId: data.data.phone_number_id ? String(data.data.phone_number_id) : undefined,
-          };
-        } else if (data?.type === 'WA_EMBEDDED_SIGNUP') {
-          // Arrived, but didn't carry a waba_id — log the actual shape so a
-          // failure is diagnosable from the browser console instead of just
-          // "Meta didn't report the ids."
-          console.warn('[EmbeddedSignup] WA_EMBEDDED_SIGNUP message missing waba_id:', data);
-        }
-      } catch {
-        // non-JSON messages from FB frames are routine — ignore
+        data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      } catch (err) {
+        console.log('[EmbeddedSignup] message from facebook.com was not JSON:', event.data, err);
+        return;
+      }
+      console.log('[EmbeddedSignup] parsed facebook.com message:', data);
+
+      const parsed = data as { type?: string; event?: string; data?: { waba_id?: string; phone_number_id?: string } };
+      if (parsed?.type === 'WA_EMBEDDED_SIGNUP' && parsed?.data?.waba_id) {
+        signupInfo.current = {
+          wabaId:        String(parsed.data.waba_id),
+          phoneNumberId: parsed.data.phone_number_id ? String(parsed.data.phone_number_id) : undefined,
+        };
+        console.log('[EmbeddedSignup] captured wabaId/phoneNumberId:', signupInfo.current);
       }
     };
     window.addEventListener('message', onMessage);
