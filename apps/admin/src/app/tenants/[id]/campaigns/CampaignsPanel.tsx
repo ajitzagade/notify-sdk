@@ -21,6 +21,7 @@ import { WhatsAppPreview } from '@/components/whatsapp-preview';
 import { CampaignDetailSheet } from './CampaignDetailSheet';
 import { toast } from '@/lib/toast';
 import { estimateCampaignCostINR, formatINR } from '@/lib/pricing';
+import { estimateCampaignRuntimeSeconds, formatDuration } from '@/lib/bulkSendConfig';
 import { bodyText, placeholderCount } from '@/lib/templateParams';
 import type { FollowUpSequenceRecord } from '@/lib/followUpSequences';
 import { FollowUpDialog } from './FollowUpDialog';
@@ -89,6 +90,10 @@ export function CampaignsPanel({
   const estimatedCostINR = useMemo(
     () => (selectedTemplate && selectedList ? estimateCampaignCostINR(selectedTemplate.category, selectedList.memberCount) : null),
     [selectedTemplate, selectedList]
+  );
+  const estimatedRuntimeSeconds = useMemo(
+    () => (selectedList ? estimateCampaignRuntimeSeconds(selectedList.memberCount) : null),
+    [selectedList]
   );
   const paramCount       = useMemo(() => (selectedTemplate ? placeholderCount(bodyText(selectedTemplate)) : 0), [selectedTemplate]);
   const requiredHeader   = selectedTemplate ? headerMediaType(selectedTemplate) : null;
@@ -387,9 +392,11 @@ export function CampaignsPanel({
       </CardContent>
       {lists.length > 0 && templates.length > 0 && (
         <CardFooter className="flex items-center justify-between gap-4">
-          {estimatedCostINR !== null ? (
+          {estimatedCostINR !== null && estimatedRuntimeSeconds !== null ? (
             <p className="text-xs text-muted-foreground">
-              Est. cost: <span className="font-medium text-foreground">{formatINR(estimatedCostINR)}</span> for {selectedList?.memberCount} recipients ({selectedTemplate?.category.toLowerCase()})
+              Est. cost: <span className="font-medium text-foreground">{formatINR(estimatedCostINR)}</span>
+              {' · '}Est. time: <span className="font-medium text-foreground">{formatDuration(estimatedRuntimeSeconds)}</span>
+              {' '}for {selectedList?.memberCount} recipients ({selectedTemplate?.category.toLowerCase()})
             </p>
           ) : <span />}
           <Button type="submit" form="create-campaign-form" disabled={!canCreate}>

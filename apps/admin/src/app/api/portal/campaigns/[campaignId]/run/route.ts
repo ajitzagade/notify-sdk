@@ -5,6 +5,7 @@ import { getCredentialStatus } from '@/lib/tenants';
 import { getCampaign, markCampaignRunning, completeCampaign, type CampaignRecord } from '@/lib/campaigns';
 import { getListPhones } from '@/lib/broadcastLists';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
+import { CAMPAIGN_BATCH_SIZE, CAMPAIGN_BATCH_DELAY_MS } from '@/lib/bulkSendConfig';
 
 /** Fills the template's media HEADER component, if the campaign has one attached. */
 function buildHeaderComponent(campaign: CampaignRecord): HsmComponent | null {
@@ -56,8 +57,8 @@ export const POST = withPortalSession(
           language:   campaign.hsmLanguage,
           components: components.length ? components : undefined,
         },
-        batchSize:             50,
-        delayBetweenBatchesMs: 1000,
+        batchSize:             CAMPAIGN_BATCH_SIZE,
+        delayBetweenBatchesMs: CAMPAIGN_BATCH_DELAY_MS,
       });
 
       await completeCampaign(campaign.id, 'completed', result as unknown as Record<string, unknown>);
