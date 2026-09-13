@@ -54,6 +54,10 @@ export async function completeEmbeddedSignup(
     return { ok: false, error: `Token exchange failed: ${exchange.error}`, statusCode: 502 };
   }
   const businessToken = exchange.accessToken;
+  // Fall back to 60 days if Meta ever omits expires_in — the configuration is
+  // fixed to a 60-day System-user token, so this should always be present,
+  // but never leave the refresh cron with nothing to schedule against.
+  const expiresAt = new Date(Date.now() + (exchange.expiresInSeconds ?? 60 * 24 * 60 * 60) * 1000);
 
   // Without this subscription, the tenant's inbound messages never reach us.
   const subscribed = await subscribeAppToWaba(businessToken, input.wabaId);
@@ -87,8 +91,9 @@ export async function completeEmbeddedSignup(
          (tenant_id, phone_number_id, waba_id,
           access_token_ciphertext, access_token_iv, access_token_tag,
           app_secret_ciphertext, app_secret_iv, app_secret_tag,
-          verify_token, key_version, last_verified_at, last_verified_status, onboarding_method)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'ok', 'embedded_signup')
+          verify_token, key_version, last_verified_at, last_verified_status, onboarding_method,
+          access_token_expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'ok', 'embedded_signup', $12)
        ON CONFLICT (tenant_id) DO UPDATE SET
          phone_number_id         = EXCLUDED.phone_number_id,
          waba_id                 = EXCLUDED.waba_id,
@@ -103,6 +108,7 @@ export async function completeEmbeddedSignup(
          last_verified_at        = NOW(),
          last_verified_status    = 'ok',
          onboarding_method        = 'embedded_signup',
+         access_token_expires_at  = EXCLUDED.access_token_expires_at,
          updated_at               = NOW()`,
       [
         tenantId,
@@ -112,6 +118,7 @@ export async function completeEmbeddedSignup(
         appSecretEnc.ciphertext, appSecretEnc.iv, appSecretEnc.tag,
         verifyToken,
         ring.currentVersion,
+        expiresAt,
       ]
     );
   } catch (err: unknown) {

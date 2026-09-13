@@ -59,6 +59,9 @@ export async function createWhatsAppTemplate(
 export interface MetaTokenExchangeResult {
   ok: boolean;
   accessToken?: string;
+  /** Seconds until this token expires, if Meta returned one — the Embedded
+   * Signup "System-user access token, 60 days" configuration always should. */
+  expiresInSeconds?: number;
   error?: string;
 }
 
@@ -80,7 +83,47 @@ export async function exchangeEmbeddedSignupCode(
       const message = (data?.error?.message as string) ?? `HTTP ${res.status}`;
       return { ok: false, error: message };
     }
-    return { ok: true, accessToken: data.access_token as string };
+    return {
+      ok: true,
+      accessToken: data.access_token as string,
+      expiresInSeconds: typeof data.expires_in === 'number' ? data.expires_in : undefined,
+    };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Extends a still-valid long-lived token for another ~60 days, via the same
+ * `fb_exchange_token` grant Meta uses generally for this — NOT a different
+ * "refresh token" mechanism. Meta requires the token be at least 24h old and
+ * not yet expired; the refresh cron only ever calls this ~30 days before
+ * expiry, well within both bounds. Never requires the client to redo the
+ * Embedded Signup flow.
+ */
+export async function refreshLongLivedAccessToken(
+  appId: string,
+  appSecret: string,
+  currentToken: string
+): Promise<MetaTokenExchangeResult> {
+  try {
+    const params = new URLSearchParams({
+      grant_type:        'fb_exchange_token',
+      client_id:         appId,
+      client_secret:     appSecret,
+      fb_exchange_token: currentToken,
+    });
+    const res = await fetch(`${GRAPH_BASE}/oauth/access_token?${params}`);
+    const data = await res.json();
+    if (!res.ok || !data.access_token) {
+      const message = (data?.error?.message as string) ?? `HTTP ${res.status}`;
+      return { ok: false, error: message };
+    }
+    return {
+      ok: true,
+      accessToken: data.access_token as string,
+      expiresInSeconds: typeof data.expires_in === 'number' ? data.expires_in : undefined,
+    };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
