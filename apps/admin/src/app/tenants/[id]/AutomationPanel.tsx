@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Workflow, Plus, Pencil, Trash2, Loader2, X, AlertCircle } from 'lucide-react';
 import type { FlowDefinitionRecord, FlowStep } from '@/lib/flowDefinitions';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/lib/toast';
+import { AutomationFlowPreview } from './AutomationFlowPreview';
 
 type DraftStep = { question: string; optionsText: string };
 
@@ -45,6 +46,8 @@ export function AutomationPanel({
   const [completionMessage, setCompletionMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const previewSteps = useMemo(() => draftToSteps(steps), [steps]);
 
   const startNew = () => {
     setEditingId(null);
@@ -126,7 +129,7 @@ export function AutomationPanel({
             description="A customer texts a keyword to start a guided Q&A — WhatsApp buttons or free text, one question at a time."
           />
         </CardHeader>
-        <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px_280px]">
           <div className="grid gap-3">
             {flows.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-10 text-center">
@@ -216,6 +219,15 @@ export function AutomationPanel({
               {saving ? <Loader2 className="animate-spin" /> : <Plus />}
               {editingId ? 'Save changes' : 'Create flow'}
             </Button>
+          </div>
+
+          <div className="lg:sticky lg:top-4 lg:self-start">
+            <span className="mb-2 block text-xs font-medium text-muted-foreground">Preview</span>
+            <AutomationFlowPreview
+              triggerKeyword={triggerKeyword}
+              steps={previewSteps}
+              completionMessage={completionMessage}
+            />
           </div>
         </CardContent>
       </Card>

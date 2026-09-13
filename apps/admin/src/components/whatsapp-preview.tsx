@@ -13,12 +13,15 @@ export function WhatsAppPreview({
   mediaUrl,
   mediaKind,
   caption,
+  buttons,
 }: {
   senderName?: string;
   body?: string;
   mediaUrl?: string | null;
   mediaKind?: PreviewMediaKind | null;
   caption?: string;
+  /** Up to 3 quick-reply button labels, rendered below the bubble like a real WhatsApp interactive message. */
+  buttons?: string[];
 }) {
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const hasMedia = Boolean(mediaUrl && mediaKind);
@@ -62,6 +65,20 @@ export function WhatsAppPreview({
             )}
             <div className="mt-1 text-right text-[10px] text-neutral-400">{time}</div>
           </div>
+
+          {buttons && buttons.length > 0 && (
+            <div className="mt-0.5 border-t border-black/10">
+              {buttons.map((label, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-center px-1.5 py-2 text-[13px] font-medium"
+                  style={{ color: '#00a5f4' }}
+                >
+                  {label || `Option ${i + 1}`}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
