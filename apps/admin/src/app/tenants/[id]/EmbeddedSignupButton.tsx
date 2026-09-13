@@ -46,7 +46,11 @@ export function EmbeddedSignupButton({ tenantId }: { tenantId: string }) {
     const onMessage = (event: MessageEvent) => {
       try {
         const origin = new URL(event.origin).hostname;
-        if (origin !== 'www.facebook.com' && origin !== 'web.facebook.com') return;
+        // Meta hosts the Embedded Signup popup on various *.facebook.com
+        // subdomains (www., web., business., m., …) — a strict equality
+        // check against just two of them silently drops the message on any
+        // other subdomain, which looks exactly like "Meta never sent it."
+        if (origin !== 'facebook.com' && !origin.endsWith('.facebook.com')) return;
       } catch {
         return;
       }
@@ -57,6 +61,11 @@ export function EmbeddedSignupButton({ tenantId }: { tenantId: string }) {
             wabaId:        String(data.data.waba_id),
             phoneNumberId: data.data.phone_number_id ? String(data.data.phone_number_id) : undefined,
           };
+        } else if (data?.type === 'WA_EMBEDDED_SIGNUP') {
+          // Arrived, but didn't carry a waba_id — log the actual shape so a
+          // failure is diagnosable from the browser console instead of just
+          // "Meta didn't report the ids."
+          console.warn('[EmbeddedSignup] WA_EMBEDDED_SIGNUP message missing waba_id:', data);
         }
       } catch {
         // non-JSON messages from FB frames are routine — ignore
