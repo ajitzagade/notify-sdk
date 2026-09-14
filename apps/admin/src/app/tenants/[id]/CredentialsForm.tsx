@@ -75,6 +75,7 @@ export function CredentialsForm({ tenantId, status }: { tenantId: string; status
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to save credentials');
       toast.success('Credentials saved');
+      if (data.webhookWarning) toast.error(data.webhookWarning, 'Webhook subscription');
       setAccessToken('');
       setAppSecret('');
       router.refresh();

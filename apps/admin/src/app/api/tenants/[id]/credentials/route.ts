@@ -5,7 +5,7 @@ import { withAdminSession } from '@/lib/auth';
 import { getPool } from '@/lib/db';
 import { getMasterKeyRing } from '@/lib/security';
 import { getTenant } from '@/lib/tenants';
-import { verifyWhatsAppCredentials } from '@/lib/metaGraph';
+import { verifyWhatsAppCredentials, subscribeAppToWaba } from '@/lib/metaGraph';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
 import { recordAuditEvent } from '@/lib/auditLog';
 
@@ -32,6 +32,22 @@ export const PUT = withAdminSession(async (session, req: NextRequest, ctx: { par
       { error: `Meta rejected these credentials: ${verification.error}` },
       { status: 422 }
     );
+  }
+
+  // Best-effort: links this WABA to our platform app's webhook so inbound
+  // messages/status updates actually route to us. Embedded Signup does the
+  // same call (metaGraph.ts's subscribeAppToWaba) as a hard-fail precondition
+  // of its one-shot flow; here it's non-fatal since manual credential saves
+  // are also used to rotate/re-verify an already-working, already-subscribed
+  // tenant, and a token with send-only scope should still be allowed to save.
+  let webhookWarning: string | undefined;
+  if (body.wabaId) {
+    const subscribed = await subscribeAppToWaba(body.accessToken, body.wabaId);
+    if (!subscribed.ok) {
+      webhookWarning = `Credentials saved, but webhook subscription failed (${subscribed.error}) — inbound replies/status updates won't arrive until this is fixed.`;
+    }
+  } else {
+    webhookWarning = 'No WABA ID provided — webhook subscription was skipped, so inbound replies/status updates won\'t arrive.';
   }
 
   const ring          = getMasterKeyRing();
@@ -91,7 +107,7 @@ export const PUT = withAdminSession(async (session, req: NextRequest, ctx: { par
     tenantId:    tenant.id,
     adminUserId: session.adminUserId,
     action:      'tenant.credentials.updated',
-    details:     { phoneNumberId: body.phoneNumberId, wabaId: body.wabaId ?? null },
+    details:     { phoneNumberId: body.phoneNumberId, wabaId: body.wabaId ?? null, webhookWarning: webhookWarning ?? null },
   });
 
   return NextResponse.json({
@@ -99,5 +115,6 @@ export const PUT = withAdminSession(async (session, req: NextRequest, ctx: { par
     verifiedName:        verification.displayName,
     displayPhoneNumber:  verification.displayPhoneNumber,
     verifyToken,
+    webhookWarning,
   });
 });
