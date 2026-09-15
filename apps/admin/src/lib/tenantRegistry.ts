@@ -8,6 +8,7 @@ import {
   decryptSecret,
   resolveKeyForVersion,
 } from '@orgname/notify';
+import * as Sentry from '@sentry/nextjs';
 import { getPool } from './db';
 import { getMasterKeyRing } from './security';
 import { dispatchOutboundWebhooks } from './webhookDispatch';
@@ -74,8 +75,10 @@ class PgTenantCredentialsProvider implements TenantCredentialsProvider {
  * kept for symmetry with the api copy rather than special-cased away.
  */
 function registerWebhookDispatch(client: NotifyClient, tenantId: string): void {
-  const onFailFast = (err: unknown) =>
+  const onFailFast = (err: unknown) => {
     console.error(`[tenantRegistry] webhook dispatch threw unexpectedly for tenant ${tenantId}:`, err);
+    Sentry.captureException(err, { tags: { tenantId }, extra: { source: 'webhook dispatch' } });
+  };
 
   const onMessageEvent = (name: 'sent' | 'delivered' | 'read' | 'failed', event: NotifyEvent, error?: Error) => {
     dispatchOutboundWebhooks(tenantId, name, { ...event, error: error?.message ?? event.error }).catch(onFailFast);

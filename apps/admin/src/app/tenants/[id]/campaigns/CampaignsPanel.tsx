@@ -17,6 +17,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { WhatsAppPreview } from '@/components/whatsapp-preview';
 import { CampaignDetailSheet } from './CampaignDetailSheet';
 import { toast } from '@/lib/toast';
@@ -369,18 +373,39 @@ export function CampaignsPanel({
                             <Repeat /> {followUpByCampaign.has(c.id) ? 'Follow-up' : 'Add follow-up'}
                           </Button>
                         )}
-                        {c.status === 'draft' && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRun(c.id, c.name)}
-                            disabled={runningId === c.id}
-                          >
-                            {runningId === c.id ? <Loader2 className="animate-spin" /> : <Play />}
-                            {runningId === c.id ? 'Running…' : 'Run'}
-                          </Button>
-                        )}
+                        {c.status === 'draft' && (() => {
+                          const targetList = lists.find((l) => l.id === c.broadcastListId) ?? null;
+                          const targetCategory = templates.find((t) => t.name === c.hsmTemplateName)?.category;
+                          const runCost = targetList && targetCategory
+                            ? estimateCampaignCostINR(targetCategory, targetList.memberCount)
+                            : null;
+                          return (
+                            <AlertDialog>
+                              <AlertDialogTrigger render={<Button variant="outline" size="sm" disabled={runningId === c.id} />}>
+                                {runningId === c.id ? <Loader2 className="animate-spin" /> : <Play />}
+                                {runningId === c.id ? 'Running…' : 'Run'}
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Send &quot;{c.name}&quot; now?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This sends real WhatsApp messages, right now, to every opted-in member of
+                                    {targetList ? <> <b>{targetList.name}</b> ({targetList.memberCount} contacts)</> : ' the target list'}
+                                    {' '}using template <code>{c.hsmTemplateName}</code>.
+                                    {runCost !== null && <> Estimated cost: <b>{formatINR(runCost)}</b>.</>}
+                                    {' '}This can&apos;t be undone or recalled once sent.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction variant="destructive" onClick={() => handleRun(c.id, c.name)}>
+                                    Send now
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          );
+                        })()}
                       </div>
                     </TableCell>
                   </TableRow>

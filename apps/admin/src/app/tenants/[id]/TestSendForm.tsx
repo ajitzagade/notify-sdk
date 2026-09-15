@@ -94,7 +94,9 @@ export function TestSendForm({
       setSelectedAssetId(data.asset.id);
       router.refresh();
     } catch (err) {
-      setResult({ ok: false, text: err instanceof Error ? err.message : String(err) });
+      const message = err instanceof Error ? err.message : String(err);
+      setResult({ ok: false, text: message });
+      toast.error(message, 'Upload failed');
     } finally {
       setUploading(false);
       setFileInputKey((k) => k + 1);

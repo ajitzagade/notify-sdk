@@ -10,6 +10,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -127,6 +131,7 @@ function ManageCannedResponsesDialog({
       const res = await fetch(`${apiBase}/canned-responses/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Delete failed');
       if (editingId === id) startNew();
+      toast.success('Canned response deleted');
       onChange();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
@@ -151,7 +156,19 @@ function ManageCannedResponsesDialog({
               </div>
               <div className="flex shrink-0 gap-1">
                 <Button type="button" variant="ghost" size="icon-sm" onClick={() => startEdit(r)}><Pencil /></Button>
-                <Button type="button" variant="ghost" size="icon-sm" onClick={() => handleDelete(r.id)}><Trash2 /></Button>
+                <AlertDialog>
+                  <AlertDialogTrigger render={<Button type="button" variant="ghost" size="icon-sm" />}><Trash2 /></AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete &quot;{r.label}&quot;?</AlertDialogTitle>
+                      <AlertDialogDescription>This snippet will no longer be available to insert into replies. This can&apos;t be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={() => handleDelete(r.id)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           ))}

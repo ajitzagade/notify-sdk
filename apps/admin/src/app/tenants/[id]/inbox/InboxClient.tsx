@@ -110,6 +110,7 @@ export function InboxClient({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Send failed');
       setReplyText('');
+      toast.success('Reply sent');
       await openConversation(selected.id);
       await refreshList();
     } catch (err) {

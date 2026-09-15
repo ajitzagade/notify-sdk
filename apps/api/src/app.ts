@@ -1,3 +1,4 @@
+import './lib/sentry';
 import express from 'express';
 import helmet from 'helmet';
 import { v1Router } from './routes/v1';

@@ -12,6 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/lib/toast';
 
 export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users: PortalUserRecord[] }) {
@@ -142,16 +146,37 @@ export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Badge variant={u.isActive ? 'default' : 'secondary'}>{u.isActive ? 'active' : 'deactivated'}</Badge>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={togglingId === u.id}
-                          onClick={() => handleToggleActive(u.id, !u.isActive)}
-                        >
-                          {togglingId === u.id ? <Loader2 className="animate-spin" /> : u.isActive ? <UserX /> : <UserCheck />}
-                          {togglingId === u.id ? 'Working…' : u.isActive ? 'Deactivate' : 'Reactivate'}
-                        </Button>
+                        {u.isActive ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger render={<Button type="button" variant="outline" size="sm" disabled={togglingId === u.id} />}>
+                              {togglingId === u.id ? <Loader2 className="animate-spin" /> : <UserX />}
+                              {togglingId === u.id ? 'Working…' : 'Deactivate'}
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Deactivate {u.email}&apos;s portal login?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  They&apos;ll be signed out and unable to log into <code>/portal</code> immediately. You can reactivate this login later without recreating it.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction variant="destructive" onClick={() => handleToggleActive(u.id, false)}>Deactivate</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={togglingId === u.id}
+                            onClick={() => handleToggleActive(u.id, true)}
+                          >
+                            {togglingId === u.id ? <Loader2 className="animate-spin" /> : <UserCheck />}
+                            {togglingId === u.id ? 'Working…' : 'Reactivate'}
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

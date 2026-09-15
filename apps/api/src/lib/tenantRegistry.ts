@@ -8,6 +8,7 @@ import {
   decryptSecret,
   resolveKeyForVersion,
 } from '@orgname/notify';
+import { Sentry } from './sentry';
 import { getPool } from './db';
 import { getMasterKeyRing } from './security';
 import { dispatchAiAutoReply } from './aiAutoReply';
@@ -75,8 +76,10 @@ class PgTenantCredentialsProvider implements TenantCredentialsProvider {
  * clients built here, not in apps/admin.
  */
 function onClientReady(client: NotifyClient, tenantId: string): void {
-  const onFailFast = (label: string) => (err: unknown) =>
+  const onFailFast = (label: string) => (err: unknown) => {
     console.error(`[tenantRegistry] ${label} threw unexpectedly for tenant ${tenantId}:`, err);
+    Sentry.captureException(err, { tags: { tenantId }, extra: { source: label } });
+  };
 
   client.eventBus.on('reply', (reply) => {
     const r = reply as InboundReply;

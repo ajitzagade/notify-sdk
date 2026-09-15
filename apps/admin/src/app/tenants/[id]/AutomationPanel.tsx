@@ -12,6 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/lib/toast';
 import { AutomationFlowPreview } from './AutomationFlowPreview';
 
@@ -157,7 +161,22 @@ export function AutomationPanel({
                         {flow.isActive ? 'Pause' : 'Activate'}
                       </Button>
                       <Button type="button" variant="ghost" size="icon-sm" onClick={() => startEdit(flow)}><Pencil /></Button>
-                      <Button type="button" variant="ghost" size="icon-sm" onClick={() => handleDelete(flow)}><Trash2 /></Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger render={<Button type="button" variant="ghost" size="icon-sm" />}><Trash2 /></AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete the &quot;{flow.triggerKeyword}&quot; flow?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Customers who text <code>{flow.triggerKeyword}</code> will stop getting a response immediately.
+                              Anyone currently mid-way through this flow&apos;s questions will be stuck. This can&apos;t be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction variant="destructive" onClick={() => handleDelete(flow)}>Delete flow</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </div>

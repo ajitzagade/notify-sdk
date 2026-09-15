@@ -18,6 +18,10 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/lib/toast';
 
 const EVENT_LABEL: Record<WebhookEvent, string> = {
@@ -225,10 +229,24 @@ export function WebhooksPanel({ tenantId, endpoints }: { tenantId: string; endpo
                             <RotateCcw /> Reactivate
                           </Button>
                         )}
-                        <Button type="button" variant="outline" size="sm" onClick={() => handleDelete(ep.id)} disabled={busyId === ep.id}>
-                          {busyId === ep.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                          {busyId === ep.id ? 'Working…' : 'Delete'}
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger render={<Button type="button" variant="outline" size="sm" disabled={busyId === ep.id} />}>
+                            {busyId === ep.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                            {busyId === ep.id ? 'Working…' : 'Delete'}
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this webhook endpoint?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                <code className="break-all">{ep.url}</code> will stop receiving {ep.events.map((e) => EVENT_LABEL[e]).join(', ')} events immediately. This can&apos;t be undone — you&apos;ll need to re-add it and generate a new signing secret.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction variant="destructive" onClick={() => handleDelete(ep.id)}>Delete endpoint</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

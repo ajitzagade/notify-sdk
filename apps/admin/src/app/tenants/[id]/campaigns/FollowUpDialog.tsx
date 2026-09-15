@@ -6,6 +6,10 @@ import type { TemplateRecord } from '@/lib/templates';
 import type { FollowUpSequenceRecord } from '@/lib/followUpSequences';
 import { bodyText, placeholderCount } from '@/lib/templateParams';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -133,9 +137,24 @@ export function FollowUpDialog({
                 {existingFollowUp.isActive ? <Pause /> : <Play />}
                 {existingFollowUp.isActive ? 'Pause' : 'Resume'}
               </Button>
-              <Button type="button" variant="outline" size="sm" onClick={handleDelete}>
-                <Trash2 /> Remove
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
+                  <Trash2 /> Remove
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Remove this follow-up?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Anyone still waiting on the <code>{existingFollowUp.hsmTemplateName}</code> follow-up
+                      for &quot;{campaignName}&quot; will no longer receive it. This can&apos;t be undone — you&apos;d need to schedule a new one from scratch.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" onClick={handleDelete}>Remove follow-up</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         ) : (
