@@ -37,6 +37,50 @@ describe('deliverSignedWebhook', () => {
     const expectedDigest = crypto.createHmac('sha256', secret).update(`${timestamp}.${expectedBody}`).digest('hex');
     expect(digest).toBe(expectedDigest);
   });
+
+  // Verification checklist item: payload nesting consistency. Every event
+  // type (sent/delivered/read/failed/reply) is dispatched by
+  // apps/*/lib/tenantRegistry.ts via the exact same call —
+  // dispatchOutboundWebhooks(tenantId, name, {...event-or-reply}) — with no
+  // event-type-specific wrapping at the call site (verified by inspection:
+  // apps/api/src/lib/tenantRegistry.ts:113,119 and apps/admin's equivalent).
+  // The ONE nesting step is here, in deliverSignedWebhook, applied
+  // identically regardless of event type. This test proves that
+  // structurally — including a 'reply' payload whose own rawPayload field
+  // is itself a nested object (Meta's raw message), confirming that doesn't
+  // produce any different or double-wrapped shape than a flat NotifyEvent.
+  it('nests every event type identically — {event, data: payload} — with no per-event special-casing', async () => {
+    const fetchSpy = jest.fn().mockResolvedValue({ ok: true, status: 200 });
+    global.fetch = fetchSpy as unknown as typeof fetch;
+
+    const cases: Array<{ event: string; payload: Record<string, unknown> }> = [
+      { event: 'sent', payload: { id: 'log-1', to: '91987', template: 'text', waMessageId: 'wamid.1', status: 'sent' } },
+      { event: 'delivered', payload: { waMessageId: 'wamid.1' } },
+      { event: 'failed', payload: { id: 'log-2', to: '91987', template: 'text', status: 'failed', error: 'timeout' } },
+      {
+        event: 'reply',
+        payload: {
+          from: '91987', messageId: 'wamid.2', type: 'list', listRowId: 'slot_9am', listRowTitle: '9:00 AM',
+          rawPayload: { from: '91987', id: 'wamid.2', type: 'interactive', interactive: { type: 'list_reply', list_reply: { id: 'slot_9am', title: '9:00 AM' } } },
+        },
+      },
+    ];
+
+    for (const { event, payload } of cases) {
+      const result = await deliverSignedWebhook({ url: 'https://example.com/hook', secret: 'whsec_test', event, payload });
+      expect(result.delivered).toBe(true);
+
+      const call = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1];
+      const body = JSON.parse(call[1].body as string);
+
+      // Same top-level shape every time: exactly {event, data}, data holding
+      // the payload verbatim (not re-nested, not flattened).
+      expect(Object.keys(body).sort()).toEqual(['data', 'event']);
+      expect(body.event).toBe(event);
+      expect(body.data).toEqual(payload);
+    }
+  });
+
   const originalFetch = global.fetch;
 
   afterEach(() => {
