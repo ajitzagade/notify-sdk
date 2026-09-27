@@ -103,6 +103,24 @@ export interface SendOptions {
   attachment?: MediaAttachment;
   /** Send a real Meta-approved template message (works outside the 24h session window) */
   hsmTemplate?: { name: string; language: string; components?: HsmComponent[] };
+  /**
+   * Used when template = 'interactive_list' — a WhatsApp list message (a
+   * "pick one of up to 10 options" menu, e.g. an appointment slot picker).
+   * Row `title` is truncated to 24 chars, `description` to 72 (Meta's own
+   * limits); rows beyond the 10th across all sections combined are dropped,
+   * mirroring how `buttons` above is silently capped at 3 rather than
+   * erroring.
+   */
+  list?: {
+    header?: string;
+    body: string;
+    buttonLabel: string;
+    footer?: string;
+    sections: Array<{
+      title?: string;
+      rows: Array<{ id: string; title: string; description?: string }>;
+    }>;
+  };
   /** 'high' skips the queue and sends immediately */
   priority?: 'low' | 'normal' | 'high';
   /** Schedule delivery at a future time */

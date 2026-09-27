@@ -80,6 +80,38 @@ export class TemplateEngine {
       };
     }
 
+    // ── Interactive list message (up to 10 rows, e.g. a slot picker) ─
+    if (options.template === 'interactive_list' && options.list?.sections?.length) {
+      const { header, body, buttonLabel, footer, sections } = options.list;
+      let remaining = 10;
+      const sectionsPayload = sections
+        .map((section) => {
+          if (remaining <= 0) return null;
+          const rows = section.rows.slice(0, remaining).map((row) => ({
+            id:    row.id,
+            title: row.title.slice(0, 24),
+            ...(row.description ? { description: row.description.slice(0, 72) } : {}),
+          }));
+          remaining -= rows.length;
+          return rows.length ? { ...(section.title ? { title: section.title } : {}), rows } : null;
+        })
+        .filter((section): section is { title?: string; rows: { id: string; title: string; description?: string }[] } => section !== null);
+
+      if (sectionsPayload.length) {
+        return {
+          ...base,
+          type: 'interactive',
+          interactive: {
+            type: 'list',
+            ...(header ? { header: { type: 'text', text: header } } : {}),
+            body: { text: body },
+            ...(footer ? { footer: { text: footer } } : {}),
+            action: { button: buttonLabel, sections: sectionsPayload },
+          },
+        };
+      }
+    }
+
     // ── Registered template ───────────────────────────────────────
     const builder = this.registry.get(options.template);
     if (builder) {

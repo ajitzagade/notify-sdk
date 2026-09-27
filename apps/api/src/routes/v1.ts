@@ -1,5 +1,5 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
-import { TenantWebhookRouter, MediaAttachment, HsmComponent } from '@orgname/notify';
+import { TenantWebhookRouter, MediaAttachment, HsmComponent, SendOptions } from '@orgname/notify';
 import { requireApiKey, AuthenticatedRequest } from '../lib/apiKeyAuth';
 import { getTenantRegistry } from '../lib/tenantRegistry';
 import { resolveTenantIdByPhoneNumberId } from '../lib/webhookTenantResolver';
@@ -98,12 +98,19 @@ v1Router.post('/send', asyncHandler(async (req, res) => {
     to?: string; template?: string; data?: Record<string, unknown>; text?: string;
     buttons?: string[]; attachment?: MediaAttachment;
     hsmTemplate?: { name: string; language: string; components?: HsmComponent[] };
+    list?: SendOptions['list'];
     priority?: 'low' | 'normal' | 'high'; scheduleAt?: string;
     tags?: string[]; meta?: Record<string, unknown>;
   };
   if (!body.to || !body.template) {
     res.status(400).json({ error: 'to and template are required' });
     return;
+  }
+  if (body.template === 'interactive_list' && body.list) {
+    if (!body.list.body || !body.list.buttonLabel || !body.list.sections?.length) {
+      res.status(400).json({ error: 'list requires body, buttonLabel, and at least one section with rows' });
+      return;
+    }
   }
 
   const client = await getTenantRegistry().getClient(req.tenantId as string);
@@ -118,6 +125,7 @@ v1Router.post('/send', asyncHandler(async (req, res) => {
     buttons:     body.buttons,
     attachment:  body.attachment,
     hsmTemplate: body.hsmTemplate,
+    list:        body.list,
     bodyPreview,
     priority:    body.priority,
     scheduleAt:  body.scheduleAt ? new Date(body.scheduleAt) : undefined,
