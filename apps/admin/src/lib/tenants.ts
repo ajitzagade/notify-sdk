@@ -10,6 +10,7 @@ export interface TenantRecord {
   secondaryColor: string | null;
   businessDescription: string | null;
   category: string | null;
+  autoReplyEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +26,7 @@ function rowToTenant(row: Record<string, unknown>): TenantRecord {
     secondaryColor:       row.secondary_color as string | null,
     businessDescription:  row.business_description as string | null,
     category:             row.category as string | null,
+    autoReplyEnabled:     row.auto_reply_enabled as boolean,
     createdAt:            row.created_at as string,
     updatedAt:            row.updated_at as string,
   };
@@ -45,6 +47,20 @@ export async function listTenants(): Promise<TenantRecord[]> {
 
 export async function getTenant(id: string): Promise<TenantRecord | null> {
   const { rows } = await getPool().query(`SELECT * FROM tenants WHERE id = $1 LIMIT 1`, [id]);
+  return rows[0] ? rowToTenant(rows[0]) : null;
+}
+
+/**
+ * Belt-and-braces kill switch for platform AI auto-reply + keyword
+ * automation flows (both already self-gate on their own configuration) —
+ * needed for tenants whose own system (e.g. a Cliniqly-integrated clinic)
+ * answers every inbound message itself and must never get a double reply.
+ */
+export async function setAutoReplyEnabled(id: string, enabled: boolean): Promise<TenantRecord | null> {
+  const { rows } = await getPool().query(
+    `UPDATE tenants SET auto_reply_enabled = $2, updated_at = NOW() WHERE id = $1 RETURNING *`,
+    [id, enabled]
+  );
   return rows[0] ? rowToTenant(rows[0]) : null;
 }
 

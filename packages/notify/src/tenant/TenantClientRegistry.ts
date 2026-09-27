@@ -35,7 +35,7 @@ export interface TenantClientRegistryOptions {
    * Firing exactly once per built client (not per getClient() call) means
    * callers never need to guard against attaching duplicate listeners.
    */
-  onClientReady?: (client: NotifyClient, tenantId: string) => void;
+  onClientReady?: (client: NotifyClient, tenantId: string) => void | Promise<void>;
 }
 
 interface CacheEntry {
@@ -111,7 +111,11 @@ export class TenantClientRegistry {
       logger:   tenantScopedLogger(tenantId, this.options.logger),
     });
 
-    this.options.onClientReady?.(client, tenantId);
+    // Awaited so a caller's async setup (e.g. reading a tenant-level flag
+    // before attaching listeners) completes before the client is cached and
+    // handed back — otherwise a webhook could race a getClient() call
+    // against listener attachment still in flight.
+    await this.options.onClientReady?.(client, tenantId);
 
     const ttlMs = this.options.ttlMs ?? 5 * 60 * 1000;
     this.cache.set(tenantId, { client, expiresAt: Date.now() + ttlMs });
