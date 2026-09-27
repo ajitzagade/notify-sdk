@@ -129,3 +129,76 @@ automation flows must never respond for clinic tenants (double-reply risk).
 Item 4 (small, isolated) → item 2 (self-contained) → item 3 (verify-then-extend) → item 1
 (largest; the embedded-signup logic-sharing decision is its main design question). Items are
 independent enough to review/merge separately — keep them as separate commits or PRs.
+
+## Work item 5 — Caller-supplied button IDs
+
+Added after Cliniqly's own implementation surfaced it: `SendOptions.buttons` only ever
+accepted plain string labels, and `TemplateEngine`'s `interactive_buttons` branch always
+auto-generated the reply id (`btn_{index}_{refId}`). Cliniqly's state machine encodes its own
+reply ids (e.g. `CANCEL_APPOINTMENT:123`) — same shape list rows already support via `list.id`
+— but had no equivalent for quick-reply buttons.
+
+- **Shipped**: `buttons` widened to `Array<string | {id, title}>` — additive; a plain string
+  keeps today's auto-generated id exactly as before, an `{id, title}` object supplies its own.
+  Mixed arrays work (some auto, some caller-supplied, in the same send). Still capped at 3.
+  Byte-identical-output regression test for the existing string-only form.
+
+## Verification checklist
+
+> **Note on this section's provenance**: this checklist and the Work item 5 description above
+> were originally written after a round of real integration work in the Cliniqly repo, then
+> lost to an accidental `git reset --hard` before being committed (see the notify-sdk session
+> that reconstructed this — the exact original wording/full item list is not recoverable). What
+> follows is a reconstruction: the three concerns the user could recall precisely
+> (waMessageId synchronicity, retry re-signing, payload nesting) plus the confirmed existence of
+> an item 8 (partner-key rotation docs), each verified from scratch against the actual code
+> rather than assumed. Items are unordered relative to whatever the original numbering was.
+
+- [x] **waMessageId synchronicity** — does `client.send()`'s returned `NotifyEvent` reliably
+      have `waMessageId` populated by the time the HTTP response goes out, for every path
+      `/v1/send` and `/partner/*`-provisioned tenants actually use?
+      **Confirmed correct**, not a bug: `NotifyClient.ts`'s `send()` re-reads the actual
+      `notify_log` row via `storage.getEvent(logId)` after `queue.enqueue()` rather than
+      trusting an earlier "queued" snapshot (see the comment at the call site), and
+      `InlineQueueAdapter.enqueue()` — what every tenant client actually uses, since
+      `TenantClientRegistry` never overrides `queueFactory` — `await`s the job handler
+      to completion for the no-delay case rather than firing-and-forgetting. `executeJob()`
+      writes `waMessageId` to storage before returning and before emitting `'sent'`. The one
+      real edge case (accurate, but previously undocumented): a `scheduleAt` send, or a
+      deployment using `BullQueueAdapter`, correctly returns `status: 'queued'` with no
+      `waMessageId` yet — now documented in `packages/notify/README.md`.
+
+- [x] **Retry re-signing / idempotency** — does retrying one of the partner endpoints (client
+      timeout, not knowing if the first attempt succeeded) produce a different secret/signature
+      than the original call, in a way that could silently break a caller who kept only the
+      latest response?
+      **Real gap found and fixed**: `POST /partner/tenants/:id/webhook-endpoints` minted a
+      brand-new `whsec_` secret and inserted a new row on every call, with no dedup — a retry
+      would leave two active endpoints receiving duplicate deliveries, one signed with a secret
+      the caller no longer has on file if they only kept the newest response. Fixed in
+      `packages/notify/src/provisioning/tenantProvisioning.ts`'s `createWebhookEndpoint()`: now
+      checks for an existing active endpoint with the same `(tenantId, url, events)` (order-
+      independent event comparison) before inserting, and returns that endpoint's real
+      (decrypted) id/secret again rather than minting a duplicate. A genuinely different
+      `events` subset for the same URL still creates a new row, as intended. The other
+      secret-issuing/write paths were already correct: `/credentials` and `/embedded-signup`
+      use `ON CONFLICT (tenant_id) DO UPDATE` (confirmed idempotent); `/api-key` is
+      deliberately non-idempotent by design — this endpoint's own stated purpose is "issue
+      (or rotate)," so a second call minting a new key is correct behavior, not a bug.
+
+- [x] **Payload nesting consistency** — do all outbound webhook event types
+      (`sent`/`delivered`/`read`/`failed`/`reply`) nest under `{event, data}` the same way, with
+      no per-event-type special-casing or accidental double-nesting (e.g. `reply`'s own
+      `rawPayload` sub-object)?
+      **Confirmed correct**, evidenced by a new test
+      (`OutboundWebhookDispatcher.test.ts`, "nests every event type identically") that runs a
+      `sent`, `delivered`, `failed`, and `reply` (including a nested `rawPayload`) payload
+      through `deliverSignedWebhook` and asserts every one produces the exact same top-level
+      `{event, data}` shape. The single wrap point (`OutboundWebhookDispatcher.ts`'s
+      `JSON.stringify({event, data: payload})`) is shared by every call site in both apps'
+      `tenantRegistry.ts` — no event type nests differently.
+
+- [x] **Item 8 — partner-key issuance/rotation procedure** — documented in
+      `docs/partner-api-reference.md` ("Issuing a new partner key" / "Rotating or revoking a
+      partner key"): no self-serve endpoint (deliberate), the exact scrypt-hash-and-insert
+      script, and the issue-new-then-revoke-old rotation procedure.
