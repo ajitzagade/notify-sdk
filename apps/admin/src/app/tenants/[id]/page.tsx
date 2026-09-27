@@ -92,7 +92,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
         <TenantWorkspaceTabs
           analytics={<AnalyticsPanel tenantId={tenant.id} />}
           ai={<AiAssistantPanel tenantId={tenant.id} status={aiStatus} />}
-          automation={<AutomationPanel tenantId={tenant.id} flows={flows} />}
+          automation={<AutomationPanel tenantId={tenant.id} flows={flows} autoReplyEnabled={tenant.autoReplyEnabled} />}
           portalAccess={<PortalAccessPanel tenantId={tenant.id} users={portalUsers} />}
           webhooks={<WebhooksPanel tenantId={tenant.id} endpoints={webhookEndpoints} />}
           audit={<AuditLogPanel entries={auditEntries} />}

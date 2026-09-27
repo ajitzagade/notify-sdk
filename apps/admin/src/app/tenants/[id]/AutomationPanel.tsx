@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Workflow, Plus, Pencil, Trash2, Loader2, X, AlertCircle } from 'lucide-react';
+import { Workflow, Plus, Pencil, Trash2, Loader2, X, AlertCircle, Power } from 'lucide-react';
 import type { FlowDefinitionRecord, FlowStep } from '@/lib/flowDefinitions';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { CardTitleGroup } from '@/components/card-title-group';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -39,10 +40,46 @@ function draftToSteps(draft: DraftStep[]): FlowStep[] {
 }
 
 export function AutomationPanel({
-  tenantId, flows, baseApiPath,
-}: { tenantId: string; flows: FlowDefinitionRecord[]; baseApiPath?: string }) {
+  tenantId, flows, baseApiPath, autoReplyEnabled: initialAutoReplyEnabled,
+}: {
+  tenantId: string; flows: FlowDefinitionRecord[]; baseApiPath?: string;
+  /**
+   * Platform-wide kill switch (tenants.auto_reply_enabled) for both the AI
+   * assistant and the flows below — distinct from AiAssistantPanel's own
+   * "Auto-reply to inbound messages" checkbox, which only ever governs the
+   * AI feature. Omit this prop entirely to hide the toggle (e.g. if this
+   * component is ever reused somewhere the platform-wide setting shouldn't
+   * be exposed, such as the tenant portal) — undefined means "don't render
+   * it," never "render it in some default state."
+   */
+  autoReplyEnabled?: boolean;
+}) {
   const apiBase = baseApiPath ?? `/api/tenants/${tenantId}`;
   const router = useRouter();
+
+  const [autoReplyEnabled, setAutoReplyEnabled] = useState(initialAutoReplyEnabled);
+  const [togglingAutoReply, setTogglingAutoReply] = useState(false);
+
+  const handleToggleAutoReply = async (enabled: boolean) => {
+    const previous = autoReplyEnabled;
+    setAutoReplyEnabled(enabled); // optimistic; reverted below on failure
+    setTogglingAutoReply(true);
+    try {
+      const res = await fetch(`/api/tenants/${tenantId}/auto-reply`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ enabled }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Update failed');
+      toast.success(enabled ? 'Platform auto-reply re-enabled' : 'Platform auto-reply disabled for this tenant');
+      router.refresh();
+    } catch (err) {
+      setAutoReplyEnabled(previous);
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setTogglingAutoReply(false);
+    }
+  };
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [triggerKeyword, setTriggerKeyword] = useState('');
@@ -125,6 +162,35 @@ export function AutomationPanel({
 
   return (
     <div className="grid gap-6">
+      {autoReplyEnabled !== undefined && (
+        <Card>
+          <CardHeader>
+            <CardTitleGroup
+              icon={Power}
+              title="Platform auto-reply"
+              titleExtra={<Badge variant={autoReplyEnabled ? 'default' : 'outline'}>{autoReplyEnabled ? 'On' : 'Off'}</Badge>}
+              description="Master switch for both the AI assistant and the flows below, for this tenant only."
+            />
+          </CardHeader>
+          <CardContent>
+            <label className="flex items-start gap-2.5 text-sm">
+              <Checkbox
+                checked={autoReplyEnabled}
+                disabled={togglingAutoReply}
+                onCheckedChange={(c) => handleToggleAutoReply(c === true)}
+              />
+              <span>
+                Let this platform auto-reply to inbound messages
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Turn off only if this tenant&apos;s own system (e.g. a booking integration) already answers every
+                  message — leaving both on risks a customer getting two replies to one message.
+                </span>
+              </span>
+            </label>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitleGroup
