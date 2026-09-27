@@ -15,6 +15,7 @@ function makeFakePool(): ProvisioningPool & { inserted: Record<string, unknown>[
   const inserted: Record<string, unknown>[] = [];
   const existingSlugs = new Set<string>();
   const existingPhoneNumberIds = new Set<string>();
+  const webhookEndpoints: Record<string, unknown>[] = [];
 
   return {
     inserted,
@@ -34,9 +35,20 @@ function makeFakePool(): ProvisioningPool & { inserted: Record<string, unknown>[
         inserted.push({ table: 'tenant_api_keys', ...row, tenant_id: params[0], key_prefix: params[1] });
         return { rows: [row] };
       }
+      if (text.startsWith('SELECT id, url, events, secret_ciphertext, secret_iv, secret_tag, key_version')) {
+        const [tenantId, url] = params as [string, string];
+        const matches = webhookEndpoints.filter((r) => r.tenant_id === tenantId && r.url === url && r.is_active === true);
+        return { rows: matches };
+      }
       if (text.includes('INSERT INTO webhook_endpoints')) {
-        const row = { id: crypto.randomUUID() };
-        inserted.push({ table: 'webhook_endpoints', ...row, tenant_id: params[0], url: params[1] });
+        const row = {
+          table: 'webhook_endpoints', id: crypto.randomUUID(),
+          tenant_id: params[0], url: params[1],
+          secret_ciphertext: params[2], secret_iv: params[3], secret_tag: params[4], key_version: params[5],
+          events: params[6], is_active: true,
+        };
+        inserted.push(row);
+        webhookEndpoints.push(row);
         return { rows: [row] };
       }
       if (text.includes('INSERT INTO tenant_wa_credentials')) {
@@ -122,6 +134,43 @@ describe('provisioning — createWebhookEndpoint', () => {
 
     const insertedRow = pool.inserted.find((r) => r.table === 'webhook_endpoints');
     expect(insertedRow).toBeDefined();
+  });
+
+  it('is retry-safe: an identical (tenantId, url, events) call returns the SAME endpoint id and secret, not a duplicate', async () => {
+    const pool = makeFakePool();
+    const ctx = makeCtx(pool);
+    const input = { tenantId: 'tenant-1', url: 'https://cliniqly.example/hooks', events: ['reply', 'sent'] as const };
+
+    const first = await createWebhookEndpoint(ctx, { ...input, events: [...input.events] });
+    const retry = await createWebhookEndpoint(ctx, { ...input, events: [...input.events] });
+
+    expect(retry.id).toBe(first.id);
+    expect(retry.secret).toBe(first.secret);
+    expect(pool.inserted.filter((r) => r.table === 'webhook_endpoints')).toHaveLength(1);
+  });
+
+  it('treats a different events subset for the same URL as a deliberate second registration, not a retry', async () => {
+    const pool = makeFakePool();
+    const ctx = makeCtx(pool);
+    const url = 'https://cliniqly.example/hooks';
+
+    const first = await createWebhookEndpoint(ctx, { tenantId: 'tenant-1', url, events: ['reply'] });
+    const second = await createWebhookEndpoint(ctx, { tenantId: 'tenant-1', url, events: ['sent', 'delivered'] });
+
+    expect(second.id).not.toBe(first.id);
+    expect(second.secret).not.toBe(first.secret);
+    expect(pool.inserted.filter((r) => r.table === 'webhook_endpoints')).toHaveLength(2);
+  });
+
+  it('matches events regardless of array order (a retry that happens to reorder its own array is still recognized)', async () => {
+    const pool = makeFakePool();
+    const ctx = makeCtx(pool);
+    const url = 'https://cliniqly.example/hooks';
+
+    const first = await createWebhookEndpoint(ctx, { tenantId: 'tenant-1', url, events: ['reply', 'sent'] });
+    const retry = await createWebhookEndpoint(ctx, { tenantId: 'tenant-1', url, events: ['sent', 'reply'] });
+
+    expect(retry.id).toBe(first.id);
   });
 });
 

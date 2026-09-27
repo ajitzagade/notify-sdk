@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { encryptSecret } from '../security/CredentialCipher';
+import { encryptSecret, decryptSecret, resolveKeyForVersion } from '../security/CredentialCipher';
 import { hashPassword } from '../security/PasswordHash';
 import { MasterKeyRing } from '../security/CredentialCipher';
 import {
@@ -136,11 +136,46 @@ export interface ProvisionedWebhookEndpoint {
   secret: string;
 }
 
-/** Registers an outbound webhook endpoint, mirroring apps/admin's createWebhookEndpoint. */
+/**
+ * Registers an outbound webhook endpoint, mirroring apps/admin's
+ * createWebhookEndpoint — but unlike that one, retry-safe: a caller that
+ * times out waiting for the response and re-POSTs the identical
+ * {url, events} gets back the SAME endpoint id and secret rather than a
+ * second row with a different secret. Without this, a retry would leave
+ * two active endpoints receiving duplicate deliveries, one signed with a
+ * secret the caller no longer has on file (if they only kept the latest
+ * response) — a genuinely silent failure mode, not just wasted rows.
+ * Only matches an ACTIVE endpoint with the exact same event set
+ * (order-independent) — a deliberate second registration with a different
+ * events subset for the same URL still creates a new row, as intended.
+ */
 export async function createWebhookEndpoint(
   ctx: ProvisioningContext,
   input: { tenantId: string; url: string; events: ProvisioningWebhookEvent[] }
 ): Promise<ProvisionedWebhookEndpoint> {
+  const requestedEvents = [...input.events].sort();
+
+  const { rows: existingRows } = await ctx.pool.query(
+    `SELECT id, url, events, secret_ciphertext, secret_iv, secret_tag, key_version
+       FROM webhook_endpoints WHERE tenant_id = $1 AND url = $2 AND is_active = true`,
+    [input.tenantId, input.url]
+  );
+  const existing = existingRows.find((row) => {
+    const rowEvents = [...(row.events as string[])].sort();
+    return rowEvents.length === requestedEvents.length && rowEvents.every((e, i) => e === requestedEvents[i]);
+  });
+
+  if (existing) {
+    const masterKey = resolveKeyForVersion(ctx.masterKeyRing, existing.key_version as number);
+    const secret = decryptSecret(
+      { ciphertext: existing.secret_ciphertext as string, iv: existing.secret_iv as string, tag: existing.secret_tag as string },
+      input.tenantId,
+      masterKey,
+      existing.key_version as number
+    );
+    return { id: existing.id as string, tenantId: input.tenantId, url: input.url, events: input.events, secret };
+  }
+
   const secret = `whsec_${crypto.randomBytes(24).toString('base64url')}`;
   const enc = encryptSecret(secret, input.tenantId, ctx.masterKeyRing.currentKey, ctx.masterKeyRing.currentVersion);
 
