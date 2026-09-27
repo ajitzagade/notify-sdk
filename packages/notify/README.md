@@ -234,6 +234,40 @@ await notify.send({
 
 Authoring/submitting new templates to Meta for approval isn't part of this SDK — sync and send only. `apps/admin` has a UI for both syncing a tenant's approved templates and composing a parameterized send against one.
 
+### Interactive list messages
+
+For a "pick one of several options" menu — e.g. an appointment slot picker — beyond the 3-button limit of `interactive_buttons`, WhatsApp's list message supports up to 10 rows across one or more sections:
+
+```ts
+await notify.send({
+  to:       '919876543210',
+  template: 'interactive_list',
+  list: {
+    header:      'Available slots',       // optional
+    body:        'Pick a time that works for you',
+    buttonLabel: 'Choose a slot',
+    footer:      'Reply STOP to opt out', // optional
+    sections: [
+      {
+        title: 'Morning',                 // optional
+        rows: [
+          { id: 'slot_9am',  title: '9:00 AM',  description: 'With Dr. Rao' }, // description optional
+          { id: 'slot_10am', title: '10:00 AM' },
+        ],
+      },
+      {
+        title: 'Afternoon',
+        rows: [{ id: 'slot_2pm', title: '2:00 PM' }],
+      },
+    ],
+  },
+});
+```
+
+Row `title` is truncated to 24 characters and `description` to 72 (Meta's own limits); rows beyond the 10th across all sections combined are silently dropped, the same way `buttons` above is capped at 3 rather than erroring.
+
+A tap on a row arrives via the normal `onReply`/`'reply'` event as an `InboundReply` with `type: 'list'` and `listRowId`/`listRowTitle` set to the tapped row's `id`/`title` — parallel to `buttonId`/`buttonTitle` for a button tap.
+
 ---
 
 ## Built-in templates
