@@ -89,7 +89,7 @@ export class NotifyClient {
       status:      'queued',
       tags:        options.tags,
       meta:        options.meta,
-      bodyPreview: extractBodyPreview(payload),
+      bodyPreview: options.bodyPreview ?? extractBodyPreview(payload),
     });
 
     const job: QueueJob = { logId, sendOptions: options, payload };
@@ -122,7 +122,7 @@ export class NotifyClient {
       status:      'queued',
       tags:        options.tags,
       meta:        options.meta,
-      bodyPreview: extractBodyPreview(payload),
+      bodyPreview: options.bodyPreview ?? extractBodyPreview(payload),
     };
   }
 

@@ -4,6 +4,7 @@ import { withAdminSession } from '@/lib/auth';
 import { getTenant, getCredentialStatus } from '@/lib/tenants';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
 import { normalizePhone } from '@/lib/phone';
+import { getHsmBodyPreview } from '@/lib/hsmPreview';
 
 /**
  * Sends a real text message through the tenant's own WhatsApp number — the
@@ -41,12 +42,16 @@ export const POST = withAdminSession(async (_session, req: NextRequest, ctx: { p
   try {
     const client = await getTenantRegistry().getClient(tenant.id);
     await client.optIn(phone); // required so GuardEngine allows the send below
+    const bodyPreview = body.hsmTemplate
+      ? await getHsmBodyPreview(tenant.id, body.hsmTemplate.name, body.hsmTemplate.language, body.hsmTemplate.components)
+      : undefined;
     const event = await client.send({
       to:          phone,
       template:    'text',
       text:        body.message?.trim() || `Test message from ${tenant.name} via @orgname/notify admin.`,
       attachment:  body.attachment,
       hsmTemplate: body.hsmTemplate,
+      bodyPreview,
       priority:    'high',
     });
     return NextResponse.json({ ok: event.status !== 'failed', event });

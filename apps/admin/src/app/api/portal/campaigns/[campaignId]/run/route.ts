@@ -5,6 +5,7 @@ import { getCredentialStatus } from '@/lib/tenants';
 import { getCampaign, markCampaignRunning, completeCampaign, type CampaignRecord } from '@/lib/campaigns';
 import { getListPhones } from '@/lib/broadcastLists';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
+import { getHsmBodyPreview } from '@/lib/hsmPreview';
 import { CAMPAIGN_BATCH_SIZE, CAMPAIGN_BATCH_DELAY_MS } from '@/lib/bulkSendConfig';
 
 /** Fills the template's media HEADER component, if the campaign has one attached. */
@@ -49,6 +50,9 @@ export const POST = withPortalSession(
       }
 
       const client = await getTenantRegistry().getClient(session.tenantId);
+      const bodyPreview = await getHsmBodyPreview(
+        session.tenantId, campaign.hsmTemplateName, campaign.hsmLanguage, components.length ? components : undefined
+      );
       const result = await client.sendBulk({
         recipients: phones,
         template:   'text',
@@ -57,6 +61,7 @@ export const POST = withPortalSession(
           language:   campaign.hsmLanguage,
           components: components.length ? components : undefined,
         },
+        bodyPreview,
         batchSize:             CAMPAIGN_BATCH_SIZE,
         delayBetweenBatchesMs: CAMPAIGN_BATCH_DELAY_MS,
       });

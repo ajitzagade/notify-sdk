@@ -178,6 +178,16 @@ export class WebhookHandler {
       return { ...base, type: 'button', buttonId: br.id, buttonTitle: br.title };
     }
 
+    // Quick-reply taps on approved (HSM) template messages arrive as
+    // type 'button' with a top-level `button: { payload, text }` — a
+    // different payload shape from the interactive session-message
+    // buttons above. Without this branch they fell through to the text
+    // fallback and were stored as empty text replies.
+    const button = message.button as Record<string, string> | undefined;
+    if (message.type === 'button' && button) {
+      return { ...base, type: 'button', buttonId: button.payload, buttonTitle: button.text };
+    }
+
     const text = message.text as Record<string, string> | undefined;
     return { ...base, type: 'text', text: text?.body };
   }

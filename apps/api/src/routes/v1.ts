@@ -3,6 +3,7 @@ import { TenantWebhookRouter, MediaAttachment, HsmComponent } from '@orgname/not
 import { requireApiKey, AuthenticatedRequest } from '../lib/apiKeyAuth';
 import { getTenantRegistry } from '../lib/tenantRegistry';
 import { resolveTenantIdByPhoneNumberId } from '../lib/webhookTenantResolver';
+import { getHsmBodyPreview } from '../lib/hsmPreview';
 
 const asyncHandler =
   (fn: (req: AuthenticatedRequest, res: Response) => Promise<void>) =>
@@ -106,6 +107,9 @@ v1Router.post('/send', asyncHandler(async (req, res) => {
   }
 
   const client = await getTenantRegistry().getClient(req.tenantId as string);
+  const bodyPreview = body.hsmTemplate
+    ? await getHsmBodyPreview(req.tenantId as string, body.hsmTemplate.name, body.hsmTemplate.language, body.hsmTemplate.components)
+    : undefined;
   const event = await client.send({
     to:          body.to,
     template:    body.template,
@@ -114,6 +118,7 @@ v1Router.post('/send', asyncHandler(async (req, res) => {
     buttons:     body.buttons,
     attachment:  body.attachment,
     hsmTemplate: body.hsmTemplate,
+    bodyPreview,
     priority:    body.priority,
     scheduleAt:  body.scheduleAt ? new Date(body.scheduleAt) : undefined,
     tags:        body.tags,

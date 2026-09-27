@@ -111,6 +111,14 @@ export interface SendOptions {
   tags?: string[];
   /** Arbitrary metadata stored in the notification log */
   meta?: Record<string, unknown>;
+  /**
+   * Caller-supplied human-readable preview of the message stored in
+   * notify_log.body_preview, overriding extractBodyPreview(). Callers that
+   * know the rendered text of an HSM template (which the wire payload
+   * carries only by name + parameters) use this so thread views can show
+   * the real sentence instead of "[Template: name]".
+   */
+  bodyPreview?: string;
 }
 
 // ─── Bulk send ───────────────────────────────────────────────────────────────

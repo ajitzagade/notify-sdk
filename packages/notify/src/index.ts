@@ -27,6 +27,7 @@ export type { SessionPayload }                             from './security/Sess
 export { isPrivateOrReservedIp, isDeliverableUrl }         from './security/SsrfGuard';
 
 // Webhook
+export { renderHsmBody } from './core/extractBodyPreview';
 export { verifyWhatsAppSignature, signOutboundWebhookPayload } from './webhook/signature';
 export { deliverSignedWebhook } from './webhook/OutboundWebhookDispatcher';
 export type { OutboundWebhookDeliveryResult } from './webhook/OutboundWebhookDispatcher';
