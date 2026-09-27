@@ -1,6 +1,42 @@
+import crypto from 'crypto';
 import { deliverSignedWebhook } from '../src/webhook/OutboundWebhookDispatcher';
 
 describe('deliverSignedWebhook', () => {
+  // Regression guard for Cliniqly work item 3: reply/status payloads gained
+  // new fields (InboundReply.listRowId/listRowTitle, NotifyEvent already had
+  // waMessageId). The signing contract is "HMAC over JSON.stringify({event,
+  // data: payload})" with no fixed schema, so adding fields to `payload`
+  // must not change how the signature is computed or verified — a consumer
+  // recomputing the HMAC over the literal received body keeps working
+  // whether or not it recognizes the new keys.
+  it('signs correctly when the payload carries new fields a consumer may not recognize', async () => {
+    const secret = 'whsec_test';
+    const richPayload = {
+      from: '919876543210',
+      messageId: 'wamid.abc123',
+      type: 'list',
+      listRowId: 'slot_9am',
+      listRowTitle: '9:00 AM',
+    };
+
+    const fetchSpy = jest.fn().mockResolvedValue({ ok: true, status: 200 });
+    global.fetch = fetchSpy as unknown as typeof fetch;
+
+    const result = await deliverSignedWebhook({
+      url: 'https://example.com/hook', secret, event: 'reply', payload: richPayload,
+    });
+    expect(result.delivered).toBe(true);
+
+    const [, init] = fetchSpy.mock.calls[0];
+    const expectedBody = JSON.stringify({ event: 'reply', data: richPayload });
+    expect(init.body).toBe(expectedBody);
+
+    const [, sig] = (init.headers['X-Notify-Signature'] as string).split(',');
+    const [, digest] = sig.split('=');
+    const timestamp = (init.headers['X-Notify-Signature'] as string).match(/^t=(\d+)/)?.[1];
+    const expectedDigest = crypto.createHmac('sha256', secret).update(`${timestamp}.${expectedBody}`).digest('hex');
+    expect(digest).toBe(expectedDigest);
+  });
   const originalFetch = global.fetch;
 
   afterEach(() => {

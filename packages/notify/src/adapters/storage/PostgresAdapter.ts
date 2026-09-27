@@ -132,8 +132,8 @@ export class PostgresAdapter implements IStorageAdapter {
   async logReply(reply: InboundReply): Promise<void> {
     await this.pool.query(
       `INSERT INTO message_replies
-         (tenant_id, wa_message_id, in_reply_to_wa_message_id, from_phone, type, button_id, button_title, body)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+         (tenant_id, wa_message_id, in_reply_to_wa_message_id, from_phone, type, button_id, button_title, body, list_row_id, list_row_title)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         this.tenantId,
         reply.messageId,
@@ -143,6 +143,8 @@ export class PostgresAdapter implements IStorageAdapter {
         reply.buttonId ?? null,
         reply.buttonTitle ?? null,
         reply.text ?? null,
+        reply.listRowId ?? null,
+        reply.listRowTitle ?? null,
       ]
     );
   }

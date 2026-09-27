@@ -97,7 +97,11 @@ export async function dispatchAutomationFlow(
   tenantId: string, reply: InboundReply, client: NotifyClient
 ): Promise<boolean> {
   try {
-    const text = (reply.type === 'text' ? reply.text : reply.buttonTitle)?.trim();
+    const text = (
+      reply.type === 'text' ? reply.text :
+      reply.type === 'list' ? reply.listRowTitle :
+      reply.buttonTitle
+    )?.trim();
     if (!text) return false;
     if (CONSENT_KEYWORDS.has(text.toLowerCase())) return false; // owned by existing STOP/START handling
 

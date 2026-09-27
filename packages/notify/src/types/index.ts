@@ -190,9 +190,12 @@ export interface NotifyEvent {
 export interface InboundReply {
   from: string;
   messageId: string;
-  type: 'button' | 'text';
+  type: 'button' | 'text' | 'list';
   buttonId?: string;
   buttonTitle?: string;
+  /** Set when type = 'list' — the tapped row's `id` (e.g. an encoded slot id) and `title`. */
+  listRowId?: string;
+  listRowTitle?: string;
   text?: string;
   /**
    * The wa_message_id of the outbound message this is a reply to, when Meta

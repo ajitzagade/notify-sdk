@@ -178,6 +178,14 @@ export class WebhookHandler {
       return { ...base, type: 'button', buttonId: br.id, buttonTitle: br.title };
     }
 
+    // A tap on a row of an interactive list message (see TemplateEngine's
+    // 'interactive_list' branch) — a distinct payload shape from the
+    // quick-reply buttons above, `interactive.list_reply: { id, title, ... }`.
+    if (message.type === 'interactive' && interactive?.type === 'list_reply') {
+      const lr = interactive.list_reply as Record<string, string>;
+      return { ...base, type: 'list', listRowId: lr.id, listRowTitle: lr.title };
+    }
+
     // Quick-reply taps on approved (HSM) template messages arrive as
     // type 'button' with a top-level `button: { payload, text }` — a
     // different payload shape from the interactive session-message
