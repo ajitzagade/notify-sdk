@@ -8,6 +8,7 @@ import {
   decryptSecret,
   resolveKeyForVersion,
 } from '@orgname/notify';
+import { waitUntil } from '@vercel/functions';
 import { Sentry } from './sentry';
 import { getPool } from './db';
 import { getMasterKeyRing } from './security';
@@ -86,16 +87,22 @@ function onClientReady(client: NotifyClient, tenantId: string): void {
     // The fixed Q&A automation gets first look at a reply; only if it isn't
     // running (or doesn't recognize the trigger) does the free-form AI
     // responder get a turn — a customer never gets answered by both.
-    dispatchAutomationFlow(tenantId, r, client)
-      .then((handled) => { if (!handled) return dispatchAiAutoReply(tenantId, r, client); })
-      .catch(onFailFast('automation/AI dispatch'));
-    dispatchOutboundWebhooks(tenantId, 'reply', { ...r }).catch(onFailFast('webhook dispatch'));
-    upsertConversationOnReply(tenantId, r.from).catch(onFailFast('conversation upsert'));
+    // Each chain is handed to waitUntil so Vercel doesn't freeze the
+    // instance when the webhook 200s before these finish (no-op locally).
+    waitUntil(
+      dispatchAutomationFlow(tenantId, r, client)
+        .then((handled) => { if (!handled) return dispatchAiAutoReply(tenantId, r, client); })
+        .catch(onFailFast('automation/AI dispatch'))
+    );
+    waitUntil(dispatchOutboundWebhooks(tenantId, 'reply', { ...r }).catch(onFailFast('webhook dispatch')));
+    waitUntil(upsertConversationOnReply(tenantId, r.from).catch(onFailFast('conversation upsert')));
   });
 
   const onMessageEvent = (name: 'sent' | 'delivered' | 'read' | 'failed', event: NotifyEvent, error?: Error) => {
-    dispatchOutboundWebhooks(tenantId, name, { ...event, error: error?.message ?? event.error }).catch(
-      onFailFast('webhook dispatch')
+    waitUntil(
+      dispatchOutboundWebhooks(tenantId, name, { ...event, error: error?.message ?? event.error }).catch(
+        onFailFast('webhook dispatch')
+      )
     );
   };
   client.eventBus.on('sent', (e) => onMessageEvent('sent', e as NotifyEvent));

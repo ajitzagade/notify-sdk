@@ -9,6 +9,7 @@ import {
   resolveKeyForVersion,
 } from '@orgname/notify';
 import * as Sentry from '@sentry/nextjs';
+import { waitUntil } from '@vercel/functions';
 import { getPool } from './db';
 import { getMasterKeyRing } from './security';
 import { dispatchOutboundWebhooks } from './webhookDispatch';
@@ -81,7 +82,9 @@ function registerWebhookDispatch(client: NotifyClient, tenantId: string): void {
   };
 
   const onMessageEvent = (name: 'sent' | 'delivered' | 'read' | 'failed', event: NotifyEvent, error?: Error) => {
-    dispatchOutboundWebhooks(tenantId, name, { ...event, error: error?.message ?? event.error }).catch(onFailFast);
+    // waitUntil keeps the serverless instance alive until dispatch finishes
+    // after the route has already responded (no-op in local dev).
+    waitUntil(dispatchOutboundWebhooks(tenantId, name, { ...event, error: error?.message ?? event.error }).catch(onFailFast));
   };
 
   client.eventBus.on('sent', (e) => onMessageEvent('sent', e as NotifyEvent));
@@ -90,7 +93,7 @@ function registerWebhookDispatch(client: NotifyClient, tenantId: string): void {
   client.eventBus.on('failed', (e, err) => onMessageEvent('failed', e as NotifyEvent, err as Error));
   client.eventBus.on('reply', (reply) => {
     const r = reply as InboundReply;
-    dispatchOutboundWebhooks(tenantId, 'reply', { ...r }).catch(onFailFast);
+    waitUntil(dispatchOutboundWebhooks(tenantId, 'reply', { ...r }).catch(onFailFast));
   });
 }
 
