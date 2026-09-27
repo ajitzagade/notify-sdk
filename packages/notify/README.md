@@ -152,6 +152,8 @@ await notify.send({
 });
 ```
 
+**`waMessageId` and `send()`'s return value**: for a normal (no `scheduleAt`) send, the promise `send()` returns doesn't resolve until the Meta API call has actually completed — so `waMessageId` is guaranteed present on the returned `NotifyEvent` (or the send has already failed and `status` reflects that). This holds for every priority level with the default `InlineQueueAdapter`, which every hosted `/v1/send` and `/partner`-provisioned tenant uses. The one case where this *isn't* true: passing `scheduleAt`, or a deployment using `BullQueueAdapter` — there, `send()` returns immediately with `status: 'queued'` and no `waMessageId` yet, since the actual Meta call hasn't happened. Consumers that need the real message ID for a scheduled/queued send should read it off the `'sent'` event/webhook once it fires, not assume it's on the initial response.
+
 ### Bulk send
 
 ```ts

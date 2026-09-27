@@ -28,6 +28,54 @@ self-serve issuance endpoint — ask an operator). They can be labeled and
 revoked (`revoked_at`) but are not tenant-scoped: one key can provision any
 number of tenants.
 
+### Issuing a new partner key
+
+There is no `POST` endpoint for this (deliberately — creating a key that can
+create tenants is an operator action, not something to expose over the
+network the key itself would authenticate). Generate one with the SDK's own
+`hashPassword` primitive (the same scrypt-based hash used for tenant `nsk_`
+keys and admin passwords — never store a partner key's plaintext):
+
+```ts
+// One-off script, run with DATABASE_URL pointed at the target environment.
+import crypto from 'crypto';
+import { hashPassword } from '@orgname/notify';
+import { Pool } from 'pg';
+
+const secret    = crypto.randomBytes(24).toString('base64url');
+const keyPrefix = secret.slice(0, 8);       // must match KEY_PREFIX_LENGTH in partnerKeyAuth.ts
+const fullKey   = `psk_${secret}`;          // give this to the partner ONCE — it is never recoverable after
+
+const { hash, salt } = await hashPassword(fullKey);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+await pool.query(
+  `INSERT INTO partner_api_keys (key_prefix, key_hash, key_salt, label) VALUES ($1, $2, $3, $4)`,
+  [keyPrefix, hash, salt, 'Cliniqly integration']
+);
+```
+
+`keyPrefix` must be exactly 8 characters (`KEY_PREFIX_LENGTH` in
+`apps/api/src/lib/partnerKeyAuth.ts`) — it's how `requirePartnerKey` finds the
+candidate row(s) to verify against before hashing, without a full-table scan.
+
+### Rotating or revoking a partner key
+
+Rotation is issue-new-then-revoke-old, not an in-place update — there is no
+"same key, new secret" operation, matching how tenant `nsk_` keys work:
+
+1. Issue a new key (above) and hand it to the partner.
+2. Once they've confirmed the new key works (e.g. a real `GET
+   /partner/tenants/:id/status` call), revoke the old one:
+   ```sql
+   UPDATE partner_api_keys SET revoked_at = NOW() WHERE key_prefix = '<old prefix>';
+   ```
+   `requirePartnerKey` filters `WHERE ... AND revoked_at IS NULL`, so a
+   revoked key 401s immediately on its next use — no propagation delay,
+   no cache to bust.
+3. To revoke without replacing (e.g. a suspected leak), just do step 2 alone.
+   There's no "disable temporarily" state — revocation is one-way; issue a
+   fresh key to resume access.
+
 ## Base URL
 
 `https://api.azentis.in/partner` in production; `http://localhost:3001/partner`
