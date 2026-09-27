@@ -26,6 +26,28 @@ export { createSessionToken, verifySessionToken, parseSessionSecret } from './se
 export type { SessionPayload }                             from './security/SessionCookie';
 export { isPrivateOrReservedIp, isDeliverableUrl }         from './security/SsrfGuard';
 
+// Provisioning — shared partner/admin tenant-onboarding orchestration
+export {
+  createTenant as provisionTenant,
+  issueApiKey,
+  createWebhookEndpoint as provisionWebhookEndpoint,
+  completeEmbeddedSignup as provisionEmbeddedSignup,
+  saveManualCredentials,
+  isValidSlug,
+} from './provisioning/tenantProvisioning';
+export type {
+  ProvisioningPool,
+  ProvisioningContext,
+  ProvisionedTenant,
+  ProvisionedApiKey,
+  ProvisionedWebhookEndpoint,
+  ProvisioningWebhookEvent,
+  EmbeddedSignupResult as ProvisioningEmbeddedSignupResult,
+} from './provisioning/tenantProvisioning';
+export {
+  verifyWhatsAppCredentials as provisioningVerifyCredentials,
+} from './provisioning/metaGraphClient';
+
 // Webhook
 export { renderHsmBody } from './core/extractBodyPreview';
 export { verifyWhatsAppSignature, signOutboundWebhookPayload } from './webhook/signature';

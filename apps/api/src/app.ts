@@ -2,6 +2,7 @@ import './lib/sentry';
 import express from 'express';
 import helmet from 'helmet';
 import { v1Router } from './routes/v1';
+import { partnerRouter } from './routes/partner';
 
 /**
  * The production-relevant surface only: /v1/* (multi-tenant, API-key
@@ -22,3 +23,7 @@ import { v1Router } from './routes/v1';
 export const app = express();
 app.use(helmet());
 app.use('/v1', v1Router);
+// Server-to-server tenant provisioning for a partner platform (e.g.
+// Cliniqly) — its own psk_-keyed auth, entirely separate from /v1's
+// tenant-scoped nsk_ keys. See docs/cliniqly-integration-brief.md item 1.
+app.use('/partner', partnerRouter);
