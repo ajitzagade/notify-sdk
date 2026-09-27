@@ -143,3 +143,59 @@ describe('TemplateEngine — interactive list messages', () => {
       .toThrow(/Template "nonexistent" not found/);
   });
 });
+
+describe('TemplateEngine — caller-supplied button IDs (work item 5)', () => {
+  const engine = new TemplateEngine();
+
+  it('existing string-form buttons payload is byte-identical to before', () => {
+    const payload = engine.build({
+      to: '91987', template: 'interactive_buttons', text: 'pick one',
+      buttons: ['A', 'B'], meta: { refId: 'x' },
+    });
+
+    expect(payload).toEqual({
+      messaging_product: 'whatsapp', to: '91987', type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: { text: 'pick one' },
+        action: {
+          buttons: [
+            { type: 'reply', reply: { id: 'btn_0_x', title: 'A' } },
+            { type: 'reply', reply: { id: 'btn_1_x', title: 'B' } },
+          ],
+        },
+      },
+    });
+  });
+
+  it('a caller-supplied { id, title } button uses the caller\'s own id verbatim', () => {
+    const payload = engine.build({
+      to: '91987', template: 'interactive_buttons', text: 'Cancel your appointment?',
+      buttons: [{ id: 'CANCEL_APPOINTMENT:123', title: 'Cancel' }],
+    }) as { interactive: { action: { buttons: Array<{ reply: { id: string; title: string } }> } } };
+
+    expect(payload.interactive.action.buttons[0].reply).toEqual({
+      id: 'CANCEL_APPOINTMENT:123', title: 'Cancel',
+    });
+  });
+
+  it('mixes string and object button forms in the same send without cross-contaminating ids', () => {
+    const payload = engine.build({
+      to: '91987', template: 'interactive_buttons', text: 'q',
+      buttons: ['Auto-generated', { id: 'CUSTOM_ID', title: 'Custom' }],
+      meta: { refId: 'r1' },
+    }) as { interactive: { action: { buttons: Array<{ reply: { id: string; title: string } }> } } };
+
+    expect(payload.interactive.action.buttons[0].reply).toEqual({ id: 'btn_0_r1', title: 'Auto-generated' });
+    expect(payload.interactive.action.buttons[1].reply).toEqual({ id: 'CUSTOM_ID', title: 'Custom' });
+  });
+
+  it('still caps at 3 buttons total regardless of form', () => {
+    const payload = engine.build({
+      to: '91987', template: 'interactive_buttons', text: 'q',
+      buttons: ['A', 'B', 'C', { id: 'D_ID', title: 'D' }],
+    }) as { interactive: { action: { buttons: unknown[] } } };
+
+    expect(payload.interactive.action.buttons).toHaveLength(3);
+  });
+});

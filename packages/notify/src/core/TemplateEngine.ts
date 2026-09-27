@@ -68,13 +68,16 @@ export class TemplateEngine {
           type: 'button',
           body: { text: options.text ?? '' },
           action: {
-            buttons: options.buttons.slice(0, 3).map((label, i) => ({
-              type: 'reply',
-              reply: {
-                id:    `btn_${i}_${String(options.meta?.refId ?? Date.now())}`,
-                title: label,
-              },
-            })),
+            buttons: options.buttons.slice(0, 3).map((button, i) => {
+              const isCallerSupplied = typeof button === 'object' && button !== null;
+              return {
+                type: 'reply',
+                reply: {
+                  id:    isCallerSupplied ? button.id : `btn_${i}_${String(options.meta?.refId ?? Date.now())}`,
+                  title: isCallerSupplied ? button.title : button,
+                },
+              };
+            }),
           },
         },
       };

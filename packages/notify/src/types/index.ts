@@ -97,8 +97,15 @@ export interface SendOptions {
   data?: Record<string, unknown>;
   /** Used when template = 'text' */
   text?: string;
-  /** Up to 3 quick-reply button labels */
-  buttons?: string[];
+  /**
+   * Up to 3 quick-reply buttons. A plain string auto-generates its reply id
+   * (`btn_{index}_{refId}`, unchanged behavior). Pass `{ id, title }` instead
+   * to supply your own reply id — e.g. a caller's own encoded identifier
+   * like `CANCEL_APPOINTMENT:123` — so the id that comes back on
+   * `InboundReply.buttonId` when the customer taps it is one the caller
+   * chose, not one the SDK made up.
+   */
+  buttons?: Array<string | { id: string; title: string }>;
   /** Send an image/video/document/audio message instead of a template */
   attachment?: MediaAttachment;
   /** Send a real Meta-approved template message (works outside the 24h session window) */

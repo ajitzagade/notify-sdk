@@ -96,7 +96,7 @@ v1Router.use(rateLimit);
 v1Router.post('/send', asyncHandler(async (req, res) => {
   const body = req.body as {
     to?: string; template?: string; data?: Record<string, unknown>; text?: string;
-    buttons?: string[]; attachment?: MediaAttachment;
+    buttons?: SendOptions['buttons']; attachment?: MediaAttachment;
     hsmTemplate?: { name: string; language: string; components?: HsmComponent[] };
     list?: SendOptions['list'];
     priority?: 'low' | 'normal' | 'high'; scheduleAt?: string;
