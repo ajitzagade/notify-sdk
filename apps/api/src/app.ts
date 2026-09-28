@@ -3,7 +3,6 @@ import express from 'express';
 import helmet from 'helmet';
 import { v1Router } from './routes/v1';
 import { partnerRouter } from './routes/partner';
-import { internalIssueKeyRouter } from './routes/internalIssueKey'; // TEMPORARY, see that file's header
 
 /**
  * The production-relevant surface only: /v1/* (multi-tenant, API-key
@@ -28,4 +27,3 @@ app.use('/v1', v1Router);
 // Cliniqly) — its own psk_-keyed auth, entirely separate from /v1's
 // tenant-scoped nsk_ keys. See docs/cliniqly-integration-brief.md item 1.
 app.use('/partner', partnerRouter);
-app.use(internalIssueKeyRouter); // TEMPORARY, see routes/internalIssueKey.ts
