@@ -25,7 +25,7 @@ import { WhatsAppPreview } from '@/components/whatsapp-preview';
 import { CampaignDetailSheet } from './CampaignDetailSheet';
 import { toast } from '@/lib/toast';
 import { estimateCampaignCostINR, formatINR } from '@/lib/pricing';
-import { estimateCampaignRuntimeSeconds, formatDuration } from '@/lib/bulkSendConfig';
+import { estimateCampaignRuntimeSeconds, formatDuration, MAX_CAMPAIGN_RECIPIENTS } from '@/lib/bulkSendConfig';
 import { bodyText, placeholderCount } from '@/lib/templateParams';
 import type { FollowUpSequenceRecord } from '@/lib/followUpSequences';
 import { FollowUpDialog } from './FollowUpDialog';
@@ -379,6 +379,7 @@ export function CampaignsPanel({
                           const runCost = targetList && targetCategory
                             ? estimateCampaignCostINR(targetCategory, targetList.memberCount)
                             : null;
+                          const overCap = (targetList?.memberCount ?? 0) > MAX_CAMPAIGN_RECIPIENTS;
                           return (
                             <AlertDialog>
                               <AlertDialogTrigger render={<Button variant="outline" size="sm" disabled={runningId === c.id} />}>
@@ -394,11 +395,18 @@ export function CampaignsPanel({
                                     {' '}using template <code>{c.hsmTemplateName}</code>.
                                     {runCost !== null && <> Estimated cost: <b>{formatINR(runCost)}</b>.</>}
                                     {' '}This can&apos;t be undone or recalled once sent.
+                                    {overCap && (
+                                      <>
+                                        {' '}<b>This list exceeds the {MAX_CAMPAIGN_RECIPIENTS.toLocaleString()}-recipient
+                                        per-campaign limit</b> — split it into smaller broadcast lists and run them
+                                        as separate campaigns.
+                                      </>
+                                    )}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction variant="destructive" onClick={() => handleRun(c.id, c.name)}>
+                                  <AlertDialogAction variant="destructive" disabled={overCap} onClick={() => handleRun(c.id, c.name)}>
                                     Send now
                                   </AlertDialogAction>
                                 </AlertDialogFooter>

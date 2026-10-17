@@ -7,6 +7,16 @@ export const CAMPAIGN_BATCH_SIZE = 50;
 export const CAMPAIGN_BATCH_DELAY_MS = 1000;
 
 /**
+ * Hard per-campaign recipient ceiling, enforced server-side in both run routes
+ * and surfaced in the run dialog. Bound chosen from the serverless budget: at
+ * batchSize 50 with a 1s inter-batch delay plus ~1s of Meta latency per batch,
+ * 2 000 recipients ≈ 80s — comfortably inside the 300s maxDuration, with the
+ * rest as headroom for slow Meta responses. Larger audiences need the queued
+ * runner (roadmap item), not a bigger cap.
+ */
+export const MAX_CAMPAIGN_RECIPIENTS = 2000;
+
+/**
  * Lower-bound estimate: only counts the artificial inter-batch delay, not
  * per-message network time (unmeasured, varies with Meta's response time) —
  * the real run will take at least this long, usually a bit more.

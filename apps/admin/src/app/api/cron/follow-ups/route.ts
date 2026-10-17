@@ -3,7 +3,9 @@ import type { HsmComponent } from '@orgname/notify';
 import { getPool } from '@/lib/db';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
 
-export const maxDuration = 60;
+// Each sequence's sendBulk runs inline here; one large audience could eat a
+// 60s budget alone, so take the full serverless allowance.
+export const maxDuration = 300;
 
 interface DueSequenceRow {
   id: string;

@@ -143,6 +143,17 @@ v1Router.post('/send-bulk', asyncHandler(async (req, res) => {
     res.status(400).json({ error: 'recipients and template are required' });
     return;
   }
+  // Same ceiling as admin campaigns (apps/admin's MAX_CAMPAIGN_RECIPIENTS):
+  // the send runs inline in this serverless request, so an unbounded list
+  // would be killed mid-send at the function timeout with no resume.
+  const MAX_BULK_RECIPIENTS = 2000;
+  const uniqueRecipients = new Set(body.recipients.filter(Boolean)).size;
+  if (uniqueRecipients > MAX_BULK_RECIPIENTS) {
+    res.status(400).json({
+      error: `Too many recipients: ${uniqueRecipients} (max ${MAX_BULK_RECIPIENTS} per request). Split into multiple requests.`,
+    });
+    return;
+  }
 
   const client = await getTenantRegistry().getClient(req.tenantId as string);
   const result = await client.sendBulk({

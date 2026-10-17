@@ -7,6 +7,11 @@ import { getListPhones } from '@/lib/broadcastLists';
 import { getTenantRegistry } from '@/lib/tenantRegistry';
 import { getHsmBodyPreview } from '@/lib/hsmPreview';
 import { CAMPAIGN_BATCH_SIZE, CAMPAIGN_BATCH_DELAY_MS } from '@/lib/bulkSendConfig';
+import { precheckCampaignSend } from '@/lib/campaignPrecheck';
+
+// The bulk send runs inline in this request (see the note on POST below), so
+// give it the full serverless budget rather than the plan default.
+export const maxDuration = 300;
 
 /** Fills the template's media HEADER component, if the campaign has one attached. */
 function buildHeaderComponent(campaign: CampaignRecord): HsmComponent | null {
@@ -44,6 +49,11 @@ export const POST = withAdminSession(
     const phones = await getListPhones(campaign.broadcastListId);
     if (!phones.length) {
       return NextResponse.json({ error: 'Broadcast list has no members' }, { status: 400 });
+    }
+
+    const precheck = await precheckCampaignSend(tenant.id, phones);
+    if (!precheck.ok) {
+      return NextResponse.json({ error: precheck.error }, { status: precheck.status });
     }
 
     await markCampaignRunning(campaign.id);
