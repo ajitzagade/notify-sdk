@@ -5,7 +5,7 @@ import { listContacts, listDistinctTags } from '@/lib/contacts';
 import { ContactsPanel } from '@/app/tenants/[id]/contacts/ContactsPanel';
 
 export default async function PortalContactsPage() {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
 
   const [contacts, allTags] = await Promise.all([
     listContacts(session.tenantId),

@@ -47,7 +47,10 @@ export function AuditLogPanel({ entries }: { entries: AuditLogEntry[] }) {
                 {entries.map((e) => (
                   <TableRow key={e.id}>
                     <TableCell className="font-medium">{ACTION_LABEL[e.action] ?? e.action}</TableCell>
-                    <TableCell className="text-muted-foreground">{e.adminEmail ?? 'unknown admin'}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {e.adminEmail
+                        ?? (typeof e.details.portalEmail === 'string' ? `${e.details.portalEmail} (portal)` : 'unknown admin')}
+                    </TableCell>
                     <TableCell className="text-right text-xs text-muted-foreground">
                       {new Date(e.createdAt).toLocaleString()}
                     </TableCell>

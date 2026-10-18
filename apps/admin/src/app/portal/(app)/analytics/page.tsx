@@ -3,8 +3,8 @@ import { PageTitle } from '@/components/page-title';
 import { requirePortalSessionOrRedirect } from '@/lib/tenantPortalAuth';
 import { AnalyticsPanel } from '@/app/tenants/[id]/AnalyticsPanel';
 
-export default function PortalAnalyticsPage() {
-  const session = requirePortalSessionOrRedirect();
+export default async function PortalAnalyticsPage() {
+  const session = await requirePortalSessionOrRedirect();
 
   return (
     <>

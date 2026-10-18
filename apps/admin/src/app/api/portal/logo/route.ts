@@ -3,9 +3,11 @@ import { put } from '@vercel/blob';
 import { withPortalSession } from '@/lib/tenantPortalAuth';
 import { setTenantLogoUrl } from '@/lib/tenants';
 
-// Portal twin of POST /api/tenants/[id]/logo — same validation, tenant from session.
+// Portal twin of POST /api/tenants/[id]/logo — tenant from session. SVG is
+// deliberately NOT accepted here (unlike the admin route): SVG can embed
+// script, and this surface is exposed to non-ops users. Raster formats only.
 const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2MB
-const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 export const POST = withPortalSession(async (session, req: NextRequest) => {
   const formData = await req.formData();

@@ -6,7 +6,7 @@ import { getTenant, getCredentialStatus } from '@/lib/tenants';
 import { TemplatesPanel } from '@/app/tenants/[id]/TemplatesPanel';
 
 export default async function PortalTemplatesPage() {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
   const [templates, tenant, credentials] = await Promise.all([
     listTemplates(session.tenantId),
     getTenant(session.tenantId),

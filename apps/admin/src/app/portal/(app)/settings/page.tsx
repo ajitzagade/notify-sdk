@@ -13,7 +13,7 @@ import { ApiKeysPanel } from '@/app/tenants/[id]/ApiKeysPanel';
 import { EmbeddedSignupButton } from '@/app/tenants/[id]/EmbeddedSignupButton';
 
 export default async function PortalSettingsPage() {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
   const [tenant, credentials, mediaAssets, templates, apiKeys] = await Promise.all([
     getTenant(session.tenantId),
     getCredentialStatus(session.tenantId),

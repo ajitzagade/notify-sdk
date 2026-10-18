@@ -8,8 +8,22 @@ export const GET = withPortalSession(async (session) => {
   return NextResponse.json({ keys });
 });
 
+// Self-serve issuance cap — plenty for real integrations, stops a compromised
+// portal login from minting keys in bulk. Ops-side issuance has no cap.
+const MAX_ACTIVE_KEYS = 20;
+
 export const POST = withPortalSession(async (session, req: NextRequest) => {
   const body = (await req.json()) as { label?: string };
+
+  const existing = await listApiKeys(session.tenantId);
+  const activeCount = existing.filter((k) => !k.revokedAt).length;
+  if (activeCount >= MAX_ACTIVE_KEYS) {
+    return NextResponse.json(
+      { error: `Active key limit reached (${MAX_ACTIVE_KEYS}). Revoke unused keys first.` },
+      { status: 400 }
+    );
+  }
+
   const { record, fullKey } = await createApiKey(session.tenantId, body.label, {
     portalUserId: session.tenantUserId,
   });

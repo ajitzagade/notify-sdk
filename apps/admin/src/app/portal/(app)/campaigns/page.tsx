@@ -10,7 +10,7 @@ import { ImportContactsForm } from '@/app/tenants/[id]/campaigns/ImportContactsF
 import { CampaignsPanel } from '@/app/tenants/[id]/campaigns/CampaignsPanel';
 
 export default async function PortalCampaignsPage() {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
   const tenant = await getTenant(session.tenantId);
 
   const [lists, templates, campaigns, mediaAssets] = await Promise.all([

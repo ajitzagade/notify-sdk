@@ -5,7 +5,7 @@ import { countOpenConversations } from '@/lib/conversations';
 import { PortalShell } from '@/components/portal-shell';
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
   const [tenant, openChatsCount] = await Promise.all([
     getTenant(session.tenantId),
     countOpenConversations(session.tenantId),

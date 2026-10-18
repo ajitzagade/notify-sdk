@@ -45,14 +45,40 @@ export async function createPortalUser(input: {
   return rowToPortalUser(rows[0]);
 }
 
-/** Ops-side recovery for a lost/mistyped password — there is no self-serve reset. */
+/**
+ * Ops-side recovery for a lost/mistyped password — there is no self-serve
+ * reset. Bumping password_changed_at invalidates every session token issued
+ * before the reset (see validatePortalSessionAgainstDb), so a compromised
+ * login is fully cut off, not just re-keyed.
+ */
 export async function resetPortalUserPassword(tenantId: string, userId: string, password: string): Promise<boolean> {
   const { hash, salt } = await hashPassword(password);
   const { rowCount } = await getPool().query(
-    `UPDATE tenant_portal_users SET password_hash = $1, password_salt = $2 WHERE id = $3 AND tenant_id = $4`,
+    `UPDATE tenant_portal_users SET password_hash = $1, password_salt = $2, password_changed_at = NOW()
+      WHERE id = $3 AND tenant_id = $4`,
     [hash, salt, userId, tenantId]
   );
   return (rowCount ?? 0) > 0;
+}
+
+/**
+ * Per-request session revalidation: portal tokens are stateless with a 7-day
+ * TTL, so without this check deactivation/password-reset couldn't end a live
+ * session — and the portal can mint API keys, so a stale session could
+ * escalate to persistent access. One PK lookup per request.
+ */
+export async function isPortalSessionStillValid(
+  tenantId: string,
+  userId: string,
+  tokenIssuedAtMs: number
+): Promise<boolean> {
+  const { rows } = await getPool().query(
+    `SELECT is_active, password_changed_at FROM tenant_portal_users WHERE id = $1 AND tenant_id = $2`,
+    [userId, tenantId]
+  );
+  const row = rows[0];
+  if (!row || !row.is_active) return false;
+  return tokenIssuedAtMs >= new Date(row.password_changed_at as string).getTime();
 }
 
 export async function setPortalUserActive(tenantId: string, userId: string, isActive: boolean): Promise<boolean> {

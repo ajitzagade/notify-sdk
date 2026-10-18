@@ -48,7 +48,7 @@ const CAMPAIGN_STATUS_VARIANT: Record<string, 'outline' | 'secondary' | 'default
 };
 
 export default async function PortalDashboardPage() {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
   const [tenant, rollup, daily, conversations, campaigns, health] = await Promise.all([
     getTenant(session.tenantId),
     getTenantRollup(session.tenantId),

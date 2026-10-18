@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { getSessionSecret } from './security';
+import { isPortalSessionStillValid } from './tenantPortalUsers';
 
 export const PORTAL_SESSION_COOKIE = 'notify_tenant_session';
 
@@ -92,9 +93,23 @@ export function getPortalSession(): PortalSessionPayload | null {
   }
 }
 
-/** The real authorization boundary for portal Server Components/pages. */
-export function requirePortalSessionOrRedirect(): PortalSessionPayload {
+/**
+ * Cryptographic check + per-request DB revalidation (is_active, token issued
+ * after the last password change). The DB check is what makes deactivation and
+ * password reset take effect immediately instead of at token expiry — tokens
+ * live 7 days and the portal can mint API keys, so a stale-but-valid token is
+ * a real escalation path, not a cosmetic gap.
+ */
+async function getValidatedPortalSession(): Promise<PortalSessionPayload | null> {
   const session = getPortalSession();
+  if (!session) return null;
+  const stillValid = await isPortalSessionStillValid(session.tenantId, session.tenantUserId, session.iat);
+  return stillValid ? session : null;
+}
+
+/** The real authorization boundary for portal Server Components/pages. */
+export async function requirePortalSessionOrRedirect(): Promise<PortalSessionPayload> {
+  const session = await getValidatedPortalSession();
   if (!session) redirect('/portal/login');
   return session;
 }
@@ -104,7 +119,7 @@ export function withPortalSession<Args extends unknown[]>(
   handler: (session: PortalSessionPayload, ...args: Args) => Promise<NextResponse>
 ): (...args: Args) => Promise<NextResponse> {
   return async (...args: Args) => {
-    const session = getPortalSession();
+    const session = await getValidatedPortalSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

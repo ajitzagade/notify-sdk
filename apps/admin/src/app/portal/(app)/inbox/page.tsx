@@ -6,7 +6,7 @@ import { listPortalUsers } from '@/lib/tenantPortalUsers';
 import { InboxClient } from '@/app/tenants/[id]/inbox/InboxClient';
 
 export default async function PortalInboxPage() {
-  const session = requirePortalSessionOrRedirect();
+  const session = await requirePortalSessionOrRedirect();
   const [conversations, portalUsers] = await Promise.all([
     listConversations(session.tenantId),
     listPortalUsers(session.tenantId),
