@@ -40,12 +40,15 @@ export function TestSendForm({
   credentialsConfigured,
   mediaAssets,
   templates,
+  baseApiPath = `/api/tenants/${tenantId}`,
 }: {
   tenantId: string;
   tenantName: string;
   credentialsConfigured: boolean;
   mediaAssets: MediaAssetRecord[];
   templates: TemplateRecord[];
+  /** Portal pages pass `/api/portal` — same routes, tenant scoped by session instead of URL. */
+  baseApiPath?: string;
 }) {
   const router = useRouter();
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -88,7 +91,7 @@ export function TestSendForm({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`/api/tenants/${tenantId}/media`, { method: 'POST', body: formData });
+      const res = await fetch(`${baseApiPath}/media`, { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Upload failed');
       setSelectedAssetId(data.asset.id);
@@ -108,7 +111,7 @@ export function TestSendForm({
     setSending(true);
     setResult(null);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/test-send`, {
+      const res = await fetch(`${baseApiPath}/test-send`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

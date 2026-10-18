@@ -23,6 +23,30 @@ export async function recordAuditEvent(input: {
   );
 }
 
+/**
+ * Audit entry for an action performed by a tenant portal user (self-service).
+ * admin_audit_log.admin_user_id stays NULL (it references admin_users); the
+ * portal actor is recorded in details so the Audit log tab can still answer
+ * "who did this".
+ */
+export async function recordPortalAuditEvent(input: {
+  tenantId: string;
+  portalUserId: string;
+  portalEmail: string;
+  action: string;
+  details?: Record<string, unknown>;
+}): Promise<void> {
+  await getPool().query(
+    `INSERT INTO admin_audit_log (tenant_id, admin_user_id, action, details)
+     VALUES ($1, NULL, $2, $3)`,
+    [
+      input.tenantId,
+      input.action,
+      JSON.stringify({ ...input.details, actor: 'portal', portalUserId: input.portalUserId, portalEmail: input.portalEmail }),
+    ]
+  );
+}
+
 export async function listAuditLog(tenantId: string, limit = 30): Promise<AuditLogEntry[]> {
   const { rows } = await getPool().query(
     `SELECT l.*, u.email AS admin_email

@@ -29,7 +29,14 @@ declare global {
 const SDK_URL = 'https://connect.facebook.net/en_US/sdk.js';
 const GRAPH_VERSION = 'v20.0';
 
-export function EmbeddedSignupButton({ tenantId }: { tenantId: string }) {
+export function EmbeddedSignupButton({
+  tenantId,
+  endpoint = `/api/tenants/${tenantId}/embedded-signup`,
+}: {
+  tenantId: string;
+  /** Portal passes `/api/portal/embedded-signup` — tenant scoped by session instead of URL. */
+  endpoint?: string;
+}) {
   const router = useRouter();
   const appId = process.env.NEXT_PUBLIC_META_APP_ID;
   const configId = process.env.NEXT_PUBLIC_META_ES_CONFIG_ID;
@@ -116,7 +123,7 @@ export function EmbeddedSignupButton({ tenantId }: { tenantId: string }) {
     if (!wabaId || !phoneNumberId) {
       throw new Error('Signup finished but Meta did not report the new account ids — please try again');
     }
-    const res = await fetch(`/api/tenants/${tenantId}/embedded-signup`, {
+    const res = await fetch(endpoint, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ code, wabaId, phoneNumberId }),

@@ -16,7 +16,16 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/lib/toast';
 
-export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys: ApiKeyRecord[] }) {
+export function ApiKeysPanel({
+  tenantId,
+  apiKeys,
+  baseApiPath = `/api/tenants/${tenantId}`,
+}: {
+  tenantId: string;
+  apiKeys: ApiKeyRecord[];
+  /** Portal pages pass `/api/portal` — same routes, tenant scoped by session instead of URL. */
+  baseApiPath?: string;
+}) {
   const router = useRouter();
   const [label, setLabel]         = useState('');
   const [creating, setCreating]   = useState(false);
@@ -32,7 +41,7 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
     setNewKey(null);
     setCopied(false);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/api-keys`, {
+      const res = await fetch(`${baseApiPath}/api-keys`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ label: label || undefined }),
@@ -56,7 +65,7 @@ export function ApiKeysPanel({ tenantId, apiKeys }: { tenantId: string; apiKeys:
     setRevokingId(keyId);
     setError(null);
     try {
-      const res = await fetch(`/api/tenants/${tenantId}/api-keys/${keyId}/revoke`, { method: 'POST' });
+      const res = await fetch(`${baseApiPath}/api-keys/${keyId}/revoke`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to revoke key');
       toast.success('API key revoked');

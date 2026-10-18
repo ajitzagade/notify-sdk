@@ -42,7 +42,7 @@ export async function listApiKeys(tenantId: string): Promise<ApiKeyRecord[]> {
 export async function createApiKey(
   tenantId: string,
   label: string | undefined,
-  createdByAdminId: string
+  createdBy: { adminId: string } | { portalUserId: string }
 ): Promise<{ record: ApiKeyRecord; fullKey: string }> {
   const secret    = crypto.randomBytes(24).toString('base64url');
   const keyPrefix = secret.slice(0, KEY_PREFIX_LENGTH);
@@ -51,9 +51,13 @@ export async function createApiKey(
   const { hash, salt } = await hashPassword(fullKey);
 
   const { rows } = await getPool().query(
-    `INSERT INTO tenant_api_keys (tenant_id, key_prefix, key_hash, key_salt, label, created_by_admin_id)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [tenantId, keyPrefix, hash, salt, label ?? null, createdByAdminId]
+    `INSERT INTO tenant_api_keys (tenant_id, key_prefix, key_hash, key_salt, label, created_by_admin_id, created_by_tenant_user_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [
+      tenantId, keyPrefix, hash, salt, label ?? null,
+      'adminId' in createdBy ? createdBy.adminId : null,
+      'portalUserId' in createdBy ? createdBy.portalUserId : null,
+    ]
   );
 
   return { record: rowToKey(rows[0]), fullKey };

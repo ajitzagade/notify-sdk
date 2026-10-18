@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, UserRound, UserPlus, UserX, UserCheck, Loader2 } from 'lucide-react';
+import { AlertCircle, UserRound, UserPlus, UserX, UserCheck, KeyRound, Loader2 } from 'lucide-react';
 import type { PortalUserRecord } from '@/lib/tenantPortalUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardTitleGroup } from '@/components/card-title-group';
@@ -48,6 +48,31 @@ export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users
       toast.error(message);
     } finally {
       setCreating(false);
+    }
+  };
+
+  const [resetPw, setResetPw] = useState('');
+  const [resettingId, setResettingId] = useState<string | null>(null);
+
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    setResettingId(userId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/tenants/${tenantId}/portal-users/${userId}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ password: resetPw }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to reset password');
+      toast.success(`Password reset for ${userEmail} — share the new one with them now`);
+      setResetPw('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      toast.error(message);
+    } finally {
+      setResettingId(null);
     }
   };
 
@@ -146,6 +171,40 @@ export function PortalAccessPanel({ tenantId, users }: { tenantId: string; users
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Badge variant={u.isActive ? 'default' : 'secondary'}>{u.isActive ? 'active' : 'deactivated'}</Badge>
+                        {u.isActive && (
+                          <AlertDialog>
+                            <AlertDialogTrigger
+                              render={<Button type="button" variant="outline" size="sm" disabled={resettingId === u.id} onClick={() => setResetPw('')} />}
+                            >
+                              {resettingId === u.id ? <Loader2 className="animate-spin" /> : <KeyRound />}
+                              {resettingId === u.id ? 'Resetting…' : 'Reset password'}
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Reset {u.email}&apos;s password?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Their current password stops working immediately. Type the new one below and share it with them — it won&apos;t be shown again.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <Input
+                                type="password"
+                                placeholder="New password (min 8 chars)"
+                                value={resetPw}
+                                onChange={(e) => setResetPw(e.target.value)}
+                                minLength={8}
+                              />
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  disabled={resetPw.length < 8}
+                                  onClick={() => handleResetPassword(u.id, u.email)}
+                                >
+                                  Reset password
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                         {u.isActive ? (
                           <AlertDialog>
                             <AlertDialogTrigger render={<Button type="button" variant="outline" size="sm" disabled={togglingId === u.id} />}>

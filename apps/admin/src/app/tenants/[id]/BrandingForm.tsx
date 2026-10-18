@@ -16,7 +16,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/lib/toast';
 
-export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
+export function BrandingForm({
+  tenant,
+  updateUrl = `/api/tenants/${tenant.id}`,
+  logoUrl = `/api/tenants/${tenant.id}/logo`,
+}: {
+  tenant: TenantRecord;
+  /** Portal pages pass their own session-scoped endpoints (`/api/portal/tenant`, `/api/portal/logo`). */
+  updateUrl?: string;
+  logoUrl?: string;
+}) {
   const router = useRouter();
   // shadcn's Input wrapper doesn't forward refs (React 18) — remount via key instead of ref.value = ''.
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -34,7 +43,7 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/tenants/${tenant.id}`, {
+      const res = await fetch(updateUrl, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ name, primaryColor, businessDescription: description, ...(category ? { category } : {}) }),
@@ -60,7 +69,7 @@ export function BrandingForm({ tenant }: { tenant: TenantRecord }) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`/api/tenants/${tenant.id}/logo`, { method: 'POST', body: formData });
+      const res = await fetch(logoUrl, { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Upload failed');
       toast.success('Logo updated');

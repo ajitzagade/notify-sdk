@@ -45,6 +45,16 @@ export async function createPortalUser(input: {
   return rowToPortalUser(rows[0]);
 }
 
+/** Ops-side recovery for a lost/mistyped password — there is no self-serve reset. */
+export async function resetPortalUserPassword(tenantId: string, userId: string, password: string): Promise<boolean> {
+  const { hash, salt } = await hashPassword(password);
+  const { rowCount } = await getPool().query(
+    `UPDATE tenant_portal_users SET password_hash = $1, password_salt = $2 WHERE id = $3 AND tenant_id = $4`,
+    [hash, salt, userId, tenantId]
+  );
+  return (rowCount ?? 0) > 0;
+}
+
 export async function setPortalUserActive(tenantId: string, userId: string, isActive: boolean): Promise<boolean> {
   const { rowCount } = await getPool().query(
     `UPDATE tenant_portal_users SET is_active = $1 WHERE id = $2 AND tenant_id = $3`,

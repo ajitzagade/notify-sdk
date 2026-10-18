@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Megaphone, Users, LayoutTemplate, Inbox, BarChart3 } from 'lucide-react';
+import { LayoutGrid, Megaphone, Users, LayoutTemplate, Inbox, BarChart3, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/portal/templates', label: 'Templates', icon: LayoutTemplate },
   { href: '/portal/inbox',     label: 'Inbox',     icon: Inbox },
   { href: '/portal/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/portal/settings',  label: 'Settings',  icon: Settings },
 ];
 
 export function PortalNavLinks({ openChatsCount = 0 }: { openChatsCount?: number }) {

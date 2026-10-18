@@ -17,7 +17,7 @@ export const POST = withAdminSession(async (session, req: NextRequest, ctx: { pa
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
 
   const body = (await req.json()) as { label?: string };
-  const { record, fullKey } = await createApiKey(tenant.id, body.label, session.adminUserId);
+  const { record, fullKey } = await createApiKey(tenant.id, body.label, { adminId: session.adminUserId });
 
   await recordAuditEvent({
     tenantId:    tenant.id,
