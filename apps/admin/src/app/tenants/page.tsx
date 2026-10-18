@@ -20,7 +20,7 @@ function StatChip({ icon: Icon, label, value, accent }: {
 }
 
 export default async function TenantsPage() {
-  requireAdminSessionOrRedirect();
+  await requireAdminSessionOrRedirect();
   const [tenants, stats] = await Promise.all([listTenants(), getPlatformStats()]);
 
   return (

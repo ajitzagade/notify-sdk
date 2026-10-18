@@ -4,6 +4,7 @@ import { requireApiKey, AuthenticatedRequest } from '../lib/apiKeyAuth';
 import { getTenantRegistry } from '../lib/tenantRegistry';
 import { resolveTenantIdByPhoneNumberId } from '../lib/webhookTenantResolver';
 import { getHsmBodyPreview } from '../lib/hsmPreview';
+import { redact } from '../lib/sentryScrub';
 
 const asyncHandler =
   (fn: (req: AuthenticatedRequest, res: Response) => Promise<void>) =>
@@ -66,8 +67,11 @@ const tenantWebhookRouter = new TenantWebhookRouter({
  */
 v1Router.get('/webhook/whatsapp', (req, res) => {
   const { 'hub.mode': mode, 'hub.verify_token': token, 'hub.challenge': challenge } = req.query;
-  if (mode === 'subscribe' && token === process.env.PLATFORM_WEBHOOK_VERIFY_TOKEN) {
-    res.send(challenge);
+  // Fail closed when the platform token is unset — `undefined === undefined`
+  // would otherwise let anyone complete the handshake on a misconfigured
+  // deployment. text/plain so the echoed challenge can't render as HTML.
+  if (process.env.PLATFORM_WEBHOOK_VERIFY_TOKEN && mode === 'subscribe' && token === process.env.PLATFORM_WEBHOOK_VERIFY_TOKEN) {
+    res.type('text/plain').send(challenge);
   } else {
     res.sendStatus(403);
   }
@@ -191,5 +195,8 @@ v1Router.get('/logs', asyncHandler(async (req, res) => {
 // index.ts so a rejected promise here 502s instead of crashing the process.
 v1Router.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('✗ /v1 request failed:', err.message);
-  res.status(502).json({ error: err.message });
+  // Meta/send errors are useful to API callers, but raw messages can embed
+  // PII (e.g. a Postgres constraint violation quotes the offending phone
+  // number) — redact with the same patterns the Sentry scrubber uses.
+  res.status(502).json({ error: redact(err.message) });
 });

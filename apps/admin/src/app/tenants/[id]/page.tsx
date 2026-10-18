@@ -36,7 +36,7 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
 };
 
 export default async function TenantDetailPage({ params }: { params: { id: string } }) {
-  requireAdminSessionOrRedirect();
+  await requireAdminSessionOrRedirect();
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
   const [credentials, mediaAssets, templates, apiKeys, portalUsers, auditEntries, aiStatus, webhookEndpoints, flows] = await Promise.all([

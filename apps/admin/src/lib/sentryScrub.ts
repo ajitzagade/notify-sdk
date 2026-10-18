@@ -1,6 +1,6 @@
 import type { ErrorEvent } from '@sentry/nextjs';
 
-function redact(text: string): string {
+export function redact(text: string): string {
   return text
     .replace(/Bearer\s+[A-Za-z0-9._-]{10,}/gi, 'Bearer [redacted]')
     .replace(/\b\d{10,15}\b/g, '[redacted-number]');
@@ -19,5 +19,15 @@ export function scrubPii(event: ErrorEvent): ErrorEvent {
     if (value.value) value.value = redact(value.value);
   }
   if (event.message) event.message = redact(event.message);
+  // Console breadcrumbs attach recent console.log/error lines (which routinely
+  // carry phone numbers from tenant-scoped error logging) to the next captured
+  // event — they bypass the exception-text scrub above unless walked too.
+  for (const crumb of event.breadcrumbs ?? []) {
+    if (crumb.message) crumb.message = redact(crumb.message);
+    const args = crumb.data?.arguments;
+    if (Array.isArray(args)) {
+      crumb.data!.arguments = args.map((a: unknown) => (typeof a === 'string' ? redact(a) : a));
+    }
+  }
   return event;
 }

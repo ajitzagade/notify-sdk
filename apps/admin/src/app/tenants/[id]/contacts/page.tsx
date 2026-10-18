@@ -8,7 +8,7 @@ import { PageTitle } from '@/components/page-title';
 import { ContactsPanel } from './ContactsPanel';
 
 export default async function ContactsPage({ params }: { params: { id: string } }) {
-  requireAdminSessionOrRedirect();
+  await requireAdminSessionOrRedirect();
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
 

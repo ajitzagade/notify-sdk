@@ -39,6 +39,7 @@ export const POST = withAdminSession(async (_session, req: NextRequest, ctx: { p
 
   const blob = await put(`tenants/${tenant.id}/media/${Date.now()}-${file.name}`, file, {
     access: 'public',
+    addRandomSuffix: true, // pinned: the library's v1 default flip to false would make URLs guessable
   });
 
   const asset = await createMediaAsset({

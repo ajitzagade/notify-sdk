@@ -13,7 +13,7 @@ import { ImportContactsForm } from './ImportContactsForm';
 import { CampaignsPanel } from './CampaignsPanel';
 
 export default async function CampaignsPage({ params }: { params: { id: string } }) {
-  requireAdminSessionOrRedirect();
+  await requireAdminSessionOrRedirect();
   const tenant = await getTenant(params.id);
   if (!tenant) notFound();
 

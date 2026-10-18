@@ -50,19 +50,11 @@ export function EmbeddedSignupButton({
   useEffect(() => {
     if (!appId) return;
 
-    // TEMPORARY diagnostic (remove once the real cause is confirmed): log
-    // every single postMessage this window receives, unconditionally, before
-    // any filtering — the previous version filtered by origin/type first and
-    // could silently swallow the very message we need to see.
     const onMessage = (event: MessageEvent) => {
-      // eslint-disable-next-line no-console
-      console.log('[EmbeddedSignup] raw message event:', { origin: event.origin, data: event.data });
-
       let origin: string;
       try {
         origin = new URL(event.origin).hostname;
-      } catch (err) {
-        console.log('[EmbeddedSignup] event.origin failed to parse as a URL:', event.origin, err);
+      } catch {
         return;
       }
       // Meta hosts the Embedded Signup popup on various *.facebook.com
@@ -70,18 +62,15 @@ export function EmbeddedSignupButton({
       // against just two of them silently drops the message on any other
       // subdomain, which looks exactly like "Meta never sent it."
       if (origin !== 'facebook.com' && !origin.endsWith('.facebook.com')) {
-        console.log('[EmbeddedSignup] ignoring message from non-facebook origin:', origin);
         return;
       }
 
       let data: unknown;
       try {
         data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-      } catch (err) {
-        console.log('[EmbeddedSignup] message from facebook.com was not JSON:', event.data, err);
+      } catch {
         return;
       }
-      console.log('[EmbeddedSignup] parsed facebook.com message:', data);
 
       const parsed = data as { type?: string; event?: string; data?: { waba_id?: string; phone_number_id?: string } };
       if (parsed?.type === 'WA_EMBEDDED_SIGNUP' && parsed?.data?.waba_id) {
@@ -89,7 +78,6 @@ export function EmbeddedSignupButton({
           wabaId:        String(parsed.data.waba_id),
           phoneNumberId: parsed.data.phone_number_id ? String(parsed.data.phone_number_id) : undefined,
         };
-        console.log('[EmbeddedSignup] captured wabaId/phoneNumberId:', signupInfo.current);
       }
     };
     window.addEventListener('message', onMessage);

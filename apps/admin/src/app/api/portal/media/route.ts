@@ -18,7 +18,9 @@ export const POST = withPortalSession(async (session, req: NextRequest) => {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'file is required (multipart/form-data)' }, { status: 400 });
   }
-  if (!ALLOWED_TYPE_PREFIXES.some((p) => file.type.startsWith(p))) {
+  // SVG is excluded for the same reason as the portal logo route: it can
+  // embed script, and this surface is exposed to non-ops users.
+  if (!ALLOWED_TYPE_PREFIXES.some((p) => file.type.startsWith(p)) || file.type === 'image/svg+xml') {
     return NextResponse.json({ error: `Unsupported file type: ${file.type}` }, { status: 400 });
   }
   if (file.size > MAX_MEDIA_BYTES) {
@@ -33,6 +35,7 @@ export const POST = withPortalSession(async (session, req: NextRequest) => {
 
   const blob = await put(`tenants/${session.tenantId}/media/${Date.now()}-${file.name}`, file, {
     access: 'public',
+    addRandomSuffix: true, // pinned: the library's v1 default flip to false would make URLs guessable
   });
 
   const asset = await createMediaAsset({

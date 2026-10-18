@@ -16,9 +16,13 @@ export class WebhookHandler {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const express = require('express');
 
-    app.get('/webhook/whatsapp', (req: { query: Record<string, string> }, res: { send: (s: string) => void; sendStatus: (n: number) => void }) => {
+    app.get('/webhook/whatsapp', (req: { query: Record<string, string> }, res: { type: (t: string) => unknown; send: (s: string) => void; sendStatus: (n: number) => void }) => {
       const { 'hub.mode': mode, 'hub.verify_token': token, 'hub.challenge': challenge } = req.query;
-      if (mode === 'subscribe' && token === this.client.config.verifyToken) {
+      // Fail closed when no verifyToken is configured — `undefined === undefined`
+      // would otherwise let anyone complete the handshake on a misconfigured
+      // deployment. text/plain so the echoed challenge can't render as HTML.
+      if (this.client.config.verifyToken && mode === 'subscribe' && token === this.client.config.verifyToken) {
+        res.type('text/plain');
         res.send(challenge);
       } else {
         res.sendStatus(403);
@@ -42,19 +46,41 @@ export class WebhookHandler {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mountFastify(app: any): void {
-    app.get('/webhook/whatsapp', (req: { query: Record<string, string> }, reply: { send: (s: string) => void; code: (n: number) => { send: () => void } }) => {
+    app.get('/webhook/whatsapp', (req: { query: Record<string, string> }, reply: { type: (t: string) => unknown; send: (s: string) => void; code: (n: number) => { send: () => void } }) => {
       const { 'hub.mode': mode, 'hub.verify_token': token, 'hub.challenge': challenge } = req.query;
-      if (mode === 'subscribe' && token === this.client.config.verifyToken) {
+      // Same fail-closed semantics as the Express mount.
+      if (this.client.config.verifyToken && mode === 'subscribe' && token === this.client.config.verifyToken) {
+        reply.type('text/plain');
         reply.send(challenge);
       } else {
         reply.code(403).send();
       }
     });
 
-    app.post('/webhook/whatsapp', async (req: { headers: Record<string, string>; body: unknown }, reply: { code: (n: number) => { send: () => void } }) => {
-      reply.code(200).send();
-      await this.processPayload(req.body);
-    });
+    // The raw request bytes are captured via a route-level preParsing hook so
+    // the HMAC is verified over exactly what Meta signed — re-serializing the
+    // parsed body would not round-trip. Without verification this mount was a
+    // forgery surface (fake STOP/START, fabricated replies/receipts).
+    app.post(
+      '/webhook/whatsapp',
+      {
+        preParsing: async (req: { rawBody?: Buffer }, _reply: unknown, payload: AsyncIterable<Buffer | string>) => {
+          const chunks: Buffer[] = [];
+          for await (const chunk of payload) {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+          }
+          req.rawBody = Buffer.concat(chunks);
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { Readable } = require('stream');
+          return Readable.from(req.rawBody);
+        },
+      },
+      async (req: { headers: Record<string, string>; rawBody?: Buffer; body: unknown }, reply: { code: (n: number) => { send: () => void } }) => {
+        reply.code(200).send();
+        if (!this.validateSignature(req.headers['x-hub-signature-256'] ?? '', req.rawBody ?? Buffer.from(''))) return;
+        await this.processPayload(req.body);
+      }
+    );
   }
 
   /** For Next.js App Router — call from your route.ts POST handler */

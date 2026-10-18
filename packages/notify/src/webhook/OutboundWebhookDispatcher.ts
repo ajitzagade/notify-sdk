@@ -42,6 +42,7 @@ export async function deliverSignedWebhook(args: {
     const res = await fetch(url, {
       method: 'POST',
       redirect: 'manual', // a URL that resolved public just now can't be allowed to bounce to an internal one
+      signal: AbortSignal.timeout(10_000), // a stalling endpoint must not hold the (serverless) invocation open
       headers: {
         'Content-Type': 'application/json',
         'X-Notify-Signature': signatureHeader,

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { app } from '../src/app';
 import { Sentry } from '../src/lib/sentry';
+import { redact } from '../src/lib/sentryScrub';
 
 /**
  * Vercel serverless entry point — this file's path (apps/api/api/index.ts)
@@ -15,7 +16,7 @@ import { Sentry } from '../src/lib/sentry';
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('✗ /v1 request failed (serverless):', err.message);
   Sentry.captureException(err);
-  res.status(502).json({ error: err.message });
+  res.status(502).json({ error: redact(err.message) });
 });
 
 export default app;

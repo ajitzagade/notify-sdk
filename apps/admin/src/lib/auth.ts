@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { verifySessionToken, SessionPayload } from '@orgname/notify';
 import { getSessionSecret } from './security';
+import { getPool } from './db';
 
 export const SESSION_COOKIE = 'notify_admin_session';
 
@@ -29,12 +30,36 @@ export function getAdminSession(): SessionPayload | null {
 }
 
 /**
+ * Cryptographic check + per-request DB revalidation, mirroring the portal's
+ * (tenantPortalAuth.ts). Admin tokens are stateless with a 7-day TTL, so
+ * without the DB check a deactivated admin — the highest-privilege account
+ * type, able to mint API keys and change any tenant's credentials — would
+ * keep full access until token expiry. One PK lookup per request.
+ */
+async function getValidatedAdminSession(): Promise<SessionPayload | null> {
+  const session = getAdminSession();
+  if (!session) return null;
+  try {
+    const { rows } = await getPool().query(
+      `SELECT is_active, password_changed_at FROM admin_users WHERE id = $1`,
+      [session.adminUserId]
+    );
+    const row = rows[0];
+    if (!row || !row.is_active) return null;
+    if (session.iat < new Date(row.password_changed_at as string).getTime()) return null;
+    return session;
+  } catch {
+    return null; // DB unreachable → fail closed
+  }
+}
+
+/**
  * The real authorization boundary for Server Components/pages — middleware
  * only does a cheap cookie-presence redirect (Edge runtime can't run node:crypto
  * session verification), so every protected page calls this too.
  */
-export function requireAdminSessionOrRedirect(): SessionPayload {
-  const session = getAdminSession();
+export async function requireAdminSessionOrRedirect(): Promise<SessionPayload> {
+  const session = await getValidatedAdminSession();
   if (!session) redirect('/login');
   return session;
 }
@@ -47,7 +72,7 @@ export function withAdminSession<Args extends unknown[]>(
   handler: (session: SessionPayload, ...args: Args) => Promise<NextResponse>
 ): (...args: Args) => Promise<NextResponse> {
   return async (...args: Args) => {
-    const session = getAdminSession();
+    const session = await getValidatedAdminSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
